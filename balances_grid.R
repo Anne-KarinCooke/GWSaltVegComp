@@ -1,5 +1,5 @@
 ## Source functions
-setwd("H:/real salt/GWSaltVegComp/thesis project/GWSaltVegComp")
+setwd("H:/Thesis project model/GWSaltVegComp")
 source("Rainfall.R")
 source("Infiltration.R")
 source("Flux.R")
@@ -15,7 +15,7 @@ deltat=12
 timeincr= 1/deltat
 
 M[,,1] <- 5
-h[,][1] <- 10 
+h[,,1] <- 10 
 P[,,1] <- 10
 CM[,,1]<- 0
 Svir[,,1] <- s_fc
@@ -29,6 +29,7 @@ balances2D <- function(Rain, par,
                        vegpar){ 
   
  #plotit=F,
+   
   
   for (i in nrow(raster)) { 
     
@@ -38,28 +39,29 @@ balances2D <- function(Rain, par,
       
       for (tt in 1:(deltat-1)) {
         
+
+#             browser()
         
-        
-        h.old[i,j] <- ifelse(tt==1,h[i,j][t-1],h_sub[i,j][tt]) #raster
+        h.old[i,j] <- ifelse(tt==1,h[i,j,t-1],h_sub[i,j,tt]) #raster
         P.old[i,j] <- ifelse(tt==1,P[i,j,t-1],P_sub[i,j,tt])  # arrays
         M.old[i,j] <- ifelse(tt==1,M[i,j,t-1],M_sub[i,j,tt])
         SmI.old[i,j] <-ifelse(tt==1,SmI[i,j,t-1],SmI_sub[i,j,tt])
         CM.old[i,j] <-ifelse(tt==1,CM[i,j,t-1],CM_sub[i,j,tt])
         Svir.old[i,j] <-ifelse(tt==1,Svir[i,j,t-1],Svir_sub[i,j,tt])
         
-        q_sub[i,j][tt]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])
+        q_sub[i,j,tt]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])
         
-        bla <-runon_fun(flowdir=flowdir,qf=q_sub[i,j][tt])
-        bla[is.na(bla)] <- 0
-        runon_sub[i,j][tt] <-bla[i,j][tt]
+#         rn <-runon_fun(flowdir=flowdir)
+#         rn[is.na(rn)] <- 0
+        runon_sub[i,j,tt] <-rn[i,j]*q_sub[i,j,tt]
 
         #### how to define runon correctly
         
-        h_sub[i,j][tt+1] <- h.old[i,j] + ifelse(tt==1,(10*Rain[t]),0) - Infil(h.old[i,j], P.old[i,j],par)*timeincr - q_sub[i,j][tt] + runon_sub[i,j][tt]
+        h_sub[i,j,tt+1] <- h.old[i,j] + ifelse(tt==1,(10*Rain[t]),0) - Infil(h.old[i,j], P.old[i,j],par)*timeincr - q_sub[i,j,tt] + runon_sub[i,j,tt]
         
 
         # Infiltration
-        par$alpha_i <- ifelse(h_sub[i,j][tt+1]<soilpar$K_s*timeincr, 1,(1-(h_sub[i,j][tt+1]-soilpar$K_s*timeincr)/h_sub[i,j][tt+1]))
+        par$alpha_i <- ifelse(h_sub[i,j,tt+1]<soilpar$K_s*timeincr, 1,(1-(h_sub[i,j,tt+1]-soilpar$K_s*timeincr)/h_sub[i,j,tt+1]))
         I_sub[i,j,tt] <- Infil(h.old[i,j], P.old[i,j],par)*timeincr
        
         
@@ -126,29 +128,31 @@ balances2D <- function(Rain, par,
            +(3.6*CM_sub[i,j,tt+1]))^(-1/soilpar$b)
         
         # checking the mass balance!
-        mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt] - q_sub[i,j][tt]
+        mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt] - q_sub[i,j,tt]
         
-     
+          }   }
+      }
+    
       # Aggregating the substep results to daily values.
-      
+
       P[i,j,t] = P_sub[i,j,deltat]
       M[i,j,t] = M_sub[i,j,deltat]
-      h[i,j][t] = h_sub[i,j][deltat] #### modified
+      h[i,j,t] = h_sub[i,j,deltat] #### modified
       CM[i,j,t] = CM_sub[i,j,deltat]
       #      SmM[t,g] = SmI[t,g] = SmM_sub[deltat,g]  ###
       SmI[i,j,t] = SmI_sub[i,j,deltat]
       SmM[i,j,t] = SmM_sub[i,j,deltat]
-      In[i,j,t]= sum(I_sub[i][j])
+      In[i,j,t]= sum(I_sub[i,j,])
       Svir[i,j,t] = Svir_sub[i,j,deltat]
-      flux[i,j,t]= sum(flux_sub[i][j])
-      q[i,j][t] = sum(q_sub[i,j]) ####modified
+      flux[i,j,t]= sum(flux_sub[i,j,])
+      q[i,j][t] = sum(q_sub[i,j,]) ####modified
       
-      runon[i,j][t] = sum(runon_sub[i,j])
-      mb[i,j,t] = sum(mb_sub[i][j])
+      runon[i,j,t] = sum(runon_sub[i,j,])
+      mb[i,j,t] = sum(mb_sub[i,j,])
       
       
-    }
-    } 
+       
+    
     }
     
     # Plotting
@@ -168,8 +172,6 @@ balances2D <- function(Rain, par,
       #           col=c("black","skyblue","blue","red","purple","green"),lty=1)
       #  
       
-    
-  }
 
   Out <- list(P=P,M=M,h=h, CM=CM, SmM=SmM, In=In, flux=flux, Svir=Svir,h=h, q=q, mb=mb)  ### *** CHECK AGAIN IF DATAFRAME IS RIGHT FORMAT
   return(Out)

@@ -3,53 +3,53 @@
 flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
 flowdir[is.na(flowdir)] <- 8   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
 
-blabla <-raster(raster)
-values(blabla) <- runif(ncell(raster),0,1000)
-blabla
-runon<-raster(raster)
+runon_base <- raster(raster)
+values(runon_base)<-0
 ###
-runon_fun<-function(flowdir,qf){
+runon_fun<-function(flowdir){
 ##### For Loop to fill runon with runoff from the right cell:
   
 for (i in 1:nrow(flowdir)){
   
       for (j in 1:ncol(flowdir)) {
         
+      if((i+1)<=10 && (j+1)<=10 && (i-1)>=1 && (j-1)>=1){
+        
         
   if(flowdir[i,j]==0)
   {
-    runon[i,j+1]<-qf #right
+    runon_base[i,j+1]<-1 #right
     
   }
   if(flowdir[i,j]==(pi/4))
     
   {
-    runon[i-1,j+1]<-qf #top right
+    runon_base[i-1,j+1]<-1 #top right
   }
   if(flowdir[i,j]==(pi/2))
     
   {
-    runon[i-1,j]<-qf #top
+    runon_base[i-1,j]<-1 #top
   }
   if(flowdir[i,j]==(3*pi/4))
     
   {
-    runon[i-1,j-1]<-qf #top left
+    runon_base[i-1,j-1]<-1 #top left
   }
   if(flowdir[i,j]==pi)
     
   {
-    runon[i,j-1]<-qf #left
+    runon_base[i,j-1]<-1 #left
   }
   if(flowdir[i,j]==(5*pi/4))
     
   {
-    runon[i+1,j-1]<-qf #bottom left
+    runon_base[i+1,j-1]<-1 #bottom left
   }
   if(flowdir[i,j]==(3*pi/2))
     
   {
-    runon[i+1,j]<-qf #bottom 
+    runon_base[i+1,j]<-1 #bottom 
   }
 
   
@@ -57,76 +57,76 @@ for (i in 1:nrow(flowdir)){
   if(flowdir[i,j]==(7*pi/4))
     
   {
-    runon[i+1,j+1]<-qf #bottom tight
+    runon_base[i+1,j+1]<-1 #bottom tight
   }
   
   if(flowdir[i,j]>0 && flowdir[i,j]<(pi/4))
   {
     if(flowdir[i,j]/((pi/2)-(pi/4))<0.5) {
-      runon[i,j+1]<-qf*(1-flowdir[i,j]/((pi/4)-0)) ## more to the right
-      runon[i-1,j+1] <- qf*((flowdir[i,j]/((pi/4)-0)))
+      runon_base[i,j+1]<-1*(1-flowdir[i,j]/((pi/4)-0)) ## more to the right
+      runon_base[i-1,j+1] <- 1*((flowdir[i,j]/((pi/4)-0)))
     }
     else{
-     runon[i-1,j+1]<-qf*(1-(flowdir[i,j]/((pi/4)-0))) ##more to the top right
-     runon[i,j+1]<- qf*((flowdir[i,j]/((pi/4)-0)))
+     runon_base[i-1,j+1]<-1*(1-(flowdir[i,j]/((pi/4)-0))) ##more to the top right
+     runon_base[i,j+1]<- 1*((flowdir[i,j]/((pi/4)-0)))
     }}
 
     
      if(flowdir[i,j]>(pi/4) && flowdir[i,j]<(pi/2))
        {
          if((flowdir[i,j]-(pi/4))/((pi/4)-0)<0.5) {
-        runon[i-1,j+1]<-qf*((1-flowdir[i,j]-(pi/4))/((pi/4)-0)) ## more to the top right
-        runon[i-1,j]<-qf*((flowdir[i,j]-(pi/4))/((pi/4)-0))
+        runon_base[i-1,j+1]<-1*((1-flowdir[i,j]-(pi/4))/((pi/4)-0)) ## more to the top right
+        runon_base[i-1,j]<-1*((flowdir[i,j]-(pi/4))/((pi/4)-0))
          }
          else{
-           runon[i-1,j]<-qf*((1-(flowdir[i,j]-(pi/4))/((pi/4)-0))) ##more to the top 
-           runon[i-1,j+1]<-qf*((flowdir[i,j]-(pi/4))/((pi/4)-0))
+           runon_base[i-1,j]<-1*((1-(flowdir[i,j]-(pi/4))/((pi/4)-0))) ##more to the top 
+           runon_base[i-1,j+1]<-1*((flowdir[i,j]-(pi/4))/((pi/4)-0))
             }}
       
         
           if(flowdir[i,j]>(pi/2) && flowdir[i,j]<(3*pi/4)){
          
            if((flowdir[i,j]-(pi/2))/((pi/4)-0)<0.5) {
-              runon[i-1,j]<-qf*((1-(flowdir[i,j]-(pi/2)))/((pi/4)-0)) ## more to the top 
-              runon[i-1,j-1]<-qf*((flowdir[i,j]-(pi/2))/((pi/4)-0))
+              runon_base[i-1,j]<-1*((1-(flowdir[i,j]-(pi/2)))/((pi/4)-0)) ## more to the top 
+              runon_base[i-1,j-1]<-1*((flowdir[i,j]-(pi/2))/((pi/4)-0))
            }
            else{
-              runon[i-1,j-1]<-qf*((1-(flowdir[i,j]-(pi/2))/((pi/4)-0))) ##more to the top left
-              runon[i-1,j]<-qf*((flowdir[i,j]-(pi/2))/((pi/4)-0))
+              runon_base[i-1,j-1]<-1*((1-(flowdir[i,j]-(pi/2))/((pi/4)-0))) ##more to the top left
+              runon_base[i-1,j]<-1*((flowdir[i,j]-(pi/2))/((pi/4)-0))
               }}
           
              if(flowdir[i,j]>(3*pi/4) && flowdir[i,j]<pi)
                
               {
                  if((flowdir[i,j]-(3*pi/4))/((pi/4)-0)<0.5) {
-                   runon[i-1,j-1]<-((1-(flowdir[i,j]-(3*pi/4)))/((pi/4)-0)) ## more to the top left
-                   runon[i,j-1]<-qf*((flowdir[i,j]-(3*pi/4))/((pi/4)-0))
+                   runon_base[i-1,j-1]<-((1-(flowdir[i,j]-(3*pi/4)))/((pi/4)-0)) ## more to the top left
+                   runon_base[i,j-1]<-1*((flowdir[i,j]-(3*pi/4))/((pi/4)-0))
                  }
                 else{
-                    runon[i,j-1]<-qf*((1-(flowdir[i,j]-(3*pi/4))/((pi/4)-0))) ##more to the left
-                    runon[i-1,j-1]<-qf*((flowdir[i,j]-(3*pi/4))/((pi/4)-0))
+                    runon_base[i,j-1]<-1*((1-(flowdir[i,j]-(3*pi/4))/((pi/4)-0))) ##more to the left
+                    runon_base[i-1,j-1]<-1*((flowdir[i,j]-(3*pi/4))/((pi/4)-0))
                   }}
              
                 if(flowdir[i,j]>pi && flowdir[i,j]<(5*pi/4))
                 {
                   if((flowdir[i,j]-(pi))/((pi/4)-0)<0.5) {
-                    runon[i,j-1]<-qf*((1-(flowdir[i,j]-(pi)))/((pi/4)-0)) ## more to the left
-                    runon[i+1,j-1]<-qf*((flowdir[i,j]-(pi))/((pi/4)-0))
+                    runon_base[i,j-1]<-1*((1-(flowdir[i,j]-(pi)))/((pi/4)-0)) ## more to the left
+                    runon_base[i+1,j-1]<-1*((flowdir[i,j]-(pi))/((pi/4)-0))
                   }
                   else{
-                    runon[i+1,j-1]<-qf*((1-(flowdir[i,j]-(pi))/((pi/4)-0))) ##more to the bottom left
-                    runon[i,j-1]<-qf*((flowdir[i,j]-(pi))/((pi/4)-0))
+                    runon_base[i+1,j-1]<-1*((1-(flowdir[i,j]-(pi))/((pi/4)-0))) ##more to the bottom left
+                    runon_base[i,j-1]<-1*((flowdir[i,j]-(pi))/((pi/4)-0))
                   }}
                   
                   if(flowdir[i,j]>(5*pi/4) && flowdir[i,j]<(3*pi/2))
                   {
                     if((flowdir[i,j]-(5*pi/4))/((pi/4)-0)<0.5) {
-                      runon[i+1,j-1]<-qf*((1-(flowdir[i,j]-(5*pi/4)))/((pi/4)-0)) ## more to the bottom left
-                      runon[i+1,j]<-qf*((flowdir[i,j]-(5*pi/4))/((pi/4)-0))
+                      runon_base[i+1,j-1]<-1*((1-(flowdir[i,j]-(5*pi/4)))/((pi/4)-0)) ## more to the bottom left
+                      runon_base[i+1,j]<-1*((flowdir[i,j]-(5*pi/4))/((pi/4)-0))
                     }
                     else{
-                        runon[i+1,j]<-qf*((1-(flowdir[i,j]-(5*pi/4))/((pi/4)-0))) ##more to the bottom
-                        runon[i+1,j-1]<-qf*((flowdir[i,j]-(5*pi/4))/((pi/4)-0))
+                        runon_base[i+1,j]<-1*((1-(flowdir[i,j]-(5*pi/4))/((pi/4)-0))) ##more to the bottom
+                        runon_base[i+1,j-1]<-1*((flowdir[i,j]-(5*pi/4))/((pi/4)-0))
                     }
                   }
     
@@ -134,12 +134,12 @@ for (i in 1:nrow(flowdir)){
                     if(flowdir[i,j]>(3*pi/2) && flowdir[i,j]<(7*pi/4))
                     {
                       if((flowdir[i,j]-(3*pi/2))/((pi/4)-0)<0.5) {
-                         runon[i+1,j]<-qf*((1-(flowdir[i,j]-(3*pi/2)))/((pi/4)-0)) ## more to the bottom 
-                         runon[i+1,j+1]<-qf*((flowdir[i,j]-(3*pi/2))/((pi/4)-0))
+                         runon_base[i+1,j]<-1*((1-(flowdir[i,j]-(3*pi/2)))/((pi/4)-0)) ## more to the bottom 
+                         runon_base[i+1,j+1]<-1*((flowdir[i,j]-(3*pi/2))/((pi/4)-0))
                       }
                       else{
-                         runon[i+1,j+1]<-qf*((1-(flowdir[i,j]-(3*pi/2))/((pi/4)-0))) ##more to the bottom right
-                         runon[i+1,j]<-qf*((flowdir[i,j]-(3*pi/2))/((pi/4)-0))
+                         runon_base[i+1,j+1]<-1*((1-(flowdir[i,j]-(3*pi/2))/((pi/4)-0))) ##more to the bottom right
+                         runon_base[i+1,j]<-1*((flowdir[i,j]-(3*pi/2))/((pi/4)-0))
                       }
                     }
                       
@@ -147,23 +147,24 @@ for (i in 1:nrow(flowdir)){
                       if(flowdir[i,j]>(7*pi/4) && flowdir[i,j]<(2*pi)){
                       
                         if((flowdir[i,j]-(7*pi/4))/((pi/4)-0)<0.5) {
-                          runon[i+1,j+1]<-qf*((1-(flowdir[i,j]-(7*pi/4)))/((pi/4)-0)) ## more to the bottom right
-                          runon[i,j+1]<-qf*((flowdir[i,j]-(7*pi/4))/((pi/4)-0))
+                          runon_base[i+1,j+1]<-1*((1-(flowdir[i,j]-(7*pi/4)))/((pi/4)-0)) ## more to the bottom right
+                          runon_base[i,j+1]<-1*((flowdir[i,j]-(7*pi/4))/((pi/4)-0))
                         }
                         else{
-                           runon[i,j+1]<-qf*((1-(flowdir[i,j]-(7*pi/4))/((pi/4)-0))) ##more to the right
-                           runon[i+1,j+1]<-qf*((flowdir[i,j]-(7*pi/4))/((pi/4)-0))
+                           runon_base[i,j+1]<-1*((1-(flowdir[i,j]-(7*pi/4))/((pi/4)-0))) ##more to the right
+                           runon_base[i+1,j+1]<-1*((flowdir[i,j]-(7*pi/4))/((pi/4)-0))
                         }
                         
                      
                       }
       }
     }
+}
 
-return(runon)
-
+return(runon_base)
 
         
                    }
 
-runon_fun(flowdir=flowdir,qf=blabla)
+rn <-runon_fun(flowdir=flowdir)
+rn[is.na(rn)] <- 0

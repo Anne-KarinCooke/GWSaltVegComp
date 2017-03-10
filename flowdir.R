@@ -1,62 +1,20 @@
-# for (k in ncell(raster)){
-
-source("Runoff.R")
-
-#   OF<- function(h, soilpar=soilpar, slope=slp) #still need to changed soilpar to slope
-#     
-#     qq=(soilpar$cn/soilpar$Mn)*h^(5/3)*slope^(1/2)
-# 
-# return(qq)
-# }
-
-
-### Rewrite q
-##############q_sub[tt,g]<-OF(h=h.old[g],soilpar=soilpar) 
-
-### q stuff is in balances code
-# q<-brick(raster,nl=length(Rain))
-# values(q)<-0
-# q<-brick(raster,nl=length(deltat))
-# values(q)<-0
-# 
-# q_sub[i,j][tt]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp)
-
-
-### define runon, from the right cell to the following...######RUNON
-
-# runon<-brick(raster,nl=length(Rain))
-# 
-# runon_sub<-brick(raster,nl=length(deltat))
-# values(q)<-0
-
-
-# for (k in nrow(raster)){
-#   
-#   for (l in ncol(raster)){
-#     
-runon<-raster(raster)
-    q<-raster(raster)
-values(q) <- runif(ncell(q),0,5)
-
 
 ### preparations, put them somewhere else later
 flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
 flowdir[is.na(flowdir)] <- 8   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
 
-
 ###
 runon_fun<-function(flowdir,q){
-
-
 ##### For Loop to fill runon with runoff from the right cell:
-for (i in nrow(flowdir)){
   
-      for (j in ncol(flowdir)) {
+for (i in 1:5){
+  
+      for (j in 1:5) {
         
   if(flowdir[i,j]==0)
   {
     runon[i,j+1]<-q[i,j] #right
-
+    
   }
   if(flowdir[i,j]==(pi/4))
     
@@ -88,8 +46,7 @@ for (i in nrow(flowdir)){
   {
     runon[i+1,j]<-q[i,j] #bottom 
   }
-  #***
-      }}
+
   
   
   if(flowdir[i,j]==(7*pi/4))
@@ -192,17 +149,17 @@ for (i in nrow(flowdir)){
                            runon[i,j+1]<-q[i,j]*((1-(flowdir[i,j]-(7*pi/4))/((pi/4)-0))) ##more to the right
                            runon[i+1,j+1]<-q[i,j]*((flowdir[i,j]-(7*pi/4))/((pi/4)-0))
                         }
-                        if(flowdir[i,j]==8){
-                          runon[i,j]<-1
-                          
-                        }
+                        
                      
                       }
+      }
+    }
+
 return(runon)
-  
+
+
         
                    }
-                
 
-# plot(runon_fun(flowdir=flowdir,q=q))
+
 

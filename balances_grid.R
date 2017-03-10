@@ -7,6 +7,7 @@ source("Vegetation functions.R")
 source("Runoff.R")
 source("Constants.R")
 source("storage formats.R")
+source("Rasters.R")
 
 #################################################################################################################
 
@@ -43,7 +44,7 @@ balances2D <- function(Rain, par,
         q_sub[i,j][tt]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp)
         
         runon_sub[i,j][tt]<-runon_fun(flowdir=flowdir,q=q_sub[i,j][tt])
-        
+        runon_sub[i,j][tt][is.na(run)] <- 0
         
         #### how to define runon correctly
         
@@ -120,8 +121,7 @@ balances2D <- function(Rain, par,
         # checking the mass balance!
         mb_sub[i][j][tt] <- I_sub[i][j][tt] - WU_sub[i][j][tt] + flux_sub[i][j][tt] - q_sub[i,j][tt]
         
-      } 
-      
+     
       # Aggregating the substep results to daily values.
       
       P[i][j][t] = P_sub[i][j][deltat]
@@ -140,7 +140,8 @@ balances2D <- function(Rain, par,
       
       
     }
-    
+    } 
+    }
     
     # Plotting
     
@@ -159,9 +160,10 @@ balances2D <- function(Rain, par,
       #           col=c("black","skyblue","blue","red","purple","green"),lty=1)
       #  
       
-    }
+    
   }
-  Out <- data.frame(P=P,M=M,h=h, CM=CM, SmM=SmM, In=In, flux=flux, Svir=Svir,h=h, q=q, mb=mb)  ### *** CHECK AGAIN IF DATAFRAME IS RIGHT FORMAT
+
+  Out <- list(P=P,M=M,h=h, CM=CM, SmM=SmM, In=In, flux=flux, Svir=Svir,h=h, q=q, mb=mb)  ### *** CHECK AGAIN IF DATAFRAME IS RIGHT FORMAT
   return(Out)
 }
-}
+

@@ -22,8 +22,8 @@ hb = psi_s_bar*-10^5 # mm
 
 
 ## OVERLAND FLOW parameter
-# cn= 1 #conversion factor cn
-# Mn= 10 #Manning's n, Mn
+cn= 1 #conversion factor cn
+Mn= 10 #Manning's n, Mn
 # Sl = 0.09 # Slope Sl
 
 

@@ -7,9 +7,10 @@
 M <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain)))  # soil moisture [mm]
 
 ####################################
-###Difference! h is now defined as a raster object; # flow depth [mm]
-h <- brick(raster,nl=length(Rain))
-values(h)<-0
+###
+h<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
+
+
 
 ###################################  
 P <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) #biomass density []
@@ -20,13 +21,14 @@ In <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),
 Svir <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # virtual saturation
 flux<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
 
+q<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
 
-q<-brick(raster,nl=length(Rain))
-
-values(q)<-0
+# q<-brick(raster,nl=length(Rain))
+# 
+# values(q)<-0
 ###RUNON
-runon<-brick(raster,nl=length(Rain))
-values(runon)<-0
+
+runon<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))
 
 
 Diff<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # divergence of soil moisture from one grid cells to the next
@@ -47,8 +49,10 @@ M_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raste
 #########################################################
 
 ###Difference! h_sub is now defined as a raster object; # flow depth [mm] 
-h_sub<- brick(raster,nl=deltat) # flow depth in [mm]
-values(h_sub)<-0
+# h_sub<- brick(raster,nl=deltat) # flow depth in [mm]
+# values(h_sub)<-0
+h_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # h
+
 
 ########################################################
 
@@ -67,12 +71,15 @@ flux_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(ras
 
 
 ##q_sub<-matrix(0,nrow= deltat, ncol =grids)  # overland flow  
-q_sub<-brick(raster,nl=deltat)
-values(q_sub)<-0
+# q_sub<-brick(raster,nl=deltat)
+# values(q_sub)<-0
+q_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
+
 
 ### RUNON
-runon_sub<-brick(raster,nl=deltat)
-values(runon_sub)<-0
+
+runon_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
+
 
 
 Diff_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # divergence of soil moisture from one grid cells to the next

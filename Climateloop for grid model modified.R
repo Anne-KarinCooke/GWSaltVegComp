@@ -1,7 +1,7 @@
 # Climate loop for grid model
 
 # source("Grid model.R")
-setwd("H:/real salt/GWSaltVegComp/thesis project/GWSaltVegComp")
+setwd("H:/Thesis project model/GWSaltVegComp")
 source("balances_grid.R")
 
 #  alpha <- seq(0.6,1.5,by=0.1) 
@@ -16,7 +16,7 @@ Store <- list()
 sub_store <- list()
 gstore <- list()
 set.seed(100)
-time <- 10
+time <- 15
 delta <- 0
 
 

@@ -41,7 +41,7 @@ vegpar <- list(Zr = Zr)
 
 # parameters describing the soil
 soilpar <- list(b = b, n = n, s_fc = s_fc, K_s = K_s, 
-                psi_s_bar = psi_s_bar, h1bar = h1bar, hb = hb, cn=cn, Mn=Mn, Sl=Sl)
+                psi_s_bar = psi_s_bar, h1bar = h1bar, hb = hb, cn=cn, Mn=Mn)
 # parameters describing plant dynamics and salt features
 
 alpha_i=1 #maximum infiltration rate per day, This needs to be a fraction of h (p117 Saco and Moreno-Las Heras) 

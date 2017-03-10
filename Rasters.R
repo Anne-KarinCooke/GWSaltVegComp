@@ -3,12 +3,12 @@
 ##################################################################################################################
 ###***************RASTER SCRIPT
 ## this file defines the raster the model is based on, defines its size and resolution,defines elevation 
-
+#setwd("H:/real salt/GWSaltVegComp/thesis project/GWSaltVegComp")
 library(raster)
 library(shapefiles)
 library(rgdal)
 
-setwd("H:/real salt/Logan/TauDEM/TauDEM5Exe/")  ############### need to tidy this up later
+#  setwd("H:/real salt/Logan/TauDEM/TauDEM5Exe/")  ############### need to tidy this up later
 ######################### TauDEM/Dinf functions need to be in same directory as data...
 
 
@@ -16,7 +16,7 @@ setwd("H:/real salt/Logan/TauDEM/TauDEM5Exe/")  ############### need to tidy thi
 ####################################################################################################################
 ##************BASE RASTER**************************************************************************************
 ## Generate a Raster object as a base raster, defines its size and resolution, number of cells
-raster<- raster(ncol=10, nrow=10, xmn=0, xmx=40, ymn=0, ymx=40)
+raster<- raster(ncol=4, nrow=4, xmn=0, xmx=40, ymn=0, ymx=40)
 
 ####################################################################################################################
 ####################################################################################################################
@@ -34,8 +34,8 @@ Z=3000 #### Groundwater depth in mm from 0 elevation
 
 Zras<-raster(elev)
 values(Zras)<-values(elev)+Z
-plot(elev)
-plot(Zras)
+# plot(elev)
+# plot(Zras)
 
 ### Zras is the Raster with distance to groundwater table surface to the soil surface in mm
 
@@ -44,12 +44,12 @@ plot(Zras)
 # needs to be .tif format for some reason
 writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
 z=raster("elev.tif")
-plot(z)
+# plot(z)
 
 ##********** Pitremove*********************************************************************
 system("mpiexec -n 8 pitremove -z elev.tif -fel elevfel.tif")
 fel=raster("elevfel.tif")
-plot(fel)
+# plot(fel)
 
 
 ####################################################################################################################
@@ -61,10 +61,10 @@ plot(fel)
 system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
 ### Angles
 ang=raster("elevang.tif")
-plot(ang)
+# plot(ang)
 ### Slope
 slp=raster("elevslp.tif")
-plot(slp)
+#  plot(slp)
 
 ###############################################################################################################
 # the following code is from the TauDEM script from Tarboton's website, but wasnt used here (and there is heaps more)

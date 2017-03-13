@@ -1,6 +1,7 @@
 # 
 # grids <- ncell(raster)  ### dont forget to define raster
-
+#packages
+library('glmnet') ## makes sparse Matrices that save a lot of space and time
 
 # Storage vectors for the daily steps 
 
@@ -8,30 +9,30 @@ M <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),n
 
 ####################################
 ###
-h<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
-
+h<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain)))  # vertical water flux, capillary rise and dlength(Rain)age
 
 
 ###################################  
-P <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) #biomass density []
-CM<-array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # Salt concentration in soil water in g/L or g/mm
-SmI<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # Salt mass in infiltrating water [g]
-SmM <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # Salt mass in soil water [g]
-In <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # infiltration [mm]
-Svir <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # virtual saturation
-flux<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
 
-q<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))  # vertical water flux, capillary rise and dlength(length(Rain))age
+P <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) #biomass density []
+CM<-array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # Salt concentration in soil water in g/L or g/mm
+SmI<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # Salt mass in infiltrating water [g]
+SmM <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # Salt mass in soil water [g]
+In <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # infiltration [mm]
+Svir <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # virtual saturation
+flux<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain)))  # vertical water flux, capillary rise and dlength(Rain)age
+
+q<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain)))  # vertical water flux, capillary rise and dlength(Rain)age
 
 # q<-brick(raster,nl=length(Rain))
 # 
 # values(q)<-0
 ###RUNON
 
-runon<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain))))
+runon<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain)))
 
 
-Diff<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(length(Rain)))) # divergence of soil moisture from one grid cells to the next
+Diff<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # divergence of soil moisture from one grid cells to the next
 
 
 # We decided to split the numerical calculations for the daily into 12 substeps.
@@ -54,8 +55,7 @@ M_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raste
 h_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # h
 
 
-########################################################
-
+#######################################################
 
 
 I_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))  #Infiltration
@@ -70,7 +70,7 @@ Svir_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(ras
 flux_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))  # dlength(Rain)age/capillary rise
 
 
-##q_sub<-matrix(0,nrow= deltat, ncol =grids)  # overland flow  
+##q_sub<-Matrix(0,nrow= deltat, ncol =grids)  # overland flow  
 # q_sub<-brick(raster,nl=deltat)
 # values(q_sub)<-0
 q_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
@@ -85,20 +85,17 @@ runon_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(ra
 Diff_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # divergence of soil moisture from one grid cells to the next
 
 ###h.old<-rep(0,grids)
-h.old<- raster(raster) # flow depth in [mm]
-values(h.old)<-0
+h.old<-Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE) # flow depth in [mm]
 
-######################
-P.old<- raster(raster) 
-values(P.old)<-0
-M.old<- raster(raster) 
-values(M.old)<-0
-SmI.old<- raster(raster) 
-values(SmI.old)<-0
-CM.old<- raster(raster) 
-values(CM.old)<-0
-Svir.old<- raster(raster) 
-values(Svir.old)<-0
+P.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+
+M.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+
+SmI.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+
+CM.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+
+Svir.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
 
 
 

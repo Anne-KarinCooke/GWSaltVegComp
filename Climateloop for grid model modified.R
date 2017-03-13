@@ -1,47 +1,47 @@
-# Climate loop for grid model
+###
+######### Climate loop for grid model#####################################################################
+##########################################################################################################
+##########################################################################################################
 
-# source("Grid model.R")
+# SOURCE
 setwd("H:/Thesis project model/GWSaltVegComp")
 source("balances_grid.R")
 
-#  alpha <- seq(0.6,1.5,by=0.1) 
-#  lambda <- seq(0.1,1,by=0.1)
+#### RAINFALL PROPERTIES
+set.seed(100)
+alpha <- c(0.6,1.5) #  alpha <- seq(0.6,1.5,by=0.1) 
+lambda <- c(0.1,1) #  lambda <- seq(0.1,1,by=0.1)
+delta <- 0
 
-alpha <- c(0.6,1.5) 
-lambda <- c(0.1,1)
+### RUN DURATION
+time <- 10
 
+deltat<-5  
 
-
+### cREATING DATA STORAGE OF MODEL OUTPUTS
 Store <- list()
 sub_store <- list()
 gstore <- list()
-set.seed(100)
-time <- 15
-delta <- 0
 
-
-# #initital values to start the simulation.
-
-
-
-
-
-
-# for (g in 1:ncell(raster)) {   #for every raster cell
-  
-  for (k in 1:length(alpha)) {
-    
-    for (l in 1:length(lambda)) {
-      # generate the rainfall
-      Rain <- Precip(time,alpha[k],lambda[l],delta)
-      Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
-    }}
       sub_store[[j]] <-list(data.frame(alpha_o=rep(alpha[k],time),
                                        lambda_o=rep(lambda[l],time),
                                        
-                                       balances2D(Rain=Rain, par=par, soilpar=soilpar, #plotit=T,
-                                                  vegpar=vegpar)) 
                                        
+                                     
+                                       
+                                       
+                                       balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
+                                                  
+                                       
+                                       
+                                       )) 
+    Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
+    Store[[1]]$h
+    
+    
+                                                  
+                                       
+  
       
 #       sub_store[[j]] <-data.frame(alpha_o=rep(alpha[k],time),
 #                                   lambda_o=rep(lambda[l],time),

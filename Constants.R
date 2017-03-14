@@ -52,7 +52,7 @@ gmax=0.05 # Saco et al, 2013
 k1=5 # Saco et al, 2013
 c=10  # Saco et al, 2013
 f= 0.8  # f is the soil salt leaching efficiency (whether some salt is retained)
-ConcConst = 0.5 # ConcConst is the concentration of the salt in the infiltrating water in g/l
+ConcConst = 0.1 # ConcConst is the concentration of the salt in the infiltrating water in g/l
 CM.gw = 0.1 # salt concentration in groundwater
 d=0.24 # fraction of plant mortality
 

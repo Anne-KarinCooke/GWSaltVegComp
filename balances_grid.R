@@ -1,7 +1,7 @@
 
 
 
-time <- 50
+time <- 20
 
 deltat<-12
 ## RAINFALL GENERATION

@@ -16,7 +16,7 @@ library(rgdal)
 ####################################################################################################################
 ##************BASE RASTER**************************************************************************************
 ## Generate a Raster object as a base raster, defines its size and resolution, number of cells
-raster<- raster(ncol=5, nrow=5, xmn=0, xmx=40, ymn=0, ymx=40)
+raster<- raster(ncol=10, nrow=10, xmn=0, xmx=40, ymn=0, ymx=40)
 
 ####################################################################################################################
 ####################################################################################################################
@@ -30,7 +30,7 @@ values(elev) <- runif(ncell(elev),0,1000)
 ##************DISTANCE TO GROUNDWATER RASTER************************************************************************
 
 
-Z=10000 #### Groundwater depth in mm from 0 elevation
+Z=3000 #### Groundwater depth in mm from 0 elevation
 
 Zras<-raster(elev)
 values(Zras)<-values(elev)+Z

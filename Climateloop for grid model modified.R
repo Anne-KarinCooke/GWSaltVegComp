@@ -31,15 +31,46 @@ Store <- list()
 # balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
                                                   
                                        
-                                      
+    system.time(                                
     Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
+    )
+    
     Store[[1]]$P
     
-
-p<-brick(Store[[1]]$h)
-plot(p)
-                
+#write.table(Store,"10x10Raster20DaysDeltat12.txt")
     
+# Plants
+p<-brick(Store[[1]]$P)
+# plot(p)
+
+#SOil moisture
+sm<-brick(Store[[1]]$M)
+# plot(sm)
+
+#h
+hh<-brick(Store[[1]]$h)
+# plot(hh)
+
+# CM
+cm<-brick(Store[[1]]$CM)
+# plot(cm)
+
+#flux
+fl<-brick(Store[[1]]$flux)
+
+
+
+library(rasterVis)
+levelplot(cm, main="Salt concentration in soil", sub="20 days, deltat 12, 10*10 raster")
+levelplot(p,main="Plant biomass density", sub="20 days, deltat 12, 10*10 raster")
+levelplot(sm,main="Soil moisture", sub="20 days, deltat 12, 10*10 raster")
+levelplot(fl,main="vertical water flux (rise/drainage)", sub="20 days, deltat 12, 10*10 raster")
+                
+
+
+png('flux.png')  
+
+
 #       sub_store[[j]] <-data.frame(alpha_o=rep(alpha[k],time),
 #                                   lambda_o=rep(lambda[l],time),
 #                                   

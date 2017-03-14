@@ -1,7 +1,7 @@
 
 
 
-time <- 20
+time <- 12
 
 deltat<-12
 ## RAINFALL GENERATION
@@ -166,7 +166,7 @@ balances2D <- function(Rain, par,
       q[i,j,t] = sum(q_sub[i,j,]) ####modified
       
       runon[i,j,t] = sum(runon_sub[i,j,])
-     # mb[i,j,t] = sum(mb_sub[i,j,])
+      mb[i,j,t] = sum(mb_sub[i,j,])
       
               }
     }  
@@ -176,7 +176,7 @@ balances2D <- function(Rain, par,
        
     
 
-  Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,])#,mb=mb[,,])
+  Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,],mb=mb[,,])
   return(Out)
         
 }

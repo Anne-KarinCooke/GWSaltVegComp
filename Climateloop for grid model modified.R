@@ -2,9 +2,9 @@
 ######### Climate loop for grid model#####################################################################
 ##########################################################################################################
 ##########################################################################################################
-
+source("flowdir.R")
 # SOURCE
-setwd("H:/Thesis project model/GWSaltVegComp")
+setwd("H:/Thesis project model/R project/GWSaltVegComp")
 source("balances_grid.R")
 
 #### RAINFALL PROPERTIES
@@ -14,35 +14,32 @@ lambda <- c(0.1,1) #  lambda <- seq(0.1,1,by=0.1)
 delta <- 0
 
 ### RUN DURATION
-time <- 10
-
-deltat<-5  
+# time <- 100
+# 
+# deltat<-12
 
 ### cREATING DATA STORAGE OF MODEL OUTPUTS
 Store <- list()
-sub_store <- list()
-gstore <- list()
-
-      sub_store[[j]] <-list(data.frame(alpha_o=rep(alpha[k],time),
-                                       lambda_o=rep(lambda[l],time),
-                                       
-                                       
-                                     
-                                       
-                                       
-                                       balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
+# sub_store <- list()
+# gstore <- list()
+# 
+#       sub_store[[j]] <-list(data.frame(alpha_o=rep(alpha[k],time),
+#                                        lambda_o=rep(lambda[l],time),
+#                                        
+#                                        
+                                     # 
+# balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
                                                   
                                        
-                                       
-                                       )) 
+                                      
     Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
-    Store[[1]]$h
+    Store[[1]]$P
     
+
+p<-brick(Store[[1]]$h)
+plot(p)
+                
     
-                                                  
-                                       
-  
-      
 #       sub_store[[j]] <-data.frame(alpha_o=rep(alpha[k],time),
 #                                   lambda_o=rep(lambda[l],time),
 #                                   
@@ -52,10 +49,10 @@ gstore <- list()
 #                                              vegpar=vegpar)) 
       
       
-      
-    }
-    Store[[i]] <- sub_store
-  }
+  #     
+  #   }
+  #   Store[[i]] <- sub_store
+  # }
 #   gstore[[g]] <-Store 
 # }
 

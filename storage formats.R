@@ -85,17 +85,17 @@ runon_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(ra
 Diff_sub<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # divergence of soil moisture from one grid cells to the next
 
 ###h.old<-rep(0,grids)
-h.old<-Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE) # flow depth in [mm]
+h.old<-matrix(0,nrow= nrow(raster), ncol =ncol(raster)) # flow depth in [mm]
 
-P.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+P.old<- matrix(0,nrow= nrow(raster), ncol =ncol(raster))
 
-M.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+M.old<- matrix(0,nrow= nrow(raster), ncol =ncol(raster))
 
-SmI.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+SmI.old<- matrix(0,nrow= nrow(raster), ncol =ncol(raster))
 
-CM.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+CM.old<- matrix(0,nrow= nrow(raster), ncol =ncol(raster))
 
-Svir.old<- Matrix(0,nrow= nrow(raster), ncol =ncol(raster),sparse = TRUE)
+Svir.old<- matrix(0,nrow= nrow(raster), ncol =ncol(raster))
 
 
 

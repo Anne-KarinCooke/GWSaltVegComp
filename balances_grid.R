@@ -1,29 +1,10 @@
 
-## Source functions
-setwd("H:/Thesis project model/GWSaltVegComp")
-source("Rainfall.R")
-source("Infiltration.R")
-source("Flux.R")
-source("Vegetation functions.R")
-source("Runoff.R")
-source("Constants.R")
-source("storage formats.R")
-source("Rasters.R")
-source("flowdir.R")
 
-#################################################################################################################
-### DISCRETIZATION
 
-timeincr= 1/deltat
+time <- 50
 
-M[,,1] <- 5
-h[,,1] <- 10 
-P[,,1] <- 10
-CM[,,1]<- 0
-Svir[,,1] <- s_fc
-
-#################################################################################################################
-## RINFALL GENERATION
+deltat<-12
+## RAINFALL GENERATION
 for (k in 1:length(alpha)) {
   
   for (l in 1:length(lambda)) {
@@ -33,27 +14,52 @@ for (k in 1:length(alpha)) {
   }}
 
 
+## Source functions
+setwd("H:/Thesis project model/R project/GWSaltVegComp")
+source("Rainfall.R")
+source("Infiltration.R")
+source("Flux.R")
+source("Vegetation functions.R")
+source("Runoff.R")
+source("Constants.R")
+source("storage formats.R")
+source("Rasters.R")
+
+
+#################################################################################################################
+### DISCRETIZATION
+
+
+timeincr= 1/deltat
+
+M[,,1] <- 5
+h[,,1] <- 10 
+P[,,1] <- 10
+CM[,,1] <- 0
+Svir[,,1] <- s_fc
+
+#################################################################################################################
+
+
 ##################################################################################################################
 ##################################################################################################################
 #  BALANCES FUNTION STARTS
+
 
 balances2D <- function(Rain, par,
                        soilpar,
                        vegpar){ 
   
- #plotit=F,
+                       
+                       for (i in 1:nrow(raster)) { 
+                         
+                         for (j in 1:ncol(raster)){
+                           
+                           for (t in 2:length(Rain)){
+                             
+                             for (tt in 1:(deltat-1)) {
+                     
 
-  
-  for (i in nrow(raster)) { 
-    
-        for (j in ncol(raster)){
-            
-              for (t in 2:length(Rain)){
-        
-                     for (tt in 1:(deltat-1)) {
-
-         
-        
         h.old[i,j] <- ifelse(tt==1,h[i,j,t-1],h_sub[i,j,tt]) 
         P.old[i,j] <- ifelse(tt==1,P[i,j,t-1],P_sub[i,j,tt])  
         M.old[i,j] <- ifelse(tt==1,M[i,j,t-1],M_sub[i,j,tt])
@@ -61,11 +67,12 @@ balances2D <- function(Rain, par,
         CM.old[i,j] <-ifelse(tt==1,CM[i,j,t-1],CM_sub[i,j,tt])
         Svir.old[i,j] <-ifelse(tt==1,Svir[i,j,t-1],Svir_sub[i,j,tt])
         
-        q_sub[i,j,tt]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])
+        q_sub[i,j,tt+1]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])
+
         
 #         rn <-runon_fun(flowdir=flowdir)
 #         rn[is.na(rn)] <- 0
-        runon_sub[i,j,tt] <-rn[i,j]*q_sub[i,j,tt]
+        runon_sub[i,j,tt+1] <-rn[i,j]*q_sub[i,j,tt]
 
         #### how to define runon correctly
         
@@ -74,7 +81,7 @@ balances2D <- function(Rain, par,
 
         # Infiltration
         par$alpha_i <- ifelse(h_sub[i,j,tt+1]<soilpar$K_s*timeincr, 1,(1-(h_sub[i,j,tt+1]-soilpar$K_s*timeincr)/h_sub[i,j,tt+1]))
-        I_sub[i,j,tt] <- Infil(h.old[i,j], P.old[i,j],par)*timeincr
+        I_sub[i,j,tt+1] <- Infil(h.old[i,j], P.old[i,j],par)*timeincr
        
         
         #  1. Update soil moisture with infiltration
@@ -138,11 +145,12 @@ balances2D <- function(Rain, par,
           ((soilpar$h1bar*10^-1)*(M_sub[i,j,tt+1]/(soilpar$n*vegpar$Zr))^(-soilpar$b)+(3.6*CM_sub[i,j,tt+1]))^(-1/soilpar$b)
 
         # checking the mass balance!
-        mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt] - q_sub[i,j,tt]
+         mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt] - q_sub[i,j,tt]
 
           
-      }
-    
+     
+                 
+    }
       # Aggregating the substep results to daily values.
 
       P[i,j,t] = P_sub[i,j,deltat]
@@ -158,19 +166,20 @@ balances2D <- function(Rain, par,
       q[i,j,t] = sum(q_sub[i,j,]) ####modified
       
       runon[i,j,t] = sum(runon_sub[i,j,])
-      mb[i,j,t] = sum(mb_sub[i,j,])
+     # mb[i,j,t] = sum(mb_sub[i,j,])
       
-      
-              }   
-        }
+              }
+    }  
+           
 
   }
        
     
-  
 
-  Out <- list(P=P,M=M,h=h, CM=CM, SmM=SmM, In=In, flux=flux, Svir=Svir,h=h, q=q, mb=mb)  ### *** CHECK AGAIN IF DATAFRAME IS RIGHT FORMAT
+  Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,])#,mb=mb[,,])
   return(Out)
         
 }
+
+
 

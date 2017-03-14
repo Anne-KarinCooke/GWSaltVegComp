@@ -16,7 +16,7 @@ library(rgdal)
 ####################################################################################################################
 ##************BASE RASTER**************************************************************************************
 ## Generate a Raster object as a base raster, defines its size and resolution, number of cells
-raster<- raster(ncol=4, nrow=4, xmn=0, xmx=40, ymn=0, ymx=40)
+raster<- raster(ncol=5, nrow=5, xmn=0, xmx=40, ymn=0, ymx=40)
 
 ####################################################################################################################
 ####################################################################################################################
@@ -30,7 +30,7 @@ values(elev) <- runif(ncell(elev),0,1000)
 ##************DISTANCE TO GROUNDWATER RASTER************************************************************************
 
 
-Z=3000 #### Groundwater depth in mm from 0 elevation
+Z=10000 #### Groundwater depth in mm from 0 elevation
 
 Zras<-raster(elev)
 values(Zras)<-values(elev)+Z
@@ -64,7 +64,11 @@ ang=raster("elevang.tif")
 # plot(ang)
 ### Slope
 slp=raster("elevslp.tif")
-#  plot(slp)
+slp[is.na(slp)] <- 0
+# plot(slp)
+
+
+ 
 
 ###############################################################################################################
 # the following code is from the TauDEM script from Tarboton's website, but wasnt used here (and there is heaps more)

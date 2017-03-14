@@ -52,9 +52,9 @@ gmax=0.05 # Saco et al, 2013
 k1=5 # Saco et al, 2013
 c=10  # Saco et al, 2013
 f= 0.8  # f is the soil salt leaching efficiency (whether some salt is retained)
-ConcConst = 0.1 # ConcConst is the concentration of the salt in the infiltrating water in g/l
+ConcConst = 0.5 # ConcConst is the concentration of the salt in the infiltrating water in g/l
 CM.gw = 0.1 # salt concentration in groundwater
-d=0.2 # fraction of plant mortality
+d=0.24 # fraction of plant mortality
 
 par <- list(alpha_i=alpha_i,k=k, W0=W0, gmax=gmax, k1=k1, c=c, f=f, ConcConst=ConcConst, CM.gw= CM.gw, d=d)
 

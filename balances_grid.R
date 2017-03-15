@@ -1,10 +1,12 @@
 
 
 
-time <- 100
+time <- 20
 
 deltat<-12
-
+Rain_function<-function(time){ Rain <- rep(1, time)
+return(Rain)}
+Rain<-Rain_function(time=time)
 
 ## Source functions
 setwd("H:/Thesis project model/R project/GWSaltVegComp")
@@ -43,9 +45,9 @@ balances2D <- function(Rain, par,
                        vegpar){ 
   
                        
-                       for (i in 1:nrow(raster)) { 
+                       for (i in 2:(nrow(raster)-1)) { 
                          
-                         for (j in 1:ncol(raster)){
+                         for (j in 2:(ncol(raster)-1)){
                            
                            for (t in 2:length(Rain)){
                              

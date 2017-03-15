@@ -29,13 +29,17 @@ Store <- list()
 #                                        
                                      # 
 # balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
-                                                  
+      
                                        
     system.time(                                
     Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
     )
     
-    Store[[1]]$P
+    Store[[1]]$q
+    
+mb<-brick(Store[[1]]$mb)
+
+levelplot(mb, main="mb")
     
 #write.table(Store,"10x10Raster20DaysDeltat12.txt")
     
@@ -58,6 +62,13 @@ cm<-brick(Store[[1]]$CM)
 #flux
 fl<-brick(Store[[1]]$flux)
 
+#runoff
+qr<-brick(Store[[1]]$q)
+levelplot(qr,main="Runoff", sub="20 days, deltat 12, 10*10 raster")
+
+#runon
+rr<-brick(Store[[1]]$runon)
+levelplot(rr,main="Runon", sub="20 days, deltat 12, 10*10 raster")
 
 
 library(rasterVis)
@@ -68,7 +79,6 @@ levelplot(fl,main="vertical water flux (rise/drainage)", sub="20 days, deltat 12
                 
 
 
-png('flux.png')  
 
 
 #       sub_store[[j]] <-data.frame(alpha_o=rep(alpha[k],time),

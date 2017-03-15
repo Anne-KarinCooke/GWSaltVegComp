@@ -1,17 +1,9 @@
 
 
 
-time <- 12
+time <- 100
 
 deltat<-12
-## RAINFALL GENERATION
-for (k in 1:length(alpha)) {
-  
-  for (l in 1:length(lambda)) {
-    # generate the rainfall
-    Rain <- Precip(time,alpha[k],lambda[l],delta)
-    Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
-  }}
 
 
 ## Source functions
@@ -67,7 +59,7 @@ balances2D <- function(Rain, par,
         CM.old[i,j] <-ifelse(tt==1,CM[i,j,t-1],CM_sub[i,j,tt])
         Svir.old[i,j] <-ifelse(tt==1,Svir[i,j,t-1],Svir_sub[i,j,tt])
         
-        q_sub[i,j,tt+1]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])
+        q_sub[i,j,tt+1]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])*timeincr
 
         
 #         rn <-runon_fun(flowdir=flowdir)
@@ -145,11 +137,10 @@ balances2D <- function(Rain, par,
           ((soilpar$h1bar*10^-1)*(M_sub[i,j,tt+1]/(soilpar$n*vegpar$Zr))^(-soilpar$b)+(3.6*CM_sub[i,j,tt+1]))^(-1/soilpar$b)
 
         # checking the mass balance!
-         mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt] - q_sub[i,j,tt]
+         mb_sub[i,j,tt] <- I_sub[i,j,tt] - WU_sub[i,j,tt] + flux_sub[i,j,tt]*timeincr  
 
           
      
-                 
     }
       # Aggregating the substep results to daily values.
 
@@ -176,7 +167,7 @@ balances2D <- function(Rain, par,
        
     
 
-  Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,],mb=mb[,,])
+  Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,],mb=mb[,,], runon=runon[,,])
   return(Out)
         
 }

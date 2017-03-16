@@ -168,4 +168,3 @@ return(runon_base)
 
 rn <-runon_fun(flowdir=flowdir)
 rn[is.na(rn)] <- 0
-plot(rn)

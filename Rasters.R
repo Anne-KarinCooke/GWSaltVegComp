@@ -26,7 +26,7 @@ raster<- raster(ncol=10, nrow=10, xmn=0, xmx=ext, ymn=0, ymx=ext)
 ##************ELEVATION RASTER**************************************************************************************
 elev <- raster ## elevation 
 set.seed(100)
-microdepth<-1 #[m]
+microdepth<-0.5 #[m]
 values(elev) <- runif(ncell(elev),0,microdepth)
 
 
@@ -34,13 +34,19 @@ values(elev) <- runif(ncell(elev),0,microdepth)
 ####################################################################################################################
 ##************GLOBAL SLOPE************************************************************************
 ###  
-gslp=0.2 
+gslp=0.02 
 elev[1,]<-elev[1,]+(gslp*ext)
 for (i in 2:nrow(elev)){
   elev[i,]<-elev[i,]+(gslp*(ext-((ext/nrow(elev))*(i-1))))
 }
 #(elev)
 
+# terrslp <- terrain(fel, oprt="slope")
+# plot(terrslp)
+# values(terrslp)
+# values(slp)
+# plot(slp)
+# terrain
 
 
 ## recalculation of 
@@ -64,12 +70,13 @@ values(Zras)<-(values(elev)*1000)+Z
 # needs to be .tif format for some reason
 writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
 z=raster("elev.tif")
-# plot(z)
+ # plot(z)
 
 ##********** Pitremove*********************************************************************
 system("mpiexec -n 8 pitremove -z elev.tif -fel elevfel.tif")
 fel=raster("elevfel.tif")
-# plot(fel)
+#plot(fel, main="pits removed")
+
 
 
 ####################################################################################################################
@@ -82,32 +89,28 @@ system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.
 ### Angles
 ang=raster("elevang.tif")
 # plot(ang)
+
 ### Slope
 slp=raster("elevslp.tif")
 slp[is.na(slp)] <- 0
+
+
+# 
+# plot(elev)
+# path<-flowPath(elev,elev[1,1])
+# plot(path)
+
+# fd<-terrain(elev, opt="flowdir")
+# path <- flowPath(fd, 20)
+# xy <- xyFromCell(fd, path)
+# plot(elev)
+# lines(xy)
+
 # plot(slp)
 
-
- 
-
-###############################################################################################################
-# the following code is from the TauDEM script from Tarboton's website, but wasnt used here (and there is heaps more)
-
-# # D8 flow directions
-# system("mpiexec -n 8 D8Flowdir -p rasterObjp.tif -sd8 rasterObjd8.tif -fel rasterObjfel.tif",show.output.on.console=F,invisible=F)
-# p=raster("rasterObjp.tif")
-# plot(p)
-# sd8=raster("rasterObjd8.tif")
-# plot(sd8)
-# 
-# # Contributing area
-# system("mpiexec -n 8 AreaD8 -p rasterObjp.tif -ad8 rasterObjad8.tif")
-# ad8=raster("rasterObjad8.tif")
-# plot(log(ad8))
-# #zoom(log(ad8))
-# 
-# # Grid Network 
-# system("mpiexec -n 8 Gridnet -p rasterObjp.tif -gord rasterObjgord.tif -plen rasterObjplen.tif -tlen rasterObjtlen.tif")
-# gord=raster("rasterObjgord.tif")
-# plot(gord)
-# #zoom(gord)
+# Dinf contributing area
+# system("mpiexec -n 8 AreaDinf -ang elevang.tif -sca elevsca.tif")
+# sca=raster("elevsca.tif")
+# plot(sca)
+# plot(log(sca))
+# zoom(log(sca))

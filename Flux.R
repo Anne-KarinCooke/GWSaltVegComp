@@ -1,6 +1,5 @@
 # vertical flux 
 
-
 L_n <- function(M,Z,soilpar,vegpar) {
   Zr <- vegpar$Zr
   hb <- - soilpar$psi_s_bar*10^5 
@@ -23,3 +22,4 @@ L_n <- function(M,Z,soilpar,vegpar) {
   
   return(flux)
 }
+

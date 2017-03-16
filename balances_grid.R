@@ -1,6 +1,3 @@
-
-
-
 time <- 20
 
 deltat<-12
@@ -10,6 +7,7 @@ Rain<-Rain_function(time=time)
 
 ## Source functions
 setwd("H:/Thesis project model/R project/GWSaltVegComp")
+source("Rasters.R")
 source("Rainfall.R")
 source("Infiltration.R")
 source("Flux.R")
@@ -17,24 +15,18 @@ source("Vegetation functions.R")
 source("Runoff.R")
 source("Constants.R")
 source("storage formats.R")
-source("Rasters.R")
-
 
 #################################################################################################################
 ### DISCRETIZATION
-
-
 timeincr= 1/deltat
 
 M[,,1] <- 5
-h[,,1] <- 10 
+h[,,1] <- 10
 P[,,1] <- 10
 CM[,,1] <- 0
 Svir[,,1] <- s_fc
 
-#################################################################################################################
-
-
+##################################################################################################################
 ##################################################################################################################
 ##################################################################################################################
 #  BALANCES FUNTION STARTS
@@ -45,9 +37,9 @@ balances2D <- function(Rain, par,
                        vegpar){ 
   
                        
-                       for (i in 2:(nrow(raster)-1)) { 
+                       for (i in 1:(nrow(raster)-1)) { 
                          
-                         for (j in 2:(ncol(raster)-1)){
+                         for (j in 1:(ncol(raster)-1)){
                            
                            for (t in 2:length(Rain)){
                              
@@ -63,12 +55,10 @@ balances2D <- function(Rain, par,
         
         q_sub[i,j,tt+1]<- OF(h=h.old[i,j], soilpar=soilpar,slope=slp[i,j])*timeincr
 
-        
-#         rn <-runon_fun(flowdir=flowdir)
-#         rn[is.na(rn)] <- 0
+      
         runon_sub[i,j,tt+1] <-rn[i,j]*q_sub[i,j,tt]
 
-        #### how to define runon correctly
+    
         
         h_sub[i,j,tt+1] <- h.old[i,j] + ifelse(tt==1,(10*Rain[t]),0) - Infil(h.old[i,j], P.old[i,j],par)*timeincr - q_sub[i,j,tt] + runon_sub[i,j,tt]
         
@@ -80,7 +70,7 @@ balances2D <- function(Rain, par,
         
         #  1. Update soil moisture with infiltration
         
-        M_sub[i,j,tt+1] <- M.old[i,j] + I_sub[i,j,tt] #+ Diff[tt,g-1]     # plus soil moisture diffusing from grid cell higher up  
+        #M_sub[i,j,tt+1] <- M.old[i,j] + I_sub[i,j,tt] #+ Diff[tt,g-1]     # plus soil moisture diffusing from grid cell higher up  
         
         # Now do all plant uptake and growth
         # water uptake by plants: include infiltration in available water
@@ -93,14 +83,13 @@ balances2D <- function(Rain, par,
         # Mortality
         Mo_sub[i,j,tt]<- Mo(P.old[i,j], M=M.old[i,j], Svir=Svir.old[i,j], par)*timeincr
         
-        
         # calculate plant biomass balance
-        P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] 
+        P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt]
         
         
         # re-calculate water balance
         # 2. before leaching
-        M_sub[i,j,tt+1] <- M.old[i,j] + I_sub[i,j,tt] - WU_sub[i,j,tt] #- L_sub[tt] 
+        M_sub[i,j,tt+1] <- M.old[i,j] + I_sub[i,j,tt] - WU_sub[i,j,tt] 
         
         
         

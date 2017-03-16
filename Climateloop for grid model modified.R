@@ -2,10 +2,11 @@
 ######### Climate loop for grid model#####################################################################
 ##########################################################################################################
 ##########################################################################################################
-source("flowdir.R")
+
 # SOURCE
 setwd("H:/Thesis project model/R project/GWSaltVegComp")
 source("balances_grid.R")
+source("flowdir.R")
 
 #### RAINFALL PROPERTIES
 set.seed(100)
@@ -35,7 +36,11 @@ Store <- list()
     Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
     )
     
-    Store[[1]]$q
+ Store[[1]]$mb
+  mb[20,20,]
+  
+  
+ datamb<-data.frame(Store[[1]]$mb)
     
 mb<-brick(Store[[1]]$mb)
 
@@ -77,8 +82,6 @@ levelplot(p,main="Plant biomass density", sub="20 days, deltat 12, 10*10 raster"
 levelplot(sm,main="Soil moisture", sub="20 days, deltat 12, 10*10 raster")
 levelplot(fl,main="vertical water flux (rise/drainage)", sub="20 days, deltat 12, 10*10 raster")
                 
-
-
 
 
 #       sub_store[[j]] <-data.frame(alpha_o=rep(alpha[k],time),

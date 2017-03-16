@@ -52,7 +52,7 @@ M_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raste
 ###Difference! h_sub is now defined as a raster object; # flow depth [mm] 
 # h_sub<- brick(raster,nl=deltat) # flow depth in [mm]
 # values(h_sub)<-0
-h_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) # h
+h_sub <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),length(Rain))) # h
 
 
 #######################################################

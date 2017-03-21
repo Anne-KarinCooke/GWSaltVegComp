@@ -5,33 +5,63 @@
 
 # SOURCE
 setwd("H:/Thesis project model/R project/GWSaltVegComp")
-source("balances_grid.R")
-source("flowdir.R")
 
-#### RAINFALL PROPERTIES
-set.seed(100)
+### Source the runon raster (flowdir)
+source("flowdir.R")
+### Sourcing the rainfall
+source("Rainfall.R")
+### Sourcing the grid, taudem etc
+source("Rasters.R")
+
+
+
+### RUN TIME (how many days)
+time <- 20
+### Raster size
+ext <- 40 ## EXTEND of PLOT in [m]
+rows <- 5## rows of cells
+cols <- 5 ## columns of cells
+# Discretization
+deltat<-12
+
+
+#### RAINFALL GENERATION
+
+##UNIFORM
+# Rain_function<-function(time){ Rain <- rep(1, time)
+# return(Rain)}
+# Rain<-Rain_function(time=time)
+
+## HETEROGENEOUS
+# set.seed(100)
 alpha <- c(0.6,1.5) #  alpha <- seq(0.6,1.5,by=0.1) 
 lambda <- c(0.1,1) #  lambda <- seq(0.1,1,by=0.1)
 delta <- 0
+Rain <- Precip(time,alpha[k],lambda[l],delta)
+# ## RAINFALL GENERATION
+# for (k in 1:length(alpha)) {
+#   
+#   for (l in 1:length(lambda)) {
+#     # generate the rainfall
+#     Rain <- Precip(time,alpha[k],lambda[l],delta)
+#     Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
+#   }}
 
-### RUN DURATION
-# time <- 100
-# 
-# deltat<-12
+sourceCpp()
+
+
+
+
+
+
+
+
+
+
 
 ### cREATING DATA STORAGE OF MODEL OUTPUTS
 Store <- list()
-# sub_store <- list()
-# gstore <- list()
-# 
-#       sub_store[[j]] <-list(data.frame(alpha_o=rep(alpha[k],time),
-#                                        lambda_o=rep(lambda[l],time),
-#                                        
-#                                        
-                                     # 
-# balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar)
-      
-                                       
+                                   
     system.time(                                
     Store<-list(balances2D(Rain=Rain, par=par, soilpar=soilpar, vegpar=vegpar))
     )

@@ -17,8 +17,8 @@ library(rgdal)
 ##************BASE RASTER**************************************************************************************
 ## Generate a Raster object as a base raster, defines its size and resolution, number of cells
 
-ext <-40 ## EXTEND of PLOT in [m]
-raster<- raster(ncol=10, nrow=10, xmn=0, xmx=ext, ymn=0, ymx=ext)
+## EXTEND of PLOT in [m]
+raster<- raster(ncol=cols, nrow=rows, xmn=0, xmx=ext, ymn=0, ymx=ext)
 
 
 ####################################################################################################################
@@ -60,6 +60,7 @@ Z=3000 #### Groundwater depth in mm from 0 elevation
 
 Zras<-raster(elev)
 values(Zras)<-(values(elev)*1000)+Z
+
 # plot(elev)
 # plot(Zras)
 

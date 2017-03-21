@@ -1,6 +1,15 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+// [[Rcpp::export]]
+
+/*** R
+source("Rasters.R")
+source("flowdir.R")
+#Runon raster into array
+rn_array<- array(as.matrix(rn),dim=c(rows, cols, time)) 
+*/
+
 //Sandy Clay Loam
 
 
@@ -15,10 +24,9 @@ int const cols = 10;
 int const time = 10;
 int const deltat =12;
 
-double timeincr = 1/deltat;
+float timeincr = 1/deltat;  // needs to be float and not double for some reason!
 
-//   source("Rasters.R")
-//  source("Rainfall.R")
+
 int i;
 int j;
 int t;
@@ -27,7 +35,7 @@ int tt;
 int rain; /// thats no int
 
 #include <array>
-#include <iostream>
+// #include <iostream>
 
 using namespace std;
 
@@ -37,6 +45,10 @@ List Constants_cpp(List soilpar,
                    List saltpar,
                    List vegpar)
 {
+
+  
+/// define these lists first!! soilpar etc
+
 
   
   // SOIL 
@@ -59,9 +71,9 @@ List Constants_cpp(List soilpar,
   soilpar["psi_s_bar"] = -1.2E-3; // bubbling pressure
   soilpar["h1bar"] =  -psi_s_bar;
   soilpar["hb"] = psi_s_bar*pow(-10,5);//  mm
-  soilpar["Mn"] = 10; // Manning's n
-  soilpar["cn"] = 1; // runoff conversion factor
-  soilpar["alpha_i"] = 1;//#maximum infiltration rate per day, This needs to be a fraction of h (p117 Saco and Moreno-Las Heras) 
+  soilpar["Mn"] = 10.0; // Manning's n
+  soilpar["cn"] = 1.0; // runoff conversion factor
+  soilpar["alpha_i"] = 1.0;//#maximum infiltration rate per day, This needs to be a fraction of h (p117 Saco and Moreno-Las Heras) 
 
   
 
@@ -77,13 +89,13 @@ List Constants_cpp(List soilpar,
   const double k1 = vegpar["k1"];
   const double d = vegpar["d"]; //fraction of plant mortality
   
-  vegpar["Zr"] = 400; //mm, Grass
+  vegpar["Zr"] = 400.0; //mm, Grass
   vegpar["d"] = 0.24;//Saco et al, 2013
   vegpar["c"] = 0.10;//Saco et al, 2013
-  vegpar["k1"] = 5;//Saco et al, 2013
+  vegpar["k1"] = 5.0;//Saco et al, 2013
   vegpar["gmax"] = 0.05;//Saco et al, 2013
   vegpar["W0"] = 0.2;//Saco et al, 2013
-  vegpar["k"] = 12;//Saco et al, 2013
+  vegpar["k"] = 12.0;//Saco et al, 2013
   
   
   
@@ -93,8 +105,8 @@ List Constants_cpp(List soilpar,
   const double CMgw = saltpar["CMgw"];
   const double f = saltpar["f"];
   
-  saltpar["ConcConst"] = 0;  //ConcConst is the concentration of the salt in the infiltrating water in g/l
-  saltpar["CMgw"] = 0; //CMgw is the goundwater salt concentration  in g/l
+  saltpar["ConcConst"] = 0.0;  //ConcConst is the concentration of the salt in the infiltrating water in g/l
+  saltpar["CMgw"] = 0.0; //CMgw is the goundwater salt concentration  in g/l
   saltpar["f"] = 0.8; //f is the soil salt leaching efficiency (whether some salt is retained)
 }
 
@@ -105,78 +117,78 @@ List Constants_cpp(List soilpar,
 // Storage arrays for the daily time steps declared and initialized
 
 // soil moisture [mm]
-                      double M[rows][cols][time] = {{0}};
+                      double M[rows][cols][time] = {{0.0}};
                       
                       //  plant biomass density
-                      double P[rows][cols][time]= {{0}};
+                      double P[rows][cols][time]= {{0.0}};
                       //h
-                      double h[rows][cols][time]= {{0}};
+                      double h[rows][cols][time]= {{0.0}};
                       //CM
-                      double CM[rows][cols][time]= {{0}};
+                      double CM[rows][cols][time]= {{0.0}};
                       // SmI
-                      double SmI[rows][cols][time]= {{0}};
+                      double SmI[rows][cols][time]= {{0.0}};
                       // SmM
-                      double SmM[rows][cols][time]= {{0}};
+                      double SmM[rows][cols][time]= {{0.0}};
                       // In
-                      double In[rows][cols][time]= {{0}};
+                      double In[rows][cols][time]= {{0.0}};
                       //Svir
-                      double Svir[rows][cols][time]= {{0}};
+                      double Svir[rows][cols][time]= {{0.0}};
                       // flux
-                      double flux[rows][cols][time]= {{0}};
+                      double flux[rows][cols][time]= {{0.0}};
                       //q
-                      double q[rows][cols][time]= {{0}};
+                      double q[rows][cols][time]= {{0.0}};
                       //runon
-                      double runon[rows][cols][time]= {{0}};
+                      double runon[rows][cols][time]= {{0.0}};
                       //mb
-                      double mb[rows][cols][time]= {{0}};
+                      double mb[rows][cols][time]= {{0.0}};
 
 //
 // Storage arrays for the SUBdaily time steps declared and initialized
                                     
                                     //h sub
-                                    double h_sub[rows][cols][deltat]= {{0}};
+                                    double h_sub[rows][cols][deltat]= {{0.0}};
                                     //P sub
-                                    double P_sub[rows][cols][deltat]= {{0}};
+                                    double P_sub[rows][cols][deltat]= {{0.0}};
                                     //M sub
-                                    double M_sub[rows][cols][deltat]= {{0}};
+                                    double M_sub[rows][cols][deltat]= {{0.0}};
                                     //CM sub
-                                    double CM_sub[rows][cols][deltat]= {{0}};
+                                    double CM_sub[rows][cols][deltat]= {{0.0}};
                                     // SmIsub
-                                    double SmI_sub[rows][cols][deltat]= {{0}};
+                                    double SmI_sub[rows][cols][deltat]= {{0.0}};
                                     // SmMsub
-                                    double SmM_sub[rows][cols][deltat]= {{0}};
+                                    double SmM_sub[rows][cols][deltat]= {{0.0}};
                                     // Isub
-                                    double I_sub[rows][cols][deltat]= {{0}};
+                                    double I_sub[rows][cols][deltat]= {{0.0}};
                                     //Svirsub
-                                    double Svir_sub[rows][cols][deltat]= {{0}};
+                                    double Svir_sub[rows][cols][deltat]= {{0.0}};
                                     // fluxsub
-                                    double flux_sub[rows][cols][deltat]= {{0}};
+                                    double flux_sub[rows][cols][deltat]= {{0.0}};
                                     //qsubsub
-                                    double q_sub[rows][cols][deltat]= {{0}};
+                                    double q_sub[rows][cols][deltat]= {{0.0}};
                                     //runonsub
-                                    double runon_sub[rows][cols][deltat]= {{0}};
+                                    double runon_sub[rows][cols][deltat]= {{0.0}};
                                     //mbsub
-                                    double mb_sub[rows][cols][deltat]= {{0}};
+                                    double mb_sub[rows][cols][deltat]= {{0.0}};
                                     //Gr_sub
-                                    double Gr_sub[rows][cols][deltat]= {{0}};
+                                    double Gr_sub[rows][cols][deltat]= {{0.0}};
                                     //Mo_sub
-                                    double Mo_sub[rows][cols][deltat]= {{0}};
+                                    double Mo_sub[rows][cols][deltat]= {{0.0}};
                                     //WU_sub
-                                    double WU_sub[rows][cols][deltat]= {{0}};
+                                    double WU_sub[rows][cols][deltat]= {{0.0}};
 
                                     // Salt leaching 
-                                    double L_salt[rows][cols][deltat]= {{0}};
+                                    double L_salt[rows][cols][deltat]= {{0.0}};
                                     //salt rise
-                                    double U_salt[rows][cols][deltat]= {{0}};
+                                    double U_salt[rows][cols][deltat]= {{0.0}};
                                     
                                     
                                                               ///   OLDS    
-                                                              double h_old[rows][cols]={{0}};
-                                                              double P_old[rows][cols]={{0}};
-                                                              double M_old[rows][cols]={{0}};
-                                                              double SmI_old[rows][cols]={{0}};
-                                                              double CM_old[rows][cols]={{0}};
-                                                              double Svir_old[rows][cols]={{0}};
+                                                              double h_old[rows][cols]={{0.0}};
+                                                              double P_old[rows][cols]={{0.0}};
+                                                              double M_old[rows][cols]={{0.0}};
+                                                              double SmI_old[rows][cols]={{0.0}};
+                                                              double CM_old[rows][cols]={{0.0}};
+                                                              double Svir_old[rows][cols]={{0.0}};
 
 // FUNCTIONS
 
@@ -206,7 +218,7 @@ double Infil(double h, double P, double alpha_i, double k, double W0){
           double s=M/(n*Zr); // extract n and Zr from list and define them
           double psi = hb*pow(s,-b);
           double s_fc = pow((Z/hb),(-1/b));// define hb and b
-          double m = 2 + 3/b;
+          double m = 2.0 + 3.0/b;
           double qf = pow((Z/hb),(-m))-(pow((psi/hb),-m)/(1+pow((psi/hb),-m)))+(m-1)*pow((Z/hb),-m);
           double flux = K_s * qf;
           
@@ -244,16 +256,11 @@ double Infil(double h, double P, double alpha_i, double k, double W0){
         }  
         
 
-        
-        
-    
 
      //// BIG OLD BALANCES FUNCTION 
      
 
-
-
-double balances2D(double Rain, List par, List soilpar, List vegpar){
+double balances2D(double Rain, List par, List soilpar, List vegpar){ // not par but saltpar!
   
 
   
@@ -261,9 +268,9 @@ double balances2D(double Rain, List par, List soilpar, List vegpar){
     
     for (j=1; j< cols; j++ ){
       
-      for (t=2; t< time; t++){  // it is actually the length of rain, has to be defined, Rain has to be rain ?
+      for (t=2; t< time; t++){  
         
-        for (tt=1; tt< (deltat-1); tt++){  // deltat has to be defined
+        for (tt=1; tt< (deltat-1); tt++){  
           
     
         
@@ -418,17 +425,23 @@ double balances2D(double Rain, List par, List soilpar, List vegpar){
         }
       }
     }
-// return M;
-//   
               
-  
-}
+              List out = Rcpp::List::create(Rcpp::Named("P") = P,
+                                            Rcpp::Named("M") = M, 
+                                            Rcpp::Named("h") = h, 
+                                            Rcpp::Named("CM") = CM, 
+                                            Rcpp::Named("SmM") = SmM, 
+                                            Rcpp::Named("In") = In, 
+                                            Rcpp::Named("flux") = flux, 
+                                            Rcpp::Named("Svir") = Svir, 
+                                            Rcpp::Named("q") = q,
+                                            Rcpp::Named("mb") = mb,
+                                            Rcpp::Named("runon") = runon);
+       return out;      
+}  
 
 
-// // In R:
-// Out <- list(P=P[,,],M=M[,,],h=h[,,], CM=CM[,,], SmM=SmM[,,], In=In[,,], flux=flux[,,], Svir=Svir[,,],h=h[,,], q=q[,,],mb=mb[,,], runon=runon[,,])
-// return(Out)
-    
+
 
 
 

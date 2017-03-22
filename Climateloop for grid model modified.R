@@ -6,14 +6,6 @@
 # SOURCE
 setwd("H:/Thesis project model/R project/GWSaltVegComp")
 
-### Source the runon raster (flowdir)
-source("flowdir.R")
-### Sourcing the rainfall
-source("Rainfall.R")
-### Sourcing the grid, taudem etc
-source("Rasters.R")
-
-
 
 ### RUN TIME (how many days)
 time <- 20
@@ -21,23 +13,36 @@ time <- 20
 ext <- 40 ## EXTEND of PLOT in [m]
 rows <- 5## rows of cells
 cols <- 5 ## columns of cells
-# Discretization
+# Discretization, subdaily timesteps
 deltat<-12
 
+### Source the runon raster (flowdir)
+source("flowdir.R")
+### Sourcing the rainfall
+source("Rainfall.R")
+### Sourcing the grid, taudem etc
+source("Rasters.R")
+
+#Runon raster generated from flowdir.R
+rn_matrix<- as.matrix(rn,nrow= nrow(rn), ncol=ncol(rn))
+
+# slope raster generated from Rasters.R
+slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
 
 #### RAINFALL GENERATION
 
 ##UNIFORM
-# Rain_function<-function(time){ Rain <- rep(1, time)
-# return(Rain)}
-# Rain<-Rain_function(time=time)
+Rain_function<-function(time){ Rain <- rep(1, time)
+return(Rain)}
+Rain <-list(Rain_function(time=time)) # Rain as a list
 
 ## HETEROGENEOUS
 # set.seed(100)
-alpha <- c(0.6,1.5) #  alpha <- seq(0.6,1.5,by=0.1) 
-lambda <- c(0.1,1) #  lambda <- seq(0.1,1,by=0.1)
-delta <- 0
-Rain <- Precip(time,alpha[k],lambda[l],delta)
+# alpha <- c(0.6,1.5) #  alpha <- seq(0.6,1.5,by=0.1) 
+# lambda <- c(0.1,1) #  lambda <- seq(0.1,1,by=0.1)
+# delta <- 0
+# Rain <- Precip(time,alpha[k],lambda[l],delta)
+
 # ## RAINFALL GENERATION
 # for (k in 1:length(alpha)) {
 #   
@@ -47,11 +52,15 @@ Rain <- Precip(time,alpha[k],lambda[l],delta)
 #     Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
 #   }}
 
-sourceCpp()
+
+install.packages("Rcpp")
+library(Rcpp)
+sourceCpp("Allfunctions.cpp")
 
 
 
 
+balances2D()
 
 
 

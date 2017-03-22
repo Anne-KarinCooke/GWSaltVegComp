@@ -32,235 +32,21 @@ int j;
 int t;
 int tt;
 
-int rain; /// thats no int
+// int rain; /// thats no int
 
 #include <array>
 // #include <iostream>
+// using namespace std;
+#include "storage formats.hpp"
+#include "Constants.hpp"
+#include "Vegetation functions.hpp"
 
-using namespace std;
-
-
-
-List Constants_cpp(List soilpar,
-                   List saltpar,
-                   List vegpar)
-{
-
-  
-/// define these lists first!! soilpar etc
-
-
-  
-  // SOIL 
-
-  const double n = soilpar["n"];
-  const double K_s = soilpar["K_s"];
-  const double b = soilpar["b"];
-  const double s_fc = soilpar["s_fc"];
-  const double psi_s_bar = soilpar["psi_s_bar"];
-  const double h1bar = soilpar["h1bar"];
-  const double hb = soilpar["hb"];
-  const double Mn = soilpar["Mn"];
-  const double cn = soilpar["cn"];
-  double alpha_i = soilpar["alpha_i"]; 
-  
-  soilpar["n"] = 0.367; //porosity
-  soilpar["K_s"] = 52.08*10; //Hydraulic conductivity mm/day 
-  soilpar["b"] = 6.4069; // campbell's b
-  soilpar["s_fc"] = 0.2677/soilpar["n"]; // Field capacity
-  soilpar["psi_s_bar"] = -1.2E-3; // bubbling pressure
-  soilpar["h1bar"] =  -psi_s_bar;
-  soilpar["hb"] = psi_s_bar*pow(-10,5);//  mm
-  soilpar["Mn"] = 10.0; // Manning's n
-  soilpar["cn"] = 1.0; // runoff conversion factor
-  soilpar["alpha_i"] = 1.0;//#maximum infiltration rate per day, This needs to be a fraction of h (p117 Saco and Moreno-Las Heras) 
-
-  
-
-    
-   
-  
-  // VEGETATION
-  const double Zr = vegpar["Zr"];
-  const double k = vegpar["k"];
-  const double W0 = vegpar["W0"];
-  const double gmax = vegpar["gmax"];
-  const double c = vegpar["c"];
-  const double k1 = vegpar["k1"];
-  const double d = vegpar["d"]; //fraction of plant mortality
-  
-  vegpar["Zr"] = 400.0; //mm, Grass
-  vegpar["d"] = 0.24;//Saco et al, 2013
-  vegpar["c"] = 0.10;//Saco et al, 2013
-  vegpar["k1"] = 5.0;//Saco et al, 2013
-  vegpar["gmax"] = 0.05;//Saco et al, 2013
-  vegpar["W0"] = 0.2;//Saco et al, 2013
-  vegpar["k"] = 12.0;//Saco et al, 2013
-  
-  
-  
-  
-  // SALT                            
-  const double ConcConst = saltpar["ConcConst"];
-  const double CMgw = saltpar["CMgw"];
-  const double f = saltpar["f"];
-  
-  saltpar["ConcConst"] = 0.0;  //ConcConst is the concentration of the salt in the infiltrating water in g/l
-  saltpar["CMgw"] = 0.0; //CMgw is the goundwater salt concentration  in g/l
-  saltpar["f"] = 0.8; //f is the soil salt leaching efficiency (whether some salt is retained)
-}
-
-
-  
-
-
-// Storage arrays for the daily time steps declared and initialized
-
-// soil moisture [mm]
-                      double M[rows][cols][time] = {{0.0}};
-                      
-                      //  plant biomass density
-                      double P[rows][cols][time]= {{0.0}};
-                      //h
-                      double h[rows][cols][time]= {{0.0}};
-                      //CM
-                      double CM[rows][cols][time]= {{0.0}};
-                      // SmI
-                      double SmI[rows][cols][time]= {{0.0}};
-                      // SmM
-                      double SmM[rows][cols][time]= {{0.0}};
-                      // In
-                      double In[rows][cols][time]= {{0.0}};
-                      //Svir
-                      double Svir[rows][cols][time]= {{0.0}};
-                      // flux
-                      double flux[rows][cols][time]= {{0.0}};
-                      //q
-                      double q[rows][cols][time]= {{0.0}};
-                      //runon
-                      double runon[rows][cols][time]= {{0.0}};
-                      //mb
-                      double mb[rows][cols][time]= {{0.0}};
-
-//
-// Storage arrays for the SUBdaily time steps declared and initialized
-                                    
-                                    //h sub
-                                    double h_sub[rows][cols][deltat]= {{0.0}};
-                                    //P sub
-                                    double P_sub[rows][cols][deltat]= {{0.0}};
-                                    //M sub
-                                    double M_sub[rows][cols][deltat]= {{0.0}};
-                                    //CM sub
-                                    double CM_sub[rows][cols][deltat]= {{0.0}};
-                                    // SmIsub
-                                    double SmI_sub[rows][cols][deltat]= {{0.0}};
-                                    // SmMsub
-                                    double SmM_sub[rows][cols][deltat]= {{0.0}};
-                                    // Isub
-                                    double I_sub[rows][cols][deltat]= {{0.0}};
-                                    //Svirsub
-                                    double Svir_sub[rows][cols][deltat]= {{0.0}};
-                                    // fluxsub
-                                    double flux_sub[rows][cols][deltat]= {{0.0}};
-                                    //qsubsub
-                                    double q_sub[rows][cols][deltat]= {{0.0}};
-                                    //runonsub
-                                    double runon_sub[rows][cols][deltat]= {{0.0}};
-                                    //mbsub
-                                    double mb_sub[rows][cols][deltat]= {{0.0}};
-                                    //Gr_sub
-                                    double Gr_sub[rows][cols][deltat]= {{0.0}};
-                                    //Mo_sub
-                                    double Mo_sub[rows][cols][deltat]= {{0.0}};
-                                    //WU_sub
-                                    double WU_sub[rows][cols][deltat]= {{0.0}};
-
-                                    // Salt leaching 
-                                    double L_salt[rows][cols][deltat]= {{0.0}};
-                                    //salt rise
-                                    double U_salt[rows][cols][deltat]= {{0.0}};
-                                    
-                                    
-                                                              ///   OLDS    
-                                                              double h_old[rows][cols]={{0.0}};
-                                                              double P_old[rows][cols]={{0.0}};
-                                                              double M_old[rows][cols]={{0.0}};
-                                                              double SmI_old[rows][cols]={{0.0}};
-                                                              double CM_old[rows][cols]={{0.0}};
-                                                              double Svir_old[rows][cols]={{0.0}};
-
-// FUNCTIONS
-
-
-// Infiltration function Infil
-
-double Infil(double h, double P, double alpha_i, double k, double W0){
-  
-  double I=alpha_i*h*(P+k*W0)/(P+k);
-  return I;
-}
-
-        // Overland flow RUNOFF, kinematic wave approach, as used in from Saco et al 2013
-        
-        double OF(double h, double cn, double Mn, double slope){
-          
-          double qq = (cn/Mn)*(pow(h,1.666667))*sqrt(slope);
-          return qq;
-        }
-        
-
-//vertical water flux function (capillary rise and drainage), eq from Salvucci 1993
-
-        double L_n(double M, double Z, double n, double Zr, double b, double K_s, double psi_s_bar){
-          
-          double hb = psi_s_bar*pow(10,5);
-          double s=M/(n*Zr); // extract n and Zr from list and define them
-          double psi = hb*pow(s,-b);
-          double s_fc = pow((Z/hb),(-1/b));// define hb and b
-          double m = 2.0 + 3.0/b;
-          double qf = pow((Z/hb),(-m))-(pow((psi/hb),-m)/(1+pow((psi/hb),-m)))+(m-1)*pow((Z/hb),-m);
-          double flux = K_s * qf;
-          
-          return flux;
-          
-        }
-        
-// VEGETATION FUNCTIONS
-        
-        //Plant water uptake function WU
-        
-        double WU(double M, double P, double gmax, double k1 ) {  /// not quite happy with the list item calling...list par
-          
-          double Wu = gmax*(M/(M+k1))*P;   // function is called WU, output is called Wu, cannot be the same
-          return Wu;
-          
-        }
-        
-        
-        //Plant Growth function Gr
-        
-        double Gr(double M, double P, double c, double gmax, double k1){
-          
-          double Gro = c*WU(M,P,gmax,k1);
-          return Gro;
-        }
-        
-        
-        // Plant mortality function Mo
-        
-        double Mo(double P, double M, double Svir, double d ){
-          
-          double Mort=P*(d*(M/Svir));
-          return Mort;
-        }  
-        
 
 
      //// BIG OLD BALANCES FUNCTION 
      
 
-double balances2D(double Rain, List par, List soilpar, List vegpar){ // not par but saltpar!
+double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar, List saltpar, slope){ // fix rain and slope
   
 
   
@@ -357,17 +143,17 @@ double balances2D(double Rain, List par, List soilpar, List vegpar){ // not par 
 
           // salt leaching
           // 
-          if(flux_sub[i][j][tt+1] <0 ) {
+          if(flux_sub[i][j][tt+1] < 0.0 ) {
             L_salt[i][j][tt+1] = soilpar["f"] *CM_sub[i][j][tt+1] * flux_sub[i][j][tt+1]*timeincr;
           } else {
-            L_salt[i][j][tt+1] = 0;
+            L_salt[i][j][tt+1] = 0.0;
           }
             
             // salt upflow
-            if(flux_sub[i][j][tt+1] >0 ) {
+            if(flux_sub[i][j][tt+1] > 0.0 ) {
               U_salt[i][j][tt+1] = CM_sub[i][j][tt+1] *soilpar["f"] * flux_sub[i][j][tt+1]*timeincr;
             } else {
-              L_salt[i][j][tt+1] = 0;
+              L_salt[i][j][tt+1] = 0.0;
             }
             
             

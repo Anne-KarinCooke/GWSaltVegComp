@@ -77,7 +77,7 @@ vegpar <-Veg_cpp("Fantasy Tree")
 saltpar<- Salt_cpp("Groundwater")
 
 
-g++ -std=c++0x <Allfunctions.cpp> 
+Sys.setenv("PKG_CXXFLAGS"="-std=c++11")
 sourceCpp("Allfunctions.cpp")
 evalCpp("Allfunctions.cpp")
 balances2D

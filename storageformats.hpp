@@ -2,13 +2,14 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+// [[Rcpp::export]]
 
 #include <array>
 
-const int rows=10;
-const int cols=10;
-const int time=20;
-const int deltat=12;
+// const int rows=10;
+// const int cols=10;
+// const int time=20;
+// const int deltat=12;
 
 
 // soil moisture [mm]

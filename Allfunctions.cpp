@@ -2,6 +2,7 @@
 using namespace Rcpp;
 
 #include <iostream>
+// [[Rcpp::export]]
 
 
 int i;
@@ -13,45 +14,131 @@ int tt;
 
 #include <array>
 #include <list>
-// 
-#include "storageformats.hpp"
+
+
+const int rows=10;
+const int cols=10;
+const int time=20;
+const int deltat=12;
+
+#include <array>
+
+// const int rows=10;
+// const int cols=10;
+// const int time=20;
+// const int deltat=12;
+
+
+// soil moisture [mm]
+double M[rows][cols][time] = {{{0.0}}};
+
+//  plant biomass density
+double P[rows][cols][time]= {{{0.0}}};
+// //h
+double h[rows][cols][time]= {{{0.0}}};
+// //CM
+double CM[rows][cols][time]= {{{0.0}}};
+// // SmI
+double SmI[rows][cols][time]= {{{0.0}}};
+// // SmM
+double SmM[rows][cols][time]= {{{0.0}}};
+// // In
+double In[rows][cols][time]= {{{0.0}}};
+// //Svir
+double Svir[rows][cols][time]= {{{0.0}}};
+// // flux
+double flux[rows][cols][time]= {{{0.0}}};
+// //q
+double q[rows][cols][time]= {{{0.0}}};
+// //runon
+double runon[rows][cols][time]= {{{0.0}}};
+// //mb
+double mb[rows][cols][time]= {{{0.0}}};
+//
+// //
+// // Storage arrays for the SUBdaily time steps declared and initialized
+//
+// //h sub
+double h_sub[rows][cols][deltat]= {{{0.0}}};
+// //P sub
+double P_sub[rows][cols][deltat]= {{{0.0}}};
+// //M sub
+double M_sub[rows][cols][deltat]= {{{0.0}}};
+// //CM sub
+double CM_sub[rows][cols][deltat]= {{{0.0}}};
+// // SmIsub
+double SmI_sub[rows][cols][deltat]= {{{0.0}}};
+// // SmMsub
+double SmM_sub[rows][cols][deltat]= {{{0.0}}};
+// // Isub
+double I_sub[rows][cols][deltat]= {{{0.0}}};
+// //Svirsub
+double Svir_sub[rows][cols][deltat]= {{{0.0}}};
+// // fluxsub
+double flux_sub[rows][cols][deltat]= {{{0.0}}};
+// //qsubsub
+double q_sub[rows][cols][deltat]= {{{0.0}}};
+// //runonsub
+double runon_sub[rows][cols][deltat]= {{{0.0}}};
+// //mbsub
+double mb_sub[rows][cols][deltat]= {{{0.0}}};
+// //Gr_sub
+double Gr_sub[rows][cols][deltat]= {{{0.0}}};
+// //Mo_sub
+double Mo_sub[rows][cols][deltat]= {{{0.0}}};
+// //WU_sub
+double WU_sub[rows][cols][deltat]= {{{0.0}}};
+//
+// // Salt leaching
+double L_salt[rows][cols][deltat]= {{{0.0}}};
+// //salt rise
+double U_salt[rows][cols][deltat]={{{0.0}}};
+//
+//
+// ///   OLDS
+double h_old[rows][cols]={{0.0}};
+double P_old[rows][cols]={{0.0}};
+double M_old[rows][cols]={{0.0}};
+double SmI_old[rows][cols]={{0.0}};
+double CM_old[rows][cols]={{0.0}};
+double Svir_old[rows][cols]={{0.0}};
+
+// #include "storageformats.hpp"
 #include "Vegetationfunctions.hpp"
 #include "Flux.hpp"
 #include "Runoff.hpp"
 #include "Infiltration.hpp"
 
-
-///array matrix, slope matrix
-
 //// BIG OLD BALANCES FUNCTION 
 
-// const int rows = 10;
-// const int cols = 10;
-// const int time = 20;
-// const int deltat = 12;
+ // int rows;
+ // int cols;
+ // int time;
+ // int deltat;
+
+ 
 float timeincr = 1/deltat;  // needs to be float and not double for some reason!
 
-double slope;
-// double runon; 
-double alpha_i =1;
-double cn;
+ double slope;
+// // double runon; 
+// double alpha_i;
+ double cn;
 double Mn;
 List Rain;
-double Z;
 
+// 
+ List soilpar;
+ List vegpar;
+List saltpar;
+// 
+double rn[rows][cols];
+double Zras[rows][cols];
 
-List soilpar();
-
-List vegpar();
-
-List saltpar();
-
-double rn[rows][cols]= {{0.0}};
-
-List balances2D (){ // fix rain and slope
+// [[Rcpp::export]]
+List balances2D(){ 
   
-  // soilpar, vegpar, saltpar
-  // rows, cols, time, deltat, Rain, slope, rn, cn, Mn
+  
+  
   for (i==1; i< rows; i++) {
     
     for (j==1; j< cols; j++ ){
@@ -93,9 +180,9 @@ List balances2D (){ // fix rain and slope
           }
           
 
-          q_sub[i][j][tt+1] = OF(h_old[i][j], cn, Mn, slope)*timeincr; // define slope!!
+          q_sub[i][j][tt+1] = OF(h_old[i][j], cn, Mn, slope[i][j])*timeincr; 
           
-          runon_sub[i][j][tt+1] = rn[i][j]*q_sub[i][j][tt]; /// rn !!! source
+          runon_sub[i][j][tt+1] = rn[i][j]*q_sub[i][j][tt]; 
           
           
           if (tt==1){ // not right yet
@@ -236,13 +323,3 @@ List balances2D (){ // fix rain and slope
 }  
 
 
-
-// You can include R code blocks in C++ files processed with sourceCpp
-// (useful for testing and development). The R code will be automatically 
-// run after the compilation.
-//
-
-  /*** R
-  
-   
- */

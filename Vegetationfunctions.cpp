@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
-
+// [[Rcpp::export]]
 
 // VEGETATION FUNCTIONS
 
@@ -12,23 +12,25 @@ double WU(double M, double P, double gmax, double k1 ) {  /// not quite happy wi
   return Wu;
   
 }
-       
+// [[Rcpp::export]]
 
 //Plant Growth function Gr
 
 double Gr(double M, double P, double c, double gmax, double k1){
   
-       double Gro = c*WU(M,P,gmax,k1);
-       return Gro;
+  double Gro = c*WU(M,P,gmax,k1);
+  return Gro;
 }
 
-       
+// [[Rcpp::export]]
 // Plant mortality function Mo
-       
+
 double Mo(double P, double M, double Svir, double d ){
-      
-      double Mort=P*(d*(M/Svir));
-      return Mort;
+  
+  double Mort=P*(d*(M/Svir));
+  return Mort;
+  
+                         
 }  
-  
-  
+
+

@@ -1,5 +1,7 @@
 // Storage arrays for the daily time steps declared and initialized
-
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
 
 #include <array>
 

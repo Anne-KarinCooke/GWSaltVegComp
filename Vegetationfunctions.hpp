@@ -1,3 +1,6 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+// [[Rcpp::export]]
 
 // VEGETATION FUNCTIONS
 
@@ -26,4 +29,10 @@ double Mo(double P, double M, double Svir, double d ){
   
   double Mort=P*(d*(M/Svir));
   return Mort;
+  
+
+  return(Rcpp::List::create(Rcpp::Named("Mort") = Mort));
+                         
 }  
+
+

@@ -1,6 +1,6 @@
 #include <Rcpp.h>
 using namespace Rcpp;
-
+// [[Rcpp::export]]
 // Infiltration function Infil
 
 double Infil(double h, double P, double alpha_i, double k, double W0){

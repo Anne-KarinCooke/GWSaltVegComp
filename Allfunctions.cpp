@@ -1,9 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-// [[Rcpp::export]]
-
-// [[Rcpp::interfaces]] r, cpp
+#include <iostream>
 
 
 int i;
@@ -22,33 +20,38 @@ int tt;
 #include "Runoff.hpp"
 #include "Infiltration.hpp"
 
+
 ///array matrix, slope matrix
 
 //// BIG OLD BALANCES FUNCTION 
 
-const int rows = 10;
-const int cols = 10;
-const int time = 20;
-const int deltat = 12;
+// const int rows = 10;
+// const int cols = 10;
+// const int time = 20;
+// const int deltat = 12;
 float timeincr = 1/deltat;  // needs to be float and not double for some reason!
 
 double slope;
-double runon; 
+// double runon; 
 double alpha_i =1;
 double cn;
 double Mn;
-double Rain;
+List Rain;
 double Z;
 
+
 List soilpar();
+
 List vegpar();
+
 List saltpar();
 
 double rn[rows][cols]= {{0.0}};
 
-double balances2D(rows, cols, time, deltat, Rain, slope, rn, cn, Mn, soilpar, vegpar, saltpar) { // fix rain and slope
+List balances2D (){ // fix rain and slope
   
-  
+  // soilpar, vegpar, saltpar
+  // rows, cols, time, deltat, Rain, slope, rn, cn, Mn
   for (i==1; i< rows; i++) {
     
     for (j==1; j< cols; j++ ){
@@ -96,7 +99,7 @@ double balances2D(rows, cols, time, deltat, Rain, slope, rn, cn, Mn, soilpar, ve
           
           
           if (tt==1){ // not right yet
-            h_sub[i][j][tt+1] =  h_old[i][j] + (10*rain[t]*timeincr) - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
+            h_sub[i][j][tt+1] =  h_old[i][j] + (10*Rain[t]*timeincr) - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
             return h_sub[i][j][tt+1];
           }
           else {
@@ -240,5 +243,6 @@ double balances2D(rows, cols, time, deltat, Rain, slope, rn, cn, Mn, soilpar, ve
 //
 
   /*** R
-  sourceCpp("Allfunctions.cpp")
+  
+   
  */

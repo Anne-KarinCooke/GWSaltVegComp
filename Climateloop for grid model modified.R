@@ -60,6 +60,10 @@ Rain <-list(Rain_function(time=time)) # Rain as a list
 
 install.packages("Rcpp")
 library(Rcpp)
+# Sys.setenv("PKG_CXXFLAGS"="-fopenmp")
+# Sys.setenv("PKG_LIBS"="-fopenmp")
+install.packages("devtools")
+library(devtools)
 
 # Sourcing the cpp functions that define the constants for soil, veg and salt
 sourceCpp("soilfun.cpp")
@@ -73,15 +77,20 @@ vegpar <-Veg_cpp("Fantasy Tree")
 saltpar<- Salt_cpp("Groundwater")
 
 
-
+g++ -std=c++0x <Allfunctions.cpp> 
 sourceCpp("Allfunctions.cpp")
+evalCpp("Allfunctions.cpp")
+balances2D
 
+sourceCpp("Runoff.cpp")
 
-sourceCpp("storageformats.cpp")
-
+sourceCpp("Flux.cpp")
+evalCpp("Runoff.cpp")
 #include "storageformats.hpp"
 
-sourceCpp("Vegetationfunctions.cpp")
+sourceCpp("Infiltration.cpp")
+
+
 
 #include "Flux.hpp"
 #include "Runoff.hpp"

@@ -1,5 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
+// [[Rcpp::export]]
+
 // Overland flow RUNOFF, kinematic wave approach, as used in from Saco et al 2013
 
 double OF(double h, double cn, double Mn, double slope){

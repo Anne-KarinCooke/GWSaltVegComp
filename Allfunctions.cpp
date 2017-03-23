@@ -2,19 +2,9 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-//Sandy Clay Loam
-// Rain_function<-function(time){ Rain <- rep(1, time)
-//   return(Rain)}
-// Rain<-Rain_function(time=time)
 
-#include <list>
+// [[Rcpp::interfaces]] r, cpp
 
-int const rows = 10;
-int const cols = 10;
-int const time = 10;
-int const deltat =12;
-
-float timeincr = 1/deltat;  // needs to be float and not double for some reason!
 
 int i;
 int j;
@@ -24,17 +14,39 @@ int tt;
 // int rain; /// thats no int
 
 #include <array>
-// #include <iostream>
-
+#include <list>
+// 
 #include "storageformats.hpp"
-#include "Constants.hpp"
 #include "Vegetationfunctions.hpp"
+#include "Flux.hpp"
+#include "Runoff.hpp"
+#include "Infiltration.hpp"
 
 ///array matrix, slope matrix
 
 //// BIG OLD BALANCES FUNCTION 
 
-double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar, List saltpar, slope, runon){ // fix rain and slope
+const int rows = 10;
+const int cols = 10;
+const int time = 20;
+const int deltat = 12;
+float timeincr = 1/deltat;  // needs to be float and not double for some reason!
+
+double slope;
+double runon; 
+double alpha_i =1;
+double cn;
+double Mn;
+double Rain;
+double Z;
+
+List soilpar();
+List vegpar();
+List saltpar();
+
+double rn[rows][cols]= {{0.0}};
+
+double balances2D(rows, cols, time, deltat, Rain, slope, rn, cn, Mn, soilpar, vegpar, saltpar) { // fix rain and slope
   
   
   for (i==1; i< rows; i++) {
@@ -77,40 +89,39 @@ double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar
             Svir_old[i][j] = Svir_sub[i][j][tt];
           }
           
-          double slope; // think about this again
-          
-          q_sub[i][j][tt+1] = OF(h_old[i][j], soilpar["cn"], soilpar["Mn"], slope)*timeincr; // define slope!!
+
+          q_sub[i][j][tt+1] = OF(h_old[i][j], cn, Mn, slope)*timeincr; // define slope!!
           
           runon_sub[i][j][tt+1] = rn[i][j]*q_sub[i][j][tt]; /// rn !!! source
           
           
           if (tt==1){ // not right yet
-            h_sub[i][j][tt+1] =  h_old[i][j] + (10*rain[t]*timeincr) - Infil( h_old[i][j],  P_old[i][j], soilpar["alpha_i"], vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
+            h_sub[i][j][tt+1] =  h_old[i][j] + (10*rain[t]*timeincr) - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
             return h_sub[i][j][tt+1];
           }
           else {
-            h_sub[i][j][tt+1] =  h_old[i][j]  - Infil( h_old[i][j],  P_old[i][j], soilpar["alpha_i"], vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
+            h_sub[i][j][tt+1] =  h_old[i][j]  - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
             return h_sub[i][j][tt+1];
           }
           
           
           if(h_sub[i,j,tt+1]<(soilpar["K_s"]*timeincr)) {
             
-            soilpar["alpha_i"] = 1.0;
+            alpha_i = 1.0;
           }
           else {
             
-            soilpar["alpha_i"] = 1-(h_sub[i][j][tt+1]-soilpar["K_s"]*timeincr)/h_sub[i][j][tt+1];
+            alpha_i = 1-(h_sub[i][j][tt+1]-soilpar["K_s"]*timeincr)/h_sub[i][j][tt+1];
             
           }
           
-          I_sub[i][j][tt+1] = Infil(h_old[i][j], P_old[i][j], soilpar["alpha_i"], vegpar["k"], vegpar["W0"])*timeincr; //// problem like above, how to deal with parameters from list
+          I_sub[i][j][tt+1] = Infil(h_old[i][j], P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])*timeincr; //// problem like above, how to deal with parameters from list
           
           
           // Water uptake           
-          WU_sub[i][j][tt] = WU(M_sub[i][j][tt+1],P_old[i][j],soilpar["gmax"], soilpar["k1"])*timeincr;
+          WU_sub[i][j][tt] = WU(M_sub[i][j][tt+1],P_old[i][j], vegpar["gmax"], vegpar["k1"])*timeincr;
           // Growth            
-          Gr_sub[i][j][tt] = Gr(Svir_old[i][j], P_old[i][j], soilpar["c"], soilpar["gmax"], soilpar["k1"])*timeincr; 
+          Gr_sub[i][j][tt] = Gr(Svir_old[i][j], P_old[i][j], vegpar["c"], vegpar["gmax"], vegpar["k1"])*timeincr; 
           //Mortality
           Mo_sub[i][j][tt] = Mo(P_old[i][j], M_old[i][j], Svir_old[i][j],vegpar["d"])*timeincr;
           // Plant biomass balance             
@@ -132,21 +143,21 @@ double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar
           // salt leaching
           // 
           if(flux_sub[i][j][tt+1] < 0.0 ) {
-            L_salt[i][j][tt+1] = soilpar["f"] *CM_sub[i][j][tt+1] * flux_sub[i][j][tt+1]*timeincr;
+            L_salt[i][j][tt+1] = saltpar["f"] *CM_sub[i][j][tt+1] * flux_sub[i][j][tt+1]*timeincr;
           } else {
             L_salt[i][j][tt+1] = 0.0;
           }
           
           // salt upflow
           if(flux_sub[i][j][tt+1] > 0.0 ) {
-            U_salt[i][j][tt+1] = CM_sub[i][j][tt+1] *soilpar["f"] * flux_sub[i][j][tt+1]*timeincr;
+            U_salt[i][j][tt+1] = CM_sub[i][j][tt+1] *saltpar["f"] * flux_sub[i][j][tt+1]*timeincr;
           } else {
             L_salt[i][j][tt+1] = 0.0;
           }
           
           
           // # salt mass coming in with infiltration
-          SmI_sub[i][j][tt+1] = SmI_old[i][j] + I_sub[i][j][tt] * soilpar["ConcConst"];
+          SmI_sub[i][j][tt+1] = SmI_old[i][j] + I_sub[i][j][tt] * saltpar["ConcConst"];
           
           // #salt mass in soil
           SmM_sub[i][j][tt+1] = SmI_sub[i][j][tt+1] + U_salt[i][j][tt+1] - L_salt[i][j][tt+1];
@@ -175,26 +186,39 @@ double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar
         Svir[i][j][t] = Svir_sub[i][j][deltat];
         
         
-        double sumI = std::accumulate(I_sub[i][j][1], I_sub[i][j][deltat], 0);
+        for(int tt = 1; tt =< deltat; ++tt)
+        {
+          double sumI;
+          double sumflux;
+          double sumq;
+          double sumrunon;
+          double mb;
+          
+          sumI += I_sub[i][j][tt];
+          sumflux += flux_sub[i][j][tt]; // timeincr thingi?!
+          sumq += q_sub[i][j][tt];
+          sumrunon += runon_sub[i][j][tt];
+          summb += mb_sub[i][j][tt];
+          
+         // tt++;
+        } 
+        
+
         In[i][j][t] = sumI;
-        
-        double sumflux = std::accumulate(flux_sub[i][j][1], flux_sub[i][j][deltat], 0);
+
         flux[i][j][t]= sumflux; 
-        
-        double sumq = std::accumulate(q_sub[i][j][1], q_sub[i][j][deltat], 0);
+
         q[i][j][t] = sumq;
-        
-        double sumrunon = std::accumulate(runon_sub[i][j][1], runon_sub[i][j][deltat], 0);
-        runon[i][j][t] = sumq;
-        
-        double summb = std::accumulate(mb_sub[i][j][1], mb_sub[i][j][deltat], 0);
+
+        runon[i][j][t] = sumrunon;
+
         mb[i][j][t] = summb;
         
       }
     }
   }
-  
-  List out = Rcpp::List::create(Rcpp::Named("P") = P,
+ 
+ List out = Rcpp::List::create(Rcpp::Named("P") = P,
                                 Rcpp::Named("M") = M, 
                                 Rcpp::Named("h") = h, 
                                 Rcpp::Named("CM") = CM, 
@@ -207,3 +231,14 @@ double balances2D(rows, cols, time, deltat, List rain, List soilpar, List vegpar
                                 Rcpp::Named("runon") = runon);
   return out;      
 }  
+
+
+
+// You can include R code blocks in C++ files processed with sourceCpp
+// (useful for testing and development). The R code will be automatically 
+// run after the compilation.
+//
+
+  /*** R
+  sourceCpp("Allfunctions.cpp")
+ */

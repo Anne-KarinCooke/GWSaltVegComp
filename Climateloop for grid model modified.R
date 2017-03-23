@@ -16,12 +16,13 @@ cols <- 5 ## columns of cells
 # Discretization, subdaily timesteps
 deltat<-12
 
+### Sourcing the grid, taudem etc, generates flowdir (ang) and slope raster
+source("Rasters.R")
 ### Source the runon raster (flowdir)
 source("flowdir.R")
 ### Sourcing the rainfall
 source("Rainfall.R")
-### Sourcing the grid, taudem etc
-source("Rasters.R")
+
 
 #Runon raster generated from flowdir.R
 rn_matrix<- as.matrix(rn,nrow= nrow(rn), ncol=ncol(rn))
@@ -53,14 +54,40 @@ Rain <-list(Rain_function(time=time)) # Rain as a list
 #   }}
 
 
+# soilpar["Mn"] = 10.0; // Manning's n
+#         soilpar["cn"] = 1.0; // runoff conversion factor
+# soilpar["alpha_i"] = 1.0;//#maximum infiltration rate per day, This needs to be a fraction of h (p117 Saco and Moreno-Las Heras)
+
 install.packages("Rcpp")
 library(Rcpp)
+
+# Sourcing the cpp functions that define the constants for soil, veg and salt
+sourceCpp("soilfun.cpp")
+sourceCpp("vegfun.cpp")
+sourceCpp("saltfun.cpp")
+
+
+# creating parameter lists
+soilpar <- Soil_cpp("S Clay Loam")
+vegpar <-Veg_cpp("Fantasy Tree")
+saltpar<- Salt_cpp("Groundwater")
+
+
+
 sourceCpp("Allfunctions.cpp")
 
 
+sourceCpp("storageformats.cpp")
+
+#include "storageformats.hpp"
+
+sourceCpp("Vegetationfunctions.cpp")
+
+#include "Flux.hpp"
+#include "Runoff.hpp"
+#include "Infiltration.hpp"
 
 
-balances2D()
 
 
 

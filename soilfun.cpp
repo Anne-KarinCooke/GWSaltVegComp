@@ -4,6 +4,8 @@ using namespace Rcpp;
 
 /// COPIED FROM EcoHydro2D Github
 
+// changes by Anneka: hb in mm! not cm anymore
+// h1bar added (h1bar= -psi_s_bar)
 
 //
 // Soil data as a function
@@ -25,7 +27,9 @@ List  Soil_cpp(std::string stype) {
   double s_fc = 0.364/n; // Field capacity
   double psi_s_bar = -1.5E-3; // This is the bubbling pressure
   double hb = psi_s_bar*(-1e4);
+  double h1bar= -psi_s_bar;
   double spec_y = 0.054; //Johnson 1967 says 0.05, specific yield. 
+  
   
   if (stype == "L Med Clay Stony") {
     // Medium Light Clay
@@ -37,8 +41,10 @@ List  Soil_cpp(std::string stype) {
     // avg = 0.0591;
     s_fc = 0.264/n; // Field capacity
     psi_s_bar = -1.5E-3; // This is the bubbling pressure
+    h1bar= -psi_s_bar;
     hb = psi_s_bar*(-1e4);
     spec_y = 0.054; //Johnson 1967 says 0.05, specific yield. 
+    
   }
   
   if (stype == "S Clay Loam") {
@@ -50,8 +56,8 @@ List  Soil_cpp(std::string stype) {
     // avg = 0.0521;
     // nvg = 1.237;
     s_fc = 0.2677/n; // Field capacity
-    
     psi_s_bar = -1.2E-3;
+    h1bar= -psi_s_bar;
     hb = psi_s_bar*(-1e4);
     spec_y = 0.07;  //difference Fc and por Johnson 1967 says 0.07 
   }
@@ -67,6 +73,7 @@ List  Soil_cpp(std::string stype) {
     s_fc = 0.2098/n; // Field capacity
     
     psi_s_bar = -0.66E-3; // This is the bubbling pressure
+    h1bar= -psi_s_bar;
     spec_y = 0.17;  // changed to 0.1 to increase rise in gw, not difference por and fc
   }
   
@@ -81,7 +88,9 @@ List  Soil_cpp(std::string stype) {
     s_fc = 0.3936/n; // Field capacity
     
     psi_s_bar = -1.4e-3;
-    hb = psi_s_bar*-1.0e4;
+    
+    h1bar= -psi_s_bar;
+    hb = psi_s_bar*-1.0e5;
     spec_y = 0.05;  // difference por and fc
   }
   
@@ -96,8 +105,11 @@ List  Soil_cpp(std::string stype) {
     s_fc = 0.3818/n; // Field capacity
     
     psi_s_bar = -1.75E-3; // This is the bubbling pressure
-    hb = psi_s_bar*-1.0e4;
+    h1bar= -psi_s_bar;
+    hb = psi_s_bar*-1.0e5;
     spec_y = 0.05; // difference por and fc
+    
+    
   }
   
   if (stype == "C Sand") {
@@ -111,7 +123,8 @@ List  Soil_cpp(std::string stype) {
     s_fc = 0.1895/n; // Field capacity
     
     psi_s_bar = -0.61E-3; // This is the bubbling pressure
-    hb = psi_s_bar*-1.0e4;
+    h1bar= -psi_s_bar;
+    hb = psi_s_bar*-1.0e5; //mm
     spec_y = 0.27;  // difference por and fc
   }
   
@@ -131,6 +144,7 @@ List  Soil_cpp(std::string stype) {
                             Rcpp::Named("b") = b,
                             Rcpp::Named("hb") = hb,
                             Rcpp::Named("psi_s_bar") = psi_s_bar,
+                            Rcpp::Named("h1bar") = h1bar,
                             Rcpp::Named("s_fc") = s_fc,
                             Rcpp::Named("s_h") = s_h,
                             Rcpp::Named("beta") = beta,
@@ -149,5 +163,3 @@ List  Soil_cpp(std::string stype) {
 //  /*** R
 // Soil_cpp("S Clay Loam")
 // */
-Contact GitHub API Training Shop Blog About
-  © 2017 GitHub, Inc. Terms Privacy Security Status Help

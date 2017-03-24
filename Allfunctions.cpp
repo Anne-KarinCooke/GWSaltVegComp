@@ -1,144 +1,119 @@
 #include <Rcpp.h>
 using namespace Rcpp;
-
-#include <iostream>
-// [[Rcpp::export]]
-
-
-int i;
-int j;
-int t;
-int tt;
-
-// int rain; /// thats no int
-
 #include <array>
 #include <list>
-
-
-const int rows=10;
-const int cols=10;
-const int time=20;
-const int deltat=12;
-
-#include <array>
-
-// const int rows=10;
-// const int cols=10;
-// const int time=20;
-// const int deltat=12;
-
-
-// soil moisture [mm]
-double M[rows][cols][time] = {{{0.0}}};
-
-//  plant biomass density
-double P[rows][cols][time]= {{{0.0}}};
-// //h
-double h[rows][cols][time]= {{{0.0}}};
-// //CM
-double CM[rows][cols][time]= {{{0.0}}};
-// // SmI
-double SmI[rows][cols][time]= {{{0.0}}};
-// // SmM
-double SmM[rows][cols][time]= {{{0.0}}};
-// // In
-double In[rows][cols][time]= {{{0.0}}};
-// //Svir
-double Svir[rows][cols][time]= {{{0.0}}};
-// // flux
-double flux[rows][cols][time]= {{{0.0}}};
-// //q
-double q[rows][cols][time]= {{{0.0}}};
-// //runon
-double runon[rows][cols][time]= {{{0.0}}};
-// //mb
-double mb[rows][cols][time]= {{{0.0}}};
-//
-// //
-// // Storage arrays for the SUBdaily time steps declared and initialized
-//
-// //h sub
-double h_sub[rows][cols][deltat]= {{{0.0}}};
-// //P sub
-double P_sub[rows][cols][deltat]= {{{0.0}}};
-// //M sub
-double M_sub[rows][cols][deltat]= {{{0.0}}};
-// //CM sub
-double CM_sub[rows][cols][deltat]= {{{0.0}}};
-// // SmIsub
-double SmI_sub[rows][cols][deltat]= {{{0.0}}};
-// // SmMsub
-double SmM_sub[rows][cols][deltat]= {{{0.0}}};
-// // Isub
-double I_sub[rows][cols][deltat]= {{{0.0}}};
-// //Svirsub
-double Svir_sub[rows][cols][deltat]= {{{0.0}}};
-// // fluxsub
-double flux_sub[rows][cols][deltat]= {{{0.0}}};
-// //qsubsub
-double q_sub[rows][cols][deltat]= {{{0.0}}};
-// //runonsub
-double runon_sub[rows][cols][deltat]= {{{0.0}}};
-// //mbsub
-double mb_sub[rows][cols][deltat]= {{{0.0}}};
-// //Gr_sub
-double Gr_sub[rows][cols][deltat]= {{{0.0}}};
-// //Mo_sub
-double Mo_sub[rows][cols][deltat]= {{{0.0}}};
-// //WU_sub
-double WU_sub[rows][cols][deltat]= {{{0.0}}};
-//
-// // Salt leaching
-double L_salt[rows][cols][deltat]= {{{0.0}}};
-// //salt rise
-double U_salt[rows][cols][deltat]={{{0.0}}};
-//
-//
-// ///   OLDS
-double h_old[rows][cols]={{0.0}};
-double P_old[rows][cols]={{0.0}};
-double M_old[rows][cols]={{0.0}};
-double SmI_old[rows][cols]={{0.0}};
-double CM_old[rows][cols]={{0.0}};
-double Svir_old[rows][cols]={{0.0}};
-
+#include <iostream>
 // #include "storageformats.hpp"
 #include "Vegetationfunctions.hpp"
 #include "Flux.hpp"
 #include "Runoff.hpp"
 #include "Infiltration.hpp"
 
-//// BIG OLD BALANCES FUNCTION 
-
- // int rows;
- // int cols;
- // int time;
- // int deltat;
-
- 
-float timeincr = 1/deltat;  // needs to be float and not double for some reason!
-
- double slope;
-// // double runon; 
-// double alpha_i;
- double cn;
-double Mn;
-List Rain;
-
-// 
- List soilpar;
- List vegpar;
-List saltpar;
-// 
-double rn[rows][cols];
-double Zras[rows][cols];
 
 // [[Rcpp::export]]
-List balances2D(){ 
+List balances2D(int t, NumericVector Rain,
+                List vegpar, List soilpar, List saltpar,
+                int rows=10, int cols=10,  double slope){ 
+  // you have no inputs in your function? where does climate come in?
+  
+  // all these are part of your function you cannot define them outside
+  int i;
+  int j;
+  int tt;
+  
+  int time=t.size();
+  const int deltat=12;
   
   
+  // soil moisture [mm]
+  double M[rows][cols][time] = {{{0.0}}};
   
+  //  plant biomass density
+  double P[rows][cols][time]= {{{0.0}}};
+  // //h
+  double h[rows][cols][time]= {{{0.0}}};
+  // //CM
+  double CM[rows][cols][time]= {{{0.0}}};
+  // // SmI
+  double SmI[rows][cols][time]= {{{0.0}}};
+  // // SmM
+  double SmM[rows][cols][time]= {{{0.0}}};
+  // // In
+  double In[rows][cols][time]= {{{0.0}}};
+  // //Svir
+  double Svir[rows][cols][time]= {{{0.0}}};
+  // // flux
+  double flux[rows][cols][time]= {{{0.0}}};
+  // //q
+  double q[rows][cols][time]= {{{0.0}}};
+  // //runon
+  double runon[rows][cols][time]= {{{0.0}}};
+  // //mb
+  double mb[rows][cols][time]= {{{0.0}}};
+  //
+  // //
+  // // Storage arrays for the SUBdaily time steps declared and initialized
+  //
+  // //h sub
+  double h_sub[rows][cols][deltat]= {{{0.0}}};
+  // //P sub
+  double P_sub[rows][cols][deltat]= {{{0.0}}};
+  // //M sub
+  double M_sub[rows][cols][deltat]= {{{0.0}}};
+  // //CM sub
+  double CM_sub[rows][cols][deltat]= {{{0.0}}};
+  // // SmIsub
+  double SmI_sub[rows][cols][deltat]= {{{0.0}}};
+  // // SmMsub
+  double SmM_sub[rows][cols][deltat]= {{{0.0}}};
+  // // Isub
+  double I_sub[rows][cols][deltat]= {{{0.0}}};
+  // //Svirsub
+  double Svir_sub[rows][cols][deltat]= {{{0.0}}};
+  // // fluxsub
+  double flux_sub[rows][cols][deltat]= {{{0.0}}};
+  // //qsubsub
+  double q_sub[rows][cols][deltat]= {{{0.0}}};
+  // //runonsub
+  double runon_sub[rows][cols][deltat]= {{{0.0}}};
+  // //mbsub
+  double mb_sub[rows][cols][deltat]= {{{0.0}}};
+  // //Gr_sub
+  double Gr_sub[rows][cols][deltat]= {{{0.0}}};
+  // //Mo_sub
+  double Mo_sub[rows][cols][deltat]= {{{0.0}}};
+  // //WU_sub
+  double WU_sub[rows][cols][deltat]= {{{0.0}}};
+  //
+  // // Salt leaching
+  double L_salt[rows][cols][deltat]= {{{0.0}}};
+  // //salt rise
+  double U_salt[rows][cols][deltat]={{{0.0}}};
+  //
+  //
+  // ///   OLDS
+  double h_old[rows][cols]={{0.0}};
+  double P_old[rows][cols]={{0.0}};
+  double M_old[rows][cols]={{0.0}};
+  double SmI_old[rows][cols]={{0.0}};
+  double CM_old[rows][cols]={{0.0}};
+  double Svir_old[rows][cols]={{0.0}};
+  
+  
+  //// BIG OLD BALANCES FUNCTION 
+  
+
+  float timeincr = 1/deltat;  // needs to be float and not double for some reason!
+
+  // // double runon; 
+  // double alpha_i;
+   double cn;
+  double Mn;
+
+  double rn[rows][cols];
+  double Zras[rows][cols];
+
+
   for (i==1; i< rows; i++) {
     
     for (j==1; j< cols; j++ ){

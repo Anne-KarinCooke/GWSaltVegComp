@@ -1,11 +1,14 @@
-#include <Rcpp.h>
-using namespace Rcpp;
-// [[Rcpp::export]]
+#ifndef __Vegetationfunctions__
+#define __Vegetationfunctions__
+
+
+//#include <Rcpp.h>
+//using namespace Rcpp;
 
 // VEGETATION FUNCTIONS
 
 //Plant water uptake function WU
-
+// [[Rcpp::export]]
 double WU(double M, double P, double gmax, double k1 ) {  /// not quite happy with the list item calling...list par
   
   double Wu = gmax*(M/(M+k1))*P;   // function is called WU, output is called Wu, cannot be the same
@@ -15,7 +18,7 @@ double WU(double M, double P, double gmax, double k1 ) {  /// not quite happy wi
 
 
 //Plant Growth function Gr
-
+// [[Rcpp::export]]
 double Gr(double M, double P, double c, double gmax, double k1){
   
   double Gro = c*WU(M,P,gmax,k1);
@@ -24,15 +27,14 @@ double Gr(double M, double P, double c, double gmax, double k1){
 
 
 // Plant mortality function Mo
-
+// [[Rcpp::export]]
 double Mo(double P, double M, double Svir, double d ){
   
   double Mort=P*(d*(M/Svir));
-  return Mort;
   
-
-  return(Rcpp::List::create(Rcpp::Named("Mort") = Mort));
+  //List out = Rcpp::List::create(Rcpp::Named("Mort") = Mort);
+  return Mort;
                          
 }  
 
-
+#endif

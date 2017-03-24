@@ -1,7 +1,13 @@
+#include <Rcpp.h>
+using namespace Rcpp;
+
 
 //vertical water flux function (capillary rise and drainage), eq from Salvucci 1993
-
-double L_n(double M, double Z, double n, double Zr, double b, double K_s, double psi_s_bar){
+// [[Rcpp::export]]
+double L_n(double M, double Z, double n, double Zr, double b, 
+           double K_s, double psi_s_bar){
+  // why not List soilpar??
+  
   
   double hb = psi_s_bar*pow(10,5);
   double s=M/(n*Zr); // extract n and Zr from list and define them

@@ -4,17 +4,16 @@ using namespace Rcpp;
 #include <list>
 #include <iostream>
 // #include "storageformats.hpp"
-#include "Vegetationfunctions.hpp"
-#include "Flux.hpp"
-#include "Runoff.hpp"
-#include "Infiltration.hpp"
+#include "Vegetationfunctions.h"
+#include "Flux.h"
+#include "Runoff.h"
+#include "Infiltration.h"
 
 
 // [[Rcpp::export]]
 List balances2D(int t, NumericVector Rain,
                 List vegpar, List soilpar, List saltpar,
-                int rows=10, int cols=10,  double slope){ 
-  // you have no inputs in your function? where does climate come in?
+                int rows=10, int cols=10,  double slope=0.001){ 
   
   // all these are part of your function you cannot define them outside
   int i;
@@ -26,78 +25,80 @@ List balances2D(int t, NumericVector Rain,
   
   
   // soil moisture [mm]
-  double M[rows][cols][time] = {{{0.0}}};
+  double M[rows][cols][time];
   
   //  plant biomass density
-  double P[rows][cols][time]= {{{0.0}}};
+  double P[rows][cols][time];
   // //h
-  double h[rows][cols][time]= {{{0.0}}};
+  double h[rows][cols][time];
   // //CM
-  double CM[rows][cols][time]= {{{0.0}}};
+  double CM[rows][cols][time];
   // // SmI
-  double SmI[rows][cols][time]= {{{0.0}}};
+  double SmI[rows][cols][time];
   // // SmM
-  double SmM[rows][cols][time]= {{{0.0}}};
+  double SmM[rows][cols][time];
   // // In
-  double In[rows][cols][time]= {{{0.0}}};
+  double In[rows][cols][time];
   // //Svir
-  double Svir[rows][cols][time]= {{{0.0}}};
+  double Svir[rows][cols][time];
   // // flux
-  double flux[rows][cols][time]= {{{0.0}}};
+  double flux[rows][cols][time];
   // //q
-  double q[rows][cols][time]= {{{0.0}}};
+  double q[rows][cols][time];
   // //runon
-  double runon[rows][cols][time]= {{{0.0}}};
+  double runon[rows][cols][time];
   // //mb
-  double mb[rows][cols][time]= {{{0.0}}};
+  double mb[rows][cols][time];
   //
   // //
   // // Storage arrays for the SUBdaily time steps declared and initialized
   //
   // //h sub
-  double h_sub[rows][cols][deltat]= {{{0.0}}};
+  double h_sub[rows][cols][deltat];
   // //P sub
-  double P_sub[rows][cols][deltat]= {{{0.0}}};
+  double P_sub[rows][cols][deltat];
   // //M sub
-  double M_sub[rows][cols][deltat]= {{{0.0}}};
+  double M_sub[rows][cols][deltat];
   // //CM sub
-  double CM_sub[rows][cols][deltat]= {{{0.0}}};
+  double CM_sub[rows][cols][deltat];
   // // SmIsub
-  double SmI_sub[rows][cols][deltat]= {{{0.0}}};
+  double SmI_sub[rows][cols][deltat];
   // // SmMsub
-  double SmM_sub[rows][cols][deltat]= {{{0.0}}};
+  double SmM_sub[rows][cols][deltat];
   // // Isub
-  double I_sub[rows][cols][deltat]= {{{0.0}}};
+  double I_sub[rows][cols][deltat];
   // //Svirsub
-  double Svir_sub[rows][cols][deltat]= {{{0.0}}};
+  double Svir_sub[rows][cols][deltat];
   // // fluxsub
-  double flux_sub[rows][cols][deltat]= {{{0.0}}};
+  double flux_sub[rows][cols][deltat];
   // //qsubsub
-  double q_sub[rows][cols][deltat]= {{{0.0}}};
+  double q_sub[rows][cols][deltat];
   // //runonsub
-  double runon_sub[rows][cols][deltat]= {{{0.0}}};
+  double runon_sub[rows][cols][deltat];
   // //mbsub
-  double mb_sub[rows][cols][deltat]= {{{0.0}}};
+  double mb_sub[rows][cols][deltat];
   // //Gr_sub
-  double Gr_sub[rows][cols][deltat]= {{{0.0}}};
+  double Gr_sub[rows][cols][deltat];
   // //Mo_sub
-  double Mo_sub[rows][cols][deltat]= {{{0.0}}};
+  double Mo_sub[rows][cols][deltat];
   // //WU_sub
-  double WU_sub[rows][cols][deltat]= {{{0.0}}};
+  double WU_sub[rows][cols][deltat];
   //
   // // Salt leaching
-  double L_salt[rows][cols][deltat]= {{{0.0}}};
+  double L_salt[rows][cols][deltat];
   // //salt rise
-  double U_salt[rows][cols][deltat]={{{0.0}}};
+  double U_salt[rows][cols][deltat];
   //
   //
   // ///   OLDS
+
   // double h_old[rows][cols]={{0.0}};
   // double P_old[rows][cols]={{0.0}};
   // double M_old[rows][cols]={{0.0}};
   // double SmI_old[rows][cols]={{0.0}};
   // double CM_old[rows][cols]={{0.0}};
   // double Svir_old[rows][cols]={{0.0}};
+
   
   
   //// BIG OLD BALANCES FUNCTION 
@@ -202,7 +203,7 @@ List balances2D(int t, NumericVector Rain,
           CM_sub[i][j][tt+1] = (SmM_sub[i][j][tt+1]/M_sub[i][j][tt+1])*(1/58.44);         
           
           // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
-          Svir_sub[i][j][tt+1] = soilpar["n"]* vegpar["Zr"]*(pow((soilpar["h1bar"]* pow(10,-1)),(1/soilpar["b"])))*(soilpar["h1bar"]*pow(10,-1)*pow((M_sub[i][j][tt+1]/(soilpar["n"]*vegpar["Zr"])),-soilpar["b"]))+pow((3.6*CM_sub[i][j][tt+1]),(-1/soilpar["b"]))
+          Svir_sub[i][j][tt+1] = soilpar["n"]* vegpar["Zr"]*(pow((soilpar["h1bar"]* pow(10,-1)),(1/soilpar["b"])))*(soilpar["h1bar"]*pow(10,-1)*pow((M_sub[i][j][tt+1]/(soilpar["n"]*vegpar["Zr"])),-soilpar["b"]))+pow((3.6*CM_sub[i][j][tt+1]),(-1/soilpar["b"]));
             
             // in R:  Svir_sub[i,j,tt+1]<-soilpar$n*vegpar$Zr*((soilpar$h1bar*10^-1)^(1/soilpar$b))*
             // ((soilpar$h1bar*10^-1)*(M_sub[i,j,tt+1]/(soilpar$n*vegpar$Zr))^(-soilpar$b)+(3.6*CM_sub[i,j,tt+1]))^(-1/soilpar$b)
@@ -221,14 +222,15 @@ List balances2D(int t, NumericVector Rain,
         SmM[i][j][t] = SmM_sub[i][j][deltat];
         Svir[i][j][t] = Svir_sub[i][j][deltat];
         
+        double sumI;
+        double sumflux;
+        double sumq;
+        double sumrunon;
+        double mb;
         
         for(int tt = 1; tt =< deltat; ++tt)
         {
-          double sumI;
-          double sumflux;
-          double sumq;
-          double sumrunon;
-          double mb;
+         
           
           sumI += I_sub[i][j][tt];
           sumflux += flux_sub[i][j][tt]; // timeincr thingi?!
@@ -236,7 +238,7 @@ List balances2D(int t, NumericVector Rain,
           sumrunon += runon_sub[i][j][tt];
           summb += mb_sub[i][j][tt];
           
-         // tt++;
+         
         } 
         
 

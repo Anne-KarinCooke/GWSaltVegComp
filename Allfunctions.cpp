@@ -92,18 +92,18 @@ List balances2D(int t, NumericVector Rain,
   //
   //
   // ///   OLDS
-  double h_old[rows][cols]={{0.0}};
-  double P_old[rows][cols]={{0.0}};
-  double M_old[rows][cols]={{0.0}};
-  double SmI_old[rows][cols]={{0.0}};
-  double CM_old[rows][cols]={{0.0}};
-  double Svir_old[rows][cols]={{0.0}};
+  // double h_old[rows][cols]={{0.0}};
+  // double P_old[rows][cols]={{0.0}};
+  // double M_old[rows][cols]={{0.0}};
+  // double SmI_old[rows][cols]={{0.0}};
+  // double CM_old[rows][cols]={{0.0}};
+  // double Svir_old[rows][cols]={{0.0}};
   
   
   //// BIG OLD BALANCES FUNCTION 
   
 
-  float timeincr = 1/deltat;  // needs to be float and not double for some reason!
+  double timeincr = 1/deltat;  // needs to be float and not double for some reason!
 
   // // double runon; 
   // double alpha_i;
@@ -120,88 +120,59 @@ List balances2D(int t, NumericVector Rain,
       
       for (t==2; t< time; t++){  
         
-        for (tt==1; tt< (deltat-1); tt++){  
+        for (tt==1; tt< (deltat); tt++){  
           
           
           if(tt == 1) {
-            h_old[i][j] = h[i][j][t-1];
+            int t_old = t-1
           } else {
-            h_old[i][j] =  h_sub[i][j][tt];
+            int t_old = tt
           }
-          if(tt == 1) {
-            P_old[i][j] = P[i][j][t-1];
-          } else {
-            P_old[i][j] =  P_sub[i][j][tt];
-          }
-          if(tt == 1) {
-            M_old[i][j]= M[i][j][t-1];
-          } else {
-            M_old[i][j] =  M_sub[i][j][tt];
-          }
-          if(tt == 1) {
-            SmI_old[i][j]= SmI[i][j][t-1];
-          } else {
-            SmI_old[i][j] =  SmI_sub[i][j][tt];
-          }
-          if(tt == 1) {
-            CM_old[i][j]= CM[i][j][t-1];
-          } else {
-            CM_old[i][j] =  CM_sub[i][j][tt];
-          }
-          if(tt == 1) {
-            Svir_old[i][j]= Svir[i][j][t-1];
-          } else {
-            Svir_old[i][j] = Svir_sub[i][j][tt];
-          }
+          // calculation of sub daily runoff and runon
+          runon_sub[i][j][tt] = rn[i][j]*q_sub[i][j][t_old]; 
+          q_sub[i][j][tt] = OF(h[i][j][t_old], cn, Mn, slope[i][j])*timeincr; 
           
+          
+          if (Rain[t] > 0.0 & tt == 1){ 
+            double Rain_in = 10.0*Rain[t]; 
+          } else {
+            double Rain_in = 0.0;
+          }
+          // calculate water depth on soil
+          h_sub[i][j][tt] =  h[i][j][t_old] + Rain_in - 
+              Infil( h[i][j][t_old],  P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"])- 
+              q_sub[i][j][tt] + runon_sub[i][j][tt];
 
-          q_sub[i][j][tt+1] = OF(h_old[i][j], cn, Mn, slope[i][j])*timeincr; 
-          
-          runon_sub[i][j][tt+1] = rn[i][j]*q_sub[i][j][tt]; 
-          
-          
-          if (tt==1){ // not right yet
-            h_sub[i][j][tt+1] =  h_old[i][j] + (10*Rain[t]*timeincr) - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
-            return h_sub[i][j][tt+1];
-          }
-          else {
-            h_sub[i][j][tt+1] =  h_old[i][j]  - Infil( h_old[i][j],  P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])- q_sub[i][j][tt] +runon_sub[i][j][tt];
-            return h_sub[i][j][tt+1];
-          }
-          
-          
-          if(h_sub[i,j,tt+1]<(soilpar["K_s"]*timeincr)) {
-            
+          // adjust infiltration rate
+          if(h_sub[i,j,tt]<(soilpar["K_s"]*timeincr)) {
             alpha_i = 1.0;
-          }
-          else {
-            
-            alpha_i = 1-(h_sub[i][j][tt+1]-soilpar["K_s"]*timeincr)/h_sub[i][j][tt+1];
-            
+          } else {
+            alpha_i = 1-(h_sub[i][j][tt]-soilpar["K_s"]*timeincr)/h_sub[i][j][tt];
           }
           
-          I_sub[i][j][tt+1] = Infil(h_old[i][j], P_old[i][j], alpha_i, vegpar["k"], vegpar["W0"])*timeincr; //// problem like above, how to deal with parameters from list
+          I_sub[i][j][tt] = Infil(h[i][j][t_old], P[i][j][t_old], 
+                                  alpha_i, vegpar["k"], vegpar["W0"])*timeincr; //// problem like above, how to deal with parameters from list
           
           
           // Water uptake           
-          WU_sub[i][j][tt] = WU(M_sub[i][j][tt+1],P_old[i][j], vegpar["gmax"], vegpar["k1"])*timeincr;
+          WU_sub[i][j][tt] = WU(M_sub[i][j][t_old],P[i][j][t_old], vegpar["gmax"], vegpar["k1"])*timeincr;
           // Growth            
-          Gr_sub[i][j][tt] = Gr(Svir_old[i][j], P_old[i][j], vegpar["c"], vegpar["gmax"], vegpar["k1"])*timeincr; 
+          Gr_sub[i][j][tt] = Gr(Svir[i][j][t_old], P[i][j][t_old], vegpar["c"], vegpar["gmax"], vegpar["k1"])*timeincr; 
           //Mortality
-          Mo_sub[i][j][tt] = Mo(P_old[i][j], M_old[i][j], Svir_old[i][j],vegpar["d"])*timeincr;
+          Mo_sub[i][j][tt] = Mo(P[i][j][t_old], M[i][j][t_old], Svir[i][j][t_old],vegpar["d"])*timeincr;
           // Plant biomass balance             
-          P_sub[i][j][tt+1] = P_old[i][j] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt]; /// not sure if this all is ok this way or too close to R
+          P_sub[i][j][tt] = P[i][j][t_old] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt]; /// not sure if this all is ok this way or too close to R
           
           // Water balance before drainage
-          M_sub[i][j][tt+1] = M_old[i][j] + I_sub[i][j][tt] - WU_sub[i][j][tt];
+          M_sub[i][j][tt] = M[i][j][t_old] + I_sub[i][j][tt] - WU_sub[i][j][tt];
           
           // Drainage/Capillary rise (vertical water flux)          
           
-          flux_sub[i][j][tt+1] = L_n(M_sub[i][j][tt+1],Zras[i][j],soilpar["b"],soilpar["K_s"],soilpar["psi_s_bar"]);  /// how yo read in Zras,,, change the soilpar and vegpar stuff
+          flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras[i][j],soilpar["b"],soilpar["K_s"],soilpar["psi_s_bar"]);  /// how yo read in Zras,,, change the soilpar and vegpar stuff
           
           // Adjustment for M including flux
           //
-          M_sub[i][j][tt+1] = M_sub[i][j][tt+1] +  flux_sub[i][j][tt+1]*timeincr; 
+          M_sub[i][j][tt] = M_sub[i][j][tt] +  flux_sub[i][j][tt]*timeincr; 
           
           // Salt balance
           

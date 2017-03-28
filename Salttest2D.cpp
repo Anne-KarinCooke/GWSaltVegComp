@@ -2,7 +2,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-List SaltBalance_cpp (double M_sub, double flux_sub, double SmI_old ){
+List SaltBalance_cpp2D(double M_sub, double flux_sub, double SmI_old ){
   
   double k = 12.0;//Saco et al, 2013
   double W0 = 0.2;//Saco et al, 2013
@@ -95,5 +95,5 @@ List SaltBalance_cpp (double M_sub, double flux_sub, double SmI_old ){
 //
 
 /*** R
-SaltBalance_cpp(100,100,10)
+SaltBalance_cpp2D(100,100,10)
 */

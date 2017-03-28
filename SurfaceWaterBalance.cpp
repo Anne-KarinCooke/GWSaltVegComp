@@ -79,7 +79,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
     double W0 = 0.2;//Saco et al, 2013
     List vegpar = (Rcpp::List::create(Rcpp::Named("k") = k,
                                       Rcpp::List::create(Rcpp::Named("W0") = W0)));
-    double K_s = 3.51; // cm/day
+    double K_s = 3.51*10; // cm/day
     List soilpar= Rcpp::List::create(Rcpp::Named("K_s") = K_s);
 
 

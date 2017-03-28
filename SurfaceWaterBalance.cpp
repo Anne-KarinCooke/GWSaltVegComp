@@ -159,18 +159,15 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
     double sumI;
 
-    for(int tt = 1; tt <= deltat; ++tt)
+    for(int tt = 1; tt < deltat; ++tt)
     {
 
-
       sumI += I_sub[i][j][tt];
-
 
     }
 
 
     In[i][j][t] = sumI;
-
 
     }
       }

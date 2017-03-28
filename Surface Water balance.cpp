@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 // [[Rcpp::export]]
-SurfaceWB(const int rows=10, const int cols=10, int i,int j, int tt, int t_old, double alpha_i, double timeincr, double cn, double Mn, double Rain){ // Surface Balance 
+SurfaceWB(const int rows=10, const int cols=10,  double alpha_i, double timeincr, double cn, double Mn, double Rain){ // Surface Balance 
   
   // //h sub
   double h_sub[rows][cols][deltat] ={{{0}}};
@@ -14,6 +14,17 @@ SurfaceWB(const int rows=10, const int cols=10, int i,int j, int tt, int t_old, 
   // //runonsub
   double runon_sub[rows][cols][deltat]={{{0}}};
   
+  slope
+  
+  int i;
+  int j; 
+  int tt;
+  int t_old;
+  const int deltat = 12;
+  
+  
+  
+  for (tt==1; tt< deltat; tt++){ 
   
   if(tt == 1) {
     int t_old = t-1;

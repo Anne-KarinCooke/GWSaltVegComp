@@ -67,13 +67,14 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
   int t;
   int tt;
   int t_old;
-  const int deltat = 4.0;
+  int deltat = 4.0;
+  
   float timeincr = 1/deltat;
 
-    const int rows = 2.0;
-    const int cols = 2.0;
+     int rows = 2.0;
+     int cols = 2.0;
 
-    const int time = 3.0;
+     int time = 3.0;
     double slope = 0.001;
     double k = 12.0;//Saco et al, 2013
     double W0 = 0.2;//Saco et al, 2013
@@ -96,17 +97,21 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
     double h[rows][cols][time];
     double P[rows][cols][time];
     double In[rows][cols][time];
+    
+    P[1][1][1]=10.0;
+    // M[1][1][1]=10.0;
+    h[1][1][1]=10.0;
 
 
     double rn[rows][cols];
 
-    for (i==1; i< rows; i++) {
+    for (i = 1; i< rows; i++) {
 
-      for (j==1; j< cols; j++ ){
+      for (j = 1; j< cols; j++ ){
 
-    for (t == 1; t< time; t++){
+    for (t = 1; t< time; t++){
 
-    for (tt == 1; tt< (deltat); tt++){
+    for (tt = 1; tt< (deltat); tt++){
 
     if(tt == 1) {
       int t_old = t-1;

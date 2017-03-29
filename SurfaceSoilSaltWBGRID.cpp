@@ -13,14 +13,13 @@ double OF(double h, double cn, double Mn, double slope){
   return qq;
 }
 // [[Rcpp::export]]
-double L_n(double M, double Z, double n, double Zr, double b, double K_s, double psi_s_bar){
+double L_n(double M, double Z, double n, double Zr, double b, double hb, double K_s, double psi_s_bar){
   
-  double hb = psi_s_bar*10e5;
   double s=M/(n*Zr); // extract n and Zr from list and define them
   double psi = hb*pow(s,-b);
   // double s_fc = pow((Z/hb),(-1/b));// define hb and b
   double m = 2 + 3/b;
-  double qf = pow((Z/hb),(-m))-(pow((psi/hb),-m)/(1+pow((psi/hb),-m)))+(m-1)*pow((Z/hb),-m);
+  double qf = (pow((Z/hb),(-m))-(pow((psi/hb),-m)))/((1+pow((psi/hb),-m))+(m-1)*pow((Z/hb),-m));
   double flux = K_s * qf;
   
   return flux;
@@ -59,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain =10.0, double Zras = 1000.0){ // Surface Balance
+List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, double Rain =10.0, double Zras = 1000.0){ // Surface Balance
   
   
   int i = 0;
@@ -81,7 +80,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
   double gmax = 0.05;//Saco et al, 2013
   double c = 10.0;//Saco et al, 2013
   double k1 = 5.0;//Saco et al, 2013
-  double d = 0.1;//Saco et al, 2013 //fraction of plant mortality
+  double d = 0.24;//Saco et al, 2013 //fraction of plant mortality
   
   
   
@@ -101,10 +100,12 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
   double K_s = 3.51*10.0; // mm/day
   double b = 13.48; // neurotheta LMC
 
-  double psi_s_bar = -1.5e-3; // This is the bubbling pressure
-  double hb = psi_s_bar*(-1e4);
+  double psi_s_bar = -1.5E-3; // This is the bubbling pressure
+  double hb = -psi_s_bar*(1E5);
   double h1bar = -psi_s_bar;
   
+  
+
   List soilpar= Rcpp::List::create(Rcpp::Named("n") = n,
                                    Rcpp::Named("b") = b,
                                    Rcpp::Named("K_s") = K_s,
@@ -242,15 +243,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
         //Mortality
         Mo_sub[i][j][tt] = Mo(P[i][j][t_old], M[i][j][t_old], Svir[i][j][t_old],vegpar["d"])*timeincr;
         // Plant biomass balance
-        P_sub[i][j][tt] = P[i][j][t_old] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt]; /// not sure if this all is ok this way or too close to R
+        P_sub[i][j][tt] = P[i][j][t_old] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt]; 
         
         // Water balance before drainage
         M_sub[i][j][tt] = M[i][j][t_old] + I_sub[i][j][tt] - WU_sub[i][j][tt];
         
         // Drainage/Capillary rise (vertical water flux)
         
-        flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,soilpar["n"],vegpar["Zr"],soilpar["b"],soilpar["K_s"],soilpar["psi_s_bar"]);  
-        // Adjustment for M including flux
+        flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,soilpar["n"],vegpar["Zr"],soilpar["b"],soilpar["hb"],soilpar["K_s"],soilpar["psi_s_bar"]);  
+      
+    // Adjustment for M including flux
         //
         M_sub[i][j][tt] = M_sub[i][j][tt] +  flux_sub[i][j][tt]*timeincr;
         
@@ -280,8 +282,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
          CM_sub[i][j][tt] = (SmM_sub[i][j][tt]/M_sub[i][j][tt])*(1.0/58.44);
         // 
           // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
-          Svir_sub[i][j][tt] = n* Zr *(pow((h1bar * pow(10.0,-1.0)),(1/b)))*(h1bar *pow(10.0,-1.0)*pow((M_sub[i][j][tt]/(n*Zr)),-b))+pow((3.6*CM_sub[i][j][tt]),(-1.0/b));
-        
+          Svir_sub[i][j][tt] = n* Zr *(pow((h1bar * 10E-1),(1/b)))*(h1bar * 10E-1*pow((M_sub[i][j][tt]/(n*Zr)),-b))+pow((3.6*CM_sub[i][j][tt]),(-1.0/b));
+
+          
+          
          // # checking the mass balance
           mb_sub[i][j][tt] = I_sub[i][j][tt] - WU_sub[i][j][tt] + flux_sub[i][j][tt]*timeincr;
 

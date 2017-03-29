@@ -246,7 +246,7 @@ List balances2D( NumericVector Rain, int alpha_i=1, double Zras = 3000.0, double
           if(h_sub[i][j][tt]  < (K_s*timeincr)) {
             alpha_i = 1.0;
           } else {
-            alpha_i = 1-(h_sub[i][j][tt]-K_s*timeincr)/h_sub[i][j][tt];
+            alpha_i = 1.0-(h_sub[i][j][tt]-K_s*timeincr)/h_sub[i][j][tt];
           }
           
           I_sub[i][j][tt] = Infil(h[i][j][t_old], P[i][j][t_old],
@@ -299,10 +299,10 @@ List balances2D( NumericVector Rain, int alpha_i=1, double Zras = 3000.0, double
           SmM_sub[i][j][tt] = SmI_sub[i][j][tt] + U_salt[i][j][tt] - L_salt[i][j][tt];
           
           // # salt concentration in soil
-          CM_sub[i][j][tt] = (SmM_sub[i][j][tt]/M_sub[i][j][tt])*(1/58.44);
+          CM_sub[i][j][tt] = (SmM_sub[i][j][tt]/M_sub[i][j][tt])*(1.0/58.44);
           
           // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
-          Svir_sub[i][j][tt] = n* Zr *(pow((h1bar * pow(10,-1)),(1/b)))*(h1bar *pow(10,-1)*pow((M_sub[i][j][tt]/(n*Zr)),-b))+pow((3.6*CM_sub[i][j][tt]),(-1/b));
+          Svir_sub[i][j][tt] = n* Zr *(pow((h1bar * pow(10.0,-1.0)),(1/b)))*(h1bar *pow(10.0,-1.0)*pow((M_sub[i][j][tt]/(n*Zr)),-b))+pow((3.6*CM_sub[i][j][tt]),(-1.0/b));
           
           // # checking the mass balance
           mb_sub[i][j][tt] = I_sub[i][j][tt] - WU_sub[i][j][tt] + flux_sub[i][j][tt]*timeincr;

@@ -80,7 +80,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
     double W0 = 0.2;//Saco et al, 2013
     List vegpar = (Rcpp::List::create(Rcpp::Named("k") = k,
                                       Rcpp::List::create(Rcpp::Named("W0") = W0)));
-    double K_s = 3.51*10; // cm/day
+    double K_s = 3.51*10.0; // cm/day
     List soilpar= Rcpp::List::create(Rcpp::Named("K_s") = K_s);
 
 
@@ -101,6 +101,14 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
     P[1][1][1]=10.0;
     // M[1][1][1]=10.0;
     h[1][1][1]=10.0;
+    
+    
+    if(tt == 1) {
+      int t_old = t-1;
+    } else {
+      int t_old = tt;
+    }
+    
 
 
     double rn[rows][cols];
@@ -109,16 +117,11 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
       for (j = 1; j< cols; j++ ){
 
-    for (t = 1; t< time; t++){
+         for (t = 1; t< time; t++){
 
-    for (tt = 1; tt< (deltat); tt++){
+           for (tt = 1; tt< (deltat); tt++){
 
-    if(tt == 1) {
-      int t_old = t-1;
-    } else {
-      int t_old = tt;
-    }
-
+ 
 
     // calculation of sub daily runoff and runon
     runon_sub[i][j][tt] = rn[i][j]*q_sub[i][j][t_old];
@@ -157,7 +160,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
     h[i][j][t] = h_sub[i][j][deltat];
 
-    double sumI;
+    double sumI = 0.0;
 
     for(int tt = 1; tt < deltat; ++tt)
     {

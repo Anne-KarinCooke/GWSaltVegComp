@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, double Rain =10.0, double Zras = 1000.0){ // Surface Balance
+List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, double Rain =1.0, double Zras = 1000.0){ // Surface Balance
   
   
   int i = 0;
@@ -100,8 +100,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
   double K_s = 3.51*10.0; // mm/day
   double b = 13.48; // neurotheta LMC
 
-  double psi_s_bar = -1.5E-3; // This is the bubbling pressure
-  double hb = -psi_s_bar*(1E5);
+  double psi_s_bar = -1.5e-3; // This is the bubbling pressure
+  double hb = -psi_s_bar*(1e5);
   double h1bar = -psi_s_bar;
   
   
@@ -177,17 +177,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
   double Svir[rows][cols][time];
   double mb[rows][cols][time];
   
-  P[0][0][0]=0.0;
-  P[0][0][1]=10.0;
+  P[0][0][0]=10.0;
   M[0][0][0]=10.0;
   h[0][0][0]=10.0;
   In[0][0][0]=0.0;
-  Svir[0][0][0]=5.0;
+  Svir[0][0][0]=1.0;
   
   CM[0][0][0]=0.001;
   SmI[0][0][0]=0.1;
   SmM[0][0][0]=0.1;
-  Svir[0][0][0]=0.0;
+
   
   double rn[rows][cols];
   

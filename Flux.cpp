@@ -1,5 +1,5 @@
-//#include <Rcpp.h>
-//using namespace Rcpp;
+#include <Rcpp.h>
+using namespace Rcpp;
 
 
 //vertical water flux function (capillary rise and drainage), eq from Salvucci 1993
@@ -20,4 +20,8 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb,double K
 
 
                                        
-                                           
+                                       
+                                       /*** R
+                                       L_n()
+                                       
+                                       */                                           

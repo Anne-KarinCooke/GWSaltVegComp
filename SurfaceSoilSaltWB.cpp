@@ -190,13 +190,13 @@ List SurfaceSoilSaltWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, dou
   
   double rn[rows][cols];
   
-  //    for (i = 0; i< rows; i++) {
-  
-  //      for (j = 0; j< cols; j++ ){
-  
-  for (t = 0; t< time; t++){
+  for (i=0; i< rows; i++) {
     
-    for (tt = 0; tt< (deltat); tt++){
+       for (j=0; j< cols; j++ ){
+
+          for (t = 0; t< time; t++){
+    
+            for (tt = 0; tt< (deltat); tt++){
       
       if(tt == 0) {
         t_old = t-1;
@@ -317,23 +317,28 @@ List SurfaceSoilSaltWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, dou
       
       
     }
-  }
     
+    
+  }
+ }
+  }
   
   
-  return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
-                            Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
-                            Rcpp::Named("I_sub") = I_sub[rows][cols][deltat],
+                            return(Rcpp::List::create(                        
                             Rcpp::Named("P") = P[rows][cols][time],
                             Rcpp::Named("h") = h[rows][cols][time],
                             Rcpp::Named("M") = M[rows][cols][time],
                             Rcpp::Named("Svir") = Svir[rows][cols][time],
                             Rcpp::Named("CM") = CM[rows][cols][time],
+                            Rcpp::Named("SmI") = SmI[rows][cols][time],
+                            Rcpp::Named("SmM") = SmM_sub[rows][cols][time],
                             Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
   
 }
 
 
 /*** R
-SurfaceSoilSaltWB()
+results <- list(SurfaceSoilSaltWB())
+results
+
 */

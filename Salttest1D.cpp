@@ -92,5 +92,5 @@ List SaltBalance_cpp (double M_sub, double flux_sub, double SmI_old ){
 //
 
 /*** R
-SaltBalance_cpp(100,10,0.001)
+SaltBalance_cpp(100,-15,0.001)
 */

@@ -203,9 +203,9 @@ List balances2D( NumericVector Rain, int alpha_i=1, double Zras = 3000.0, double
                                    Rcpp::Named("f") = f,
                                    Rcpp::Named("CMgw") = CMgw);
   
-  P[1][1][1]=10.0;
-  M[1][1][1]=10.0;
-  h[1][1][1]=10.0;
+  P[0][0][0]=10.0;
+  M[0][0][0]=10.0;
+  h[0][0][0]=10.0;
   
   if(tt == 1) {
     int t_old = t-1;
@@ -216,13 +216,13 @@ List balances2D( NumericVector Rain, int alpha_i=1, double Zras = 3000.0, double
 
   
   
-  for (i=1; i< rows; i++) {
+  for (i=0; i< rows; i++) {
     
-    for (j=1; j< cols; j++ ){
+    for (j=0; j< cols; j++ ){
       
-      for (t=1; t< time; t++){
+      for (t=0; t< time; t++){
         
-        for (tt=1; tt< time; tt++){
+        for (tt=0; tt< time; tt++){
           
           double Rain_in;
           

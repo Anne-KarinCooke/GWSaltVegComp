@@ -156,7 +156,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
   
   // 
       // # Aggregating the substep results to daily values.
-
+              }
 
       h[i][j][t] = h_sub[i][j][deltat];
 
@@ -171,7 +171,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
 
       In[i][j][t] = sumI;
-
+           }     
   
   return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
                             Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
@@ -179,7 +179,8 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
                             Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
   
 }
+              
 
 /*** R
 SurfaceWB()
-  */
+*/

@@ -22,6 +22,6 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb,double K
                                        
                                        
                                        /*** R
-                                       L_n()
+                                       # L_n()
                                        
                                        */                                           

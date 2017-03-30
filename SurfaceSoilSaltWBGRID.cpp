@@ -3,7 +3,7 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
   
-  double I=alpha_i*h*(P+k*W0)/(P+k);
+  double I=alpha_i*h*((P+k*W0)/(P+k));
   return I;
 }
 // [[Rcpp::export]]
@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, double Rain =1.0, double Zras = 1000.0){ // Surface Balance
+List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain =10.0, double Zras = 1000.0){ // Surface Balance
   
   
   int i = 0;
@@ -66,14 +66,14 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
   int t = 1;
   int tt = 0;
   int t_old = 0;
-  int deltat = 12;
+  int deltat = 5;
   
   float timeincr = 1/deltat;
   
-  int rows = 10;
-  int cols = 10;
+  int rows = 4;
+  int cols = 4;
   
-  int time = 50;
+  int time = 10;
   double slope = 0.001;
   
   double Zr = 400.0; //mm, Grass
@@ -101,8 +101,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
   double b = 13.48; // neurotheta LMC
 
   double psi_s_bar = -1.5e-3; // This is the bubbling pressure
-  double hb = -psi_s_bar*(1e5);
+  double hb = -psi_s_bar*(10e5); //mm
   double h1bar = -psi_s_bar;
+
   
   
 
@@ -177,18 +178,18 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
   double Svir[rows][cols][time];
   double mb[rows][cols][time];
   
-  P[0][0][0]=10.0;
+  P[0][0][0]=100.0;
   M[0][0][0]=10.0;
   h[0][0][0]=10.0;
   In[0][0][0]=0.0;
-  Svir[0][0][0]=1.0;
+  Svir[0][0][0]=0.0;
   
-  CM[0][0][0]=0.001;
-  SmI[0][0][0]=0.1;
-  SmM[0][0][0]=0.1;
+  CM[0][0][0]=0.0001;
+  SmI[0][0][0]=0.0;
+  SmM[0][0][0]=0.0;
 
   
-  double rn[rows][cols];
+ // double rn[rows][cols];
   
   for (i=0; i< rows; i++) {
     
@@ -206,7 +207,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10, d
       
       
       // calculation of sub daily runoff and runon
-      runon_sub[i][j][tt] = rn[i][j]*q_sub[i][j][t_old];
+      runon_sub[i][j][tt] = 0.5*q_sub[i][j][t_old]; //rn[i][j]
       q_sub[i][j][tt] = OF(h[i][j][t_old], cn, Mn, slope)*timeincr;
       
       
@@ -341,6 +342,7 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
                             Rcpp::Named("CM") = CM[rows][cols][time],
                             Rcpp::Named("flux") = flux[rows][cols][time],
                             Rcpp::Named("SmI") = SmI[rows][cols][time],
+                            Rcpp::Named("runon") = runon[rows][cols][time],
                             Rcpp::Named("SmM") = SmM[rows][cols][time]));
                             
   
@@ -350,7 +352,5 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
 
 
 /*** R
-results <- list(SurfaceSoilSaltWBGRID())
-results
-
+SurfaceSoilSaltWBGRID()
 */

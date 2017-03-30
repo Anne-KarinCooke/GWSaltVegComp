@@ -3,7 +3,7 @@ using namespace Rcpp;
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
   
-  double I=alpha_i*h*(P+k*W0)/(P+k);
+  double I=alpha_i*h*((P+k*W0)/(P+k));
   return I;
 }
 // [[Rcpp::export]]
@@ -66,14 +66,14 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
   int t = 1;
   int tt = 0;
   int t_old = 0;
-  int deltat = 4.0;
+  int deltat = 12;
   
   float timeincr = 1/deltat;
   
-  int rows = 2.0;
-  int cols = 2.0;
+  int rows = 10;
+  int cols = 10;
   
-  int time = 3.0;
+  int time = 100.0;
   double slope = 0.001;
   double k = 12.0;//Saco et al, 2013
   double W0 = 0.2;//Saco et al, 2013
@@ -97,8 +97,8 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
   double P[rows][cols][time];
   double In[rows][cols][time];
   
-  P[0][0][0]=0.0;
-  P[0][0][1]=10.0;
+  P[0][0][0]=1.0;
+
   // M[1][1][1]=10.0;
   h[0][0][0]=10.0;
   In[0][0][0]=0.0;
@@ -151,9 +151,6 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
         I_sub[i][j][tt] = Infil(h[i][j][t_old], P[i][j][t_old],
                                 alpha_i, vegpar["k"], vegpar["W0"])*timeincr;
 
-    // 
-  
-  // 
       // # Aggregating the substep results to daily values.
               }
 
@@ -172,10 +169,13 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
       In[i][j][t] = sumI;
            }     
   
-  return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
-                            Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
-                            Rcpp::Named("I_sub") = I_sub[rows][cols][deltat],
-                            Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
+   return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
+                             Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
+                             Rcpp::Named("I_sub") = I_sub[rows][cols][deltat],
+                             Rcpp::Named("In") = In[rows][cols][time],
+                             Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
+
+
   
 }
               

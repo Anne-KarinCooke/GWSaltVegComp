@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain =10.0, double Zras = 3000.0){ // Surface Balance
+List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.1, double Mn =0.04, double Rain =1.0){ // Surface Balance
   
   
   int i = 0;
@@ -75,6 +75,7 @@ List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, doub
   
   int time = 3.0;
   double slope = 0.001;
+  double Zras = 3000.0;
   
   double Zr = 400.0; //mm, Grass
   double gmax = 0.05;//Saco et al, 2013
@@ -149,18 +150,18 @@ List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, doub
   double runon[rows][cols][time];
   
   P[0][0][0]=0.0;
-  P[0][0][1]=10.0;
+  P[0][0][1]=100.0;
   M[0][0][0]=10.0;
-  h[0][0][0]=10.0;
+  h[0][0][0]=200.0;
   In[0][0][0]=0.0;
   Svir[0][0][0]=5.0;
   
   
   double rn[rows][cols];
   
-  //    for (i = 0; i< rows; i++) {
-  
-  //      for (j = 0; j< cols; j++ ){
+  for (i=0; i< rows; i++) {
+    
+    for (j=0; j< cols; j++ ){
   
   for (t = 0; t< time; t++){
     
@@ -217,7 +218,7 @@ List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, doub
         
         // Drainage/Capillary rise (vertical water flux)
         
-        flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,soilpar["n"],vegpar["Zr"],soilpar["b"],soilpar["K_s"],soilpar["psi_s_bar"]);  /// how yo read in Zras,,, change the soilpar and vegpar stuff
+        flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,soilpar["n"],vegpar["Zr"],soilpar["b"],soilpar["hb"],soilpar["K_s"],soilpar["psi_s_bar"]);  /// how yo read in Zras,,, change the soilpar and vegpar stuff
         
         
         // Adjustment for M including flux
@@ -264,8 +265,8 @@ List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, doub
     
   }
     
-  
-  
+   
+   
   return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
                             Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
                             Rcpp::Named("I_sub") = I_sub[rows][cols][deltat],
@@ -273,7 +274,8 @@ List SurfaceandSoilWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, doub
                             Rcpp::Named("h") = h[rows][cols][time],
                             Rcpp::Named("M") = M[rows][cols][time],
                             Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
-  
+    }
+  }  
 }
 
 

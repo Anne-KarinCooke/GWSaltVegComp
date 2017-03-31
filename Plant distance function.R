@@ -236,6 +236,27 @@ h <- 0.4
                    Gr_subC = 0
                  }
  
+
+# Waterlogging conditions
+# time scale of days!
+# Check waterlogging conditions, arbirtrary set to 90& of field capacity for 3 days in a row (after 3 days oxygen is assumed to be consumed and nitrogen reduced)
+   
+   if((M[i,j,t]/(n*Zr)) >= 0.9*soilpar$s_fc && (M[i,j,t-1]/(n*Zr))>= 0.9*soilpar$s_fc && (M[i,j,t-2]/(n*Zr))>= 0.9*soilpar$s_fc)
+   {
+     ## Growth factor c decreases
+   }
  
+ 
+ ##***********GERMINATION*********************************************************************************************************************
+ ##
+ ## Since I am NOT modelling the path and fate of every single seed and just implement seed dispersal anisotropic with the laplacian operator,
+ ## to find out whether it is germination, I just ask the condition whether P of the previous timestep was zero (for that species)
+ ## and if yes, the salinity levels are checked against a given threshold for germination
+ 
+ # to dos: define germination salinity threshold germ_th for every individual species
+ 
+ if(P[i,j,t-1] == 0 && CM[i,j,t] >= germ_th){  
+   P[i,j,t] <- 0
+ }
    
    

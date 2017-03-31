@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain =10.0){ // Surface Balance
+List SurfaceWB(double alpha_i=1.0, double cn = 1.0, double Mn =0.04, double Rain =10.0){ // Surface Balance
   
   
   int i = 0;
@@ -73,7 +73,7 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
   int rows = 10;
   int cols = 10;
   
-  int time = 100.0;
+  int time = 100;
   double slope = 0.001;
   double k = 12.0;//Saco et al, 2013
   double W0 = 0.2;//Saco et al, 2013
@@ -101,16 +101,16 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
   // M[1][1][1]=10.0;
   h[0][0][0]=10.0;
-  In[0][0][0]=0.0;
-  
+  // In[0][0][0]=0.0;
+  // 
   
   double rn[rows][cols];
   
   //    for (i = 0; i< rows; i++) {
   
   //      for (j = 0; j< cols; j++ ){
-  
-           for (t = 0; t< time; t++){
+
+        for (t = 0; t< time; t++){
   
               for (tt = 0; tt< (deltat); tt++){
     
@@ -133,13 +133,13 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
     } else {
       Rain_in = 0.0;
     }
-    
+
     
     
     // calculate water depth on soil
-    h_sub[i][j][tt] =  h[i][j][t_old] + Rain_in 
-    - Infil(h[i][j][t_old], P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"])
-    -q_sub[i][j][tt] + runon_sub[i][j][tt];
+    h_sub[i][j][tt] =  h[i][j][t_old] + Rain_in - Infil(h[i][j][t_old], P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"]);
+    
+   // -q_sub[i][j][tt] + runon_sub[i][j][tt];
     
     //     // adjust infiltration rate
         if(h_sub[i][j][tt] < (K_s*timeincr)) {
@@ -167,12 +167,13 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
 
       In[i][j][t] = sumI;
-           }     
+      }
   
    return(Rcpp::List::create(Rcpp::Named("h_sub") = h_sub[rows][cols][deltat],
                              Rcpp::Named("q_sub") = q_sub[rows][cols][deltat],
                              Rcpp::Named("I_sub") = I_sub[rows][cols][deltat],
                              Rcpp::Named("In") = In[rows][cols][time],
+                             Rcpp::Named("h") = h[rows][cols][time],
                              Rcpp::Named("runon_sub") = runon_sub[rows][cols][deltat]));
 
 
@@ -182,4 +183,26 @@ List SurfaceWB(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain
 
 /*** R
 SurfaceWB()
+
+cols=5
+rows=5
+
+
+Store <- list()
+  sub_store <- list()
+  
+  for (i in 1:(rows-1)) {
+    
+    for (j in 1:(cols-1)){
+      
+      sub_store[[j]] <-data.frame(SurfaceWB())
+      
+    }
+    Store[[i]] <- sub_store
+  }
+  
+  df<- as.data.frame(Store)
+    df
+    
+    
 */

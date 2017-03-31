@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 10, double Mn =0.04, double Rain =10.0, double Zras = 3000.0){ // Surface Balance
+List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 10.0, double Mn =0.04, double Rain =10.0, double Zras = 100.0){ // Surface Balance
   
   
   int i = 0;
@@ -178,10 +178,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 10, double Mn =0.04, 
   double Svir[rows][cols][time];
   double mb[rows][cols][time];
   
-  P[0][0][0]=10.0;
+  P[0][0][0]=100.0;
   M[0][0][0]=10.0;
-  h[0][0][0]=10.0;
-  In[0][0][0]=0.0;
+  h[0][0][0]=200.0;
+  // In[0][0][0]=0.0;
   Svir[0][0][0]=0.0;
   
   CM[0][0][0]=0.0;
@@ -226,13 +226,13 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 10, double Mn =0.04, 
         - Infil(h[i][j][t_old], P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"]) - q_sub[i][j][tt]; // + runon_sub[i][j][tt];
          
         
-        //     // adjust infiltration rate
+            // adjust infiltration rate
         if(h_sub[i][j][tt] < (K_s*timeincr)) {
           alpha_i = 1.0;
         } else {
           alpha_i = 1-(h_sub[i][j][tt] - (K_s*timeincr))/h_sub[i][j][tt];
         }
-        // 
+
         I_sub[i][j][tt] = Infil(h[i][j][t_old], P[i][j][t_old],
                                 alpha_i, vegpar["k"], vegpar["W0"])*timeincr;
         

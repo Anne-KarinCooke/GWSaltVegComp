@@ -354,34 +354,25 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
 
 /*** R
 
-require("raster")
+
 cols=5
 rows=5
-ext =10
-raster<- raster(ncol=cols, nrow=rows, xmn=0, xmx=ext, ymn=0, ymx=ext)
-# for (i in 1:(nrow(raster)-1)) { 
-#   
-#   for (j in 1:(ncol(raster)-1)){
-#     
-#     results <- list(SurfaceSoilSaltWBGRID())
-#   }
-# }
-# results
+
 
 Store <- list()
 sub_store <- list()
-for (i in 1:(nrow(raster)-1)) { 
+
+for (i in 1:(rows-1)) { 
   
-  for (j in 1:(ncol(raster)-1)){
+  for (j in 1:(cols-1)){
     
-    sub_store[[j]] <-data.frame(rows[i],cols[j],
-                            
-                                SurfaceSoilSaltWBGRID())
+    sub_store[[j]] <-data.frame(SurfaceSoilSaltWBGRID())
                                          
   }
   Store[[i]] <- sub_store
 }
-Store
 
+df<- as.data.frame(Store)
+df
 
 */

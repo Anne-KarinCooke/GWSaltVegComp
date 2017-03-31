@@ -352,6 +352,27 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
 }
 
 
+// [[Rcpp::export]]
+List Grid_run(){
+  int i;
+  int j;
+  int rows = 5;
+    int cols = 5;
+  
+   for (i=0; i< rows; i++) {
+     
+        for (j=0; j< cols; j++ ){
+          
+          SurfaceSoilSaltWBGRID();
+          
+        }
+   }
+
+   List Out(Rcpp::List::create(Rcpp::Named("results") = SurfaceSoilSaltWBGRID()));
+   return Out;
+}
+        
+        
 /*** R
 
 
@@ -362,17 +383,20 @@ rows=5
 Store <- list()
 sub_store <- list()
 
-for (i in 1:(rows-1)) { 
-  
+for (i in 1:(rows-1)) {
+
   for (j in 1:(cols-1)){
-    
+
     sub_store[[j]] <-data.frame(SurfaceSoilSaltWBGRID())
-                                         
+
   }
   Store[[i]] <- sub_store
 }
 
 df<- as.data.frame(Store)
 df
+
+
+Grid_run()
 
 */

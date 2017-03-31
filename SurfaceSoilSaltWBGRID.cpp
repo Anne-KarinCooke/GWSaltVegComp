@@ -58,7 +58,7 @@ double Mo(double P, double M, double Svir, double d ){
 }
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0, double Rain =10.0, double Zras = 1000.0){ // Surface Balance
+List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 10, double Mn =0.04, double Rain =10.0, double Zras = 3000.0){ // Surface Balance
   
   
   int i = 0;
@@ -178,22 +178,22 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
   double Svir[rows][cols][time];
   double mb[rows][cols][time];
   
-  P[0][0][0]=100.0;
+  P[0][0][0]=10.0;
   M[0][0][0]=10.0;
   h[0][0][0]=10.0;
   In[0][0][0]=0.0;
   Svir[0][0][0]=0.0;
   
-  CM[0][0][0]=0.0001;
+  CM[0][0][0]=0.0;
   SmI[0][0][0]=0.0;
   SmM[0][0][0]=0.0;
 
   
  // double rn[rows][cols];
   
-  for (i=0; i< rows; i++) {
-    
-       for (j=0; j< cols; j++ ){
+  // for (i=0; i< rows; i++) {
+  // 
+  //      for (j=0; j< cols; j++ ){
 
           for (t = 0; t< time; t++){
     
@@ -223,8 +223,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
       
       // calculate water depth on soil
       h_sub[i][j][tt] =  h[i][j][t_old] + Rain_in 
-        - Infil(h[i][j][t_old], P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"])
-        -q_sub[i][j][tt] + runon_sub[i][j][tt];
+        - Infil(h[i][j][t_old], P[i][j][t_old], alpha_i, vegpar["k"], vegpar["W0"]) - q_sub[i][j][tt]; // + runon_sub[i][j][tt];
+         
         
         //     // adjust infiltration rate
         if(h_sub[i][j][tt] < (K_s*timeincr)) {
@@ -328,10 +328,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i=1.0, double cn = 0.4, double Mn =10.0,
       
 
           }
-          
-       }
-  }
-                                   
+         
+  //      }
+  // }
+
 List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
                             Rcpp::Named("h") = h[rows][cols][time],
                             Rcpp::Named("M") = M[rows][cols][time],
@@ -345,12 +345,43 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
                             Rcpp::Named("runon") = runon[rows][cols][time],
                             Rcpp::Named("SmM") = SmM[rows][cols][time]));
                             
-  
+   
   return out;
   
+   
 }
 
 
 /*** R
-SurfaceSoilSaltWBGRID()
+
+require("raster")
+cols=5
+rows=5
+ext =10
+raster<- raster(ncol=cols, nrow=rows, xmn=0, xmx=ext, ymn=0, ymx=ext)
+# for (i in 1:(nrow(raster)-1)) { 
+#   
+#   for (j in 1:(ncol(raster)-1)){
+#     
+#     results <- list(SurfaceSoilSaltWBGRID())
+#   }
+# }
+# results
+
+Store <- list()
+sub_store <- list()
+for (i in 1:(nrow(raster)-1)) { 
+  
+  for (j in 1:(ncol(raster)-1)){
+    
+    sub_store[[j]] <-data.frame(rows[i],cols[j],
+                            
+                                SurfaceSoilSaltWBGRID())
+                                         
+  }
+  Store[[i]] <- sub_store
+}
+Store
+
+
 */

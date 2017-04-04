@@ -1,123 +1,52 @@
-#world lonlat raster
-r <- raster(ncol=10,nrow=10)
-r[] <- 1
-r[48] <- 2
-r[66:68] <- 3
-d <- gridDistance(r,origin=2,omit=3) 
-plot(d)
+## Plant interaction and salt response code***************************************************
+#*********************************************************************************************
 
-library(gdistance)
-
-
-r   <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
-r[] <- rep(1, ncell(r))
-plot(r)
-h16  <- transition(r, transitionFunction=function(x){1},16,symm=FALSE)
-h16   <- geoCorrection(h16, scl=FALSE)
-A <- c(20,50)
-h16.acc <- accCost(h16,A)
-plot(h16.acc)
-
-Pras <- raster(P[,,tt])
-
-xx <-accCost(geoCorrect(transition(r, transitionFunction=function(x){1},16,symm=FALSE), scl=FALSE),Pras[i,j])
-  
-  
-# values(h16.acc)
+# 1. Old plant functions as a reminder
+# 2. Definition of storage arrays for plant variables for every single species
+# 3. Water uptake in that cell, as a sum of water uptake of all present species
+# 4. Setting of specific threshold concentration constants
+# 5. Plant salt responses (influence on growth) 
+# 6. Impact of Waterlogging
+# 7. Salt impact on Germiantion
+# 8. Salt impact on long-term seed production
+# 9. Interaction functions (distance betweeen plants)
 
 
-
-## 
-for(every cell with species A){
-  
-
-
-P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt]
-+ integrate(kernel(gdistance))*P_sub[i+1,j+1,tt]
-
-b1*exp(-gdistance*gdistance) - b2*(-gdistance*gdistance)
-
-density(P_sub[i,j,tt],kernel=c("gaussian"))
-
-}
-
-
-
-
-
-
-# Plant water uptake
-WU <- function(M,P,par){ 
-  # using Svir in here means scaling Svir back to M, easier to do at Svir in balances  
-  #  WU=par$gmax*((M*(1+Svir))/(((M*(1+Svir))+par$k1)))*P 
-  WU=par$gmax*(M/((M+par$k1)))*P 
-  
-  return(WU)
-}
-
-#Plant Growth
-
-Gr <- function(M,P,par) { 
-  
-  Gr = par$c*WU(M,P,par)
-  
-  return(Gr)
-}
+# 1. *****************************************************************************************
+# # Plant water uptake
+# WU <- function(M,P,par){ 
+#   # using Svir in here means scaling Svir back to M, easier to do at Svir in balances  
+#   #  WU=par$gmax*((M*(1+Svir))/(((M*(1+Svir))+par$k1)))*P 
+#   WU=par$gmax*(M/((M+par$k1)))*P 
+#   
+#   return(WU)
+# }
+# 
+# #Plant Growth
+# 
+# Gr <- function(M,P,par) { 
+#   
+#   Gr = par$c*WU(M,P,par)
+#   
+#   return(Gr)
+# }
+# 
+# 
+# ## Plant mortality function WITH SALT INFLUENCE, WITH VIRTUAL SATURATION
+# 
+# Mo <- function(P,M,Svir,par) {
+#   # needs to be M/Svir because both are "large" numbers
+#   # you want a number ~1 for multiplication, or <0.1 for addition
+#   Mo = P*(par$d*(M/Svir))
+#   
+#   return(Mo)
+#   
+# }
 
 
-## Plant mortality function WITH SALT INFLUENCE, WITH VIRTUAL SATURATION
-
-Mo <- function(P,M,Svir,par) {
-  # needs to be M/Svir because both are "large" numbers
-  # you want a number ~1 for multiplication, or <0.1 for addition
-  Mo = P*(par$d*(M/Svir))
-  
-  return(Mo)
-  
-}
-
-x <- c(0, 1, 1.1, 1.5, 1.9, 2.8, 2.9, 3.5)
- n <- length(x)
-
-xgrid <- seq(from = min(x) - 1, to = max(x) + 1, by = 0.01)
-
-h <- 0.4
- bumps <- sapply(x, function(a) gauss((xgrid - a)/h)/(n * h))
- 
- 
- 
- 
- 
- # Plant water uptake
- WU <- function(M,P,par){ 
-   
-   WU=par$gmax*(M/((M+par$k1)))*P 
-   
-   return(WU)
- }
- 
- #Plant Growth
- 
- Gr <- function(M,P,par){ 
-   
-   Gr = par$c*WU(M,P,par)
-   
-   return(Gr)
- }
- 
- 
- ## Plant mortality function WITH SALT INFLUENCE, WITH VIRTUAL SATURATION
- 
- Mo <- function(P,M,Svir,par) {
-   # needs to be M/Svir because both are "large" numbers
-   # you want a number ~1 for multiplication, or <0.1 for addition
-   Mo = P*(par$d*(M/Svir))
-   
-   return(Mo)
-   
- }
- 
- # Biomass density species A
+# 2. ***************************************************************************************** 
+#  Definition of storage arrays for plant variables for every single species
+# Biomass density species A
  P_subA <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat)) 
  # Biomass density species B
  P_subB <- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))  
@@ -145,28 +74,19 @@ h <- 0.4
  # Water uptake in mm species C
  WU_subC<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
  
- 
+ # 3. ******************************************************************************************************
+ # Water uptake in that cell, as a sum of water uptake of all present species
  # Water uptake, sum of WU_subA,B,C
  
  WU_sub[i,j,tt] <- WU_subA[i,j,tt] + WU_subB[i,j,tt] + WU_subC[i,j,tt]
  
- WU_sub[i,j,tt] <- WU(M_sub[i,j,tt+1],P.old[i,j],vegpar)*timeincr 
+
  
- # growth rate
- Gr_sub[i,j,tt] <- Gr(M=Svir.old[i,j], P.old[i,j],par)*timeincr 
- # Mortality
- Mo_sub[i,j,tt]<- Mo(P.old[i,j], M=M.old[i,j], Svir=Svir.old[i,j], par)*timeincr
- 
- # calculate plant biomass balance
- P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt]
- 
- 
- 
- ##############################################################################
+ # 4. ******************************************************************************************************
+ #Setting of specific threshold concentration constants
  ## Response of 3 diff functional plant types (Maas and Hoffman, 1977)
  ## (neither temporal threshold nor water logging considered yet )
- ##############################################################################
- 
+
  ### Species A Halophyte
  
    # lower threshold
@@ -181,9 +101,9 @@ h <- 0.4
  ### Species B salt-TOLERANT NON-Halophyte
    
    # lower threshold -> irrelevant for this functional type
-   # th_low =
+   # th_low 
    # # low
-   # conc_low =
+   # conc_low -> irrelevant for this functional type
    # high
    conc_highB = 
    # upper threshold
@@ -199,8 +119,8 @@ h <- 0.4
    # upper threshold
    th_upC =
 
-   
-   
+ # 5. *************************************************************************************************  
+ # Plant salt responses (influence on growth)    
    
 ### HALOPHYTE
    if (CM_sub[i,j,tt] >= conc_lowA){
@@ -236,7 +156,7 @@ h <- 0.4
                    Gr_subC = 0
                  }
  
-
+# 6. ***************************************************************************************************
 # Waterlogging conditions
 # time scale of days!
 # Check waterlogging conditions, arbirtrary set to 90& of field capacity for 3 days in a row (after 3 days oxygen is assumed to be consumed and nitrogen reduced)
@@ -245,10 +165,9 @@ h <- 0.4
    {
      ## Growth factor c decreases
    }
- 
- 
- ##***********GERMINATION*********************************************************************************************************************
- ##
+
+ # 7. ********************************************************************************************************************************
+ ## Germination
  ## Since I am NOT modelling the path and fate of every single seed and just implement seed dispersal anisotropic with the laplacian operator,
  ## to find out whether it is germination, I just ask the condition whether P of the previous timestep was zero (for that species)
  ## and if yes, the salinity levels are checked against a given threshold for germination
@@ -259,4 +178,77 @@ h <- 0.4
    P[i,j,t] <- 0
  }
    
+# 8. ****************************************************************************************************************
+# Long-term fertility reduction (reduced seed production due to salinity)   
+
+   # if (CM[i,j,t] > 3 months... then seed dispersal is reduced...
    
+         
+# 9. *************************************************************************************************************   
+#  Interaction functions (distance betweeen plants)   
+   
+library(raster)  
+library(igraph)
+library(gdistance)
+
+ # Lefever, R., Lejeune, O., & Couteron, P. (2001). Generic modelling of vegetation patterns. A case study of tiger bush in sub-saharian sahel. In Mathematical models for biological pattern formation (pp. 83-112). Springer New York.
+ # Eq. 7 on page 89
+ # Weight function 
+ # L = parameter that controls steepness with which weighting function varies
+ # r is the distance 
+ 
+ wfunc <- function(r, L){
+   w <- (1/(2*pi*(L*L)))*exp(-(abs(r)*abs(r))/(2*(L*L)))
+   return(w)
+ }
+ 
+ # Distance of a cell to all other cells, considering 16 directions 
+ # http://personal.colby.edu/personal/m/mgimond/Spatial/Distance_rook_vs_queen_vs_knight.html
+ #Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE), scl=FALSE),A)
+ # insert some kind of raster and a point A from which these distances shall be calculated
+ # plot(Distance)
+ 
+ if (P_subA[i,j,tt] > 0) 
+   # Raster with cells that 
+   Pras <- r # raster(P[,,tt])
+   
+   for (i in nrow(Pras)){
+     for (j in ncol(Pras)){
+       
+       Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE), scl=FALSE),Pras[i,j])
+       interference <- wfunc(Distance,L)*P[,,tt]
+       P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
+     }
+   }
+   
+
+
+ 
+ #Recycling bin
+ # r   <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
+ # r[] <- rep(1, ncell(r))
+ # plot(r)
+ # h16  <- transition(r, transitionFunction=function(x){1},16,symm=FALSE)
+ # h16   <- geoCorrection(h16, scl=FALSE)
+ # A <- c(20,50)
+ # h16.acc <- accCost(h16,A)
+ # plot(h16.acc)
+ 
+ # r <- raster(ncol=10,nrow=10)
+ # r[] <- 1
+ # r[48] <- 2
+ # r[66:68] <- 3
+ # d <- gridDistance(r,origin=2,omit=3) 
+ # plot(d)
+ # x <- c(0, 1, 1.1, 1.5, 1.9, 2.8, 2.9, 3.5)
+ # n <- length(x)
+ # 
+ # xgrid <- seq(from = min(x) - 1, to = max(x) + 1, by = 0.01)
+ # 
+ # h <- 0.4
+ # bumps <- sapply(x, function(a) gauss((xgrid - a)/h)/(n * h))
+ # 
+ # 
+ # 
+ # 
+ 

@@ -125,8 +125,8 @@ double h1bar_in = soilpar["h1bar"];
 // salt function
 // [[Rcpp::export]]
 List salt_simple() {
-  double ConcConst = 0.1;
-  double CMgw = 0.1;
+  double ConcConst = 0.0;
+  double CMgw = 0.0;
   double f = 1.0;
   
   List saltpar= Rcpp::List::create(Rcpp::Named("ConcConst") = ConcConst,
@@ -240,7 +240,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // 
   //      for (j=0; j< cols; j++ ){
 
-          for (t = 0; t< time; t++){
+          for (t = 1; t< time; t++){
     
             for (tt = 0; tt< (deltat); tt++){
       

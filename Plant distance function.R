@@ -183,12 +183,14 @@
 
    # if (CM[i,j,t] > 3 months... then seed dispersal is reduced...
    
-   filter(CM[i,j,])
+   CM[i,j,t+x] - CM[i,j,t]
+   
+   filter(CM[i,j,], CM[i,j,t]  )
    filterWindow <- seq(1,90)
    filter(x, filterWindow, method = "convolution", sides=1)
    
-   filter(x, filter, method = c("convolution", "recursive"),
-          sides = 2, circular = FALSE, init)
+   # filter(x, filter, method = c("convolution", "recursive"),
+   #        sides = 2, circular = FALSE, init)
 
          
 # 9. *************************************************************************************************************   
@@ -228,18 +230,49 @@ library(gdistance)
  Pras <- r # raster(P[,,tt])
  values(Pras) <- 1
 
-   
+ # Distance <- brick(r, nl=ncell(Pras))
+ # Distance <- brick(r, nl=i*j)
    for (i in nrow(Pras)){
      for (j in ncol(Pras)){
-       A <- c(10,50)
+
        
-       Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),A) #c(Pras[i],Pras[j]))
-       interference <- wfunc(Distance[i,j],0.3)*Pras
+      a<- as.array(values(Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))), dim=c(i,j))
+       
+       # interference <- wfunc(Distance[i,j],0.3)*Pras
      #   P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
       }
    }
- values(Distance)
- Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(20,20))
+ a
+ 
+ r   <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
+ Pras <- r # raster(P[,,tt])
+ values(Pras) <- 1
+ 
+ Distance <- array(dim=c(nrow(Pras),ncol(Pras),(nrow(Pras)*ncol(Pras))))
+ 
+ DistanceBrick <- brick(nrow=nrow(Pras),ncol=ncol(Pras), ncell=(nrow(Pras)*ncol(Pras)), nlayers=(nrow(Pras)*ncol(Pras)))
+ values(DistanceBrick) <-1
+ DistanceBrick[,,,,1]
+ 
+ for (i in nrow(Pras)){
+   for (j in ncol(Pras)){
+     
+     a<-brick(accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j)),nlayers=(i*j))
+     
+   }
+ }
+ a
+ A=c(10,10)
+ Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(10,10))
+ plot(Distance)
+ plot(Distance[,,1])
+ 
+ Distance[3,6,3*6]
+ Sys.time(d)
+   d<-function(){
+ Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
+ }
+ acc
  plot(Distance)
  plot(interference)
    

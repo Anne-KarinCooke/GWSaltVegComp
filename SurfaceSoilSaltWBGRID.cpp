@@ -146,17 +146,17 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   
   int i = 0;
   int j= 0;
-  int t = 1;
+  int t = 0;
   int tt = 0;
   // int t_old = 0;
   int deltat = 12;
   
-  float timeincr = 1/deltat;
+   float timeincr = 1/deltat;
   
-  int rows = 5;
-  int cols = 5;
+  int rows = 10;
+  int cols = 10;
   
-  int time = 10;
+  int time = 1000;
   double slope = 0.001;
     
    
@@ -215,23 +215,22 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   double Svir[rows][cols][time];
   double mb[rows][cols][time];
   
-  P[0][0][0]=10.0;
-  P_sub[0][0][0] =10.0;
-  M_sub[0][0][0] =10.0;
-  h_sub[0][0][0] =10.0;
-  Svir_sub[0][0][0] = 9.0;
   
-  P[1][1][1]=10.0;
-  M[0][0][0]=10.0;
-  M[1][1][1]=10.0;
-  h[0][0][0]=20.0;
-  h[1][1][1]=20.0;
+  // P_sub[0][0][0] =10.0;
+  // M_sub[0][0][0] =10.0;
+  // h_sub[0][0][0] =10.0;
+  // Svir_sub[0][0][0] = 9.0;
+  
+  P[0][0][0]=100.0;
+  M[0][0][0]=100.0;
+  h[0][0][0]=50.0;
+
   // In[0][0][0]=0.0;
-  Svir[0][0][0]=0.0;
-  
+  Svir[0][0][0]=100.0;
   CM[0][0][0]=0.0;
   SmI[0][0][0]=0.0;
   SmM[0][0][0]=0.0;
+
 
   
  // double rn[rows][cols];
@@ -240,62 +239,70 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // 
   //      for (j=0; j< cols; j++ ){
 
-          for (t = 1; t< time; t++){
-    
-            for (tt = 0; tt< (deltat); tt++){
+          
       
       
-      if(tt == 0) {
-      q_sub[i][j][tt] = q[i][j][t-1];
-      runon_sub[i][j][tt] = runon[i][j][t-1];
-      h_sub[i][j][tt] = h[i][j][t-1];
-      I_sub[i][j][tt] = In[i][j][t-1];
-      flux_sub[i][j][tt] = flux[i][j][t-1];
-      h_sub[i][j][tt] = h[i][j][t-1];
-      P_sub[i][j][tt] = P[i][j][t-1];
-      M_sub[i][j][tt] = M[i][j][t-1];
-      SmI_sub[i][j][tt] = SmI[i][j][t-1];
-      SmM_sub[i][j][tt] = SmM[i][j][t-1];
-      Svir_sub[i][j][tt] = Svir[i][j][t-1];
-      }
-    
+  
+      for (t = 1; t< time; t++){
+        
+        for (tt = 0; tt< (deltat); tt++){
+          
+          if(tt == 0) {
+            // q_sub[i][j][tt] = q[i][j][t-1];
+            // runon_sub[i][j][tt] = runon[i][j][t-1];
+            // I_sub[i][j][tt] = In[i][j][t-1];
+            flux_sub[i][j][tt] = flux[i][j][t-1];
+            h_sub[i][j][tt] = h[i][j][t-1];
+            P_sub[i][j][tt] = P[i][j][t-1];
+            M_sub[i][j][tt] = M[i][j][t-1];
+            SmI_sub[i][j][tt] = SmI[i][j][t-1];
+            SmM_sub[i][j][tt] = SmM[i][j][t-1];
+            Svir_sub[i][j][tt] = Svir[i][j][t-1];
+          }
       
       // calculation of sub daily runoff and runon
        //rn[i][j]
-       runon_sub[i][j][tt] = 0.5*q_sub[i][j][tt];
+       
       q_sub[i][j][tt] = OF(h_sub[i][j][tt], cn, Mn, slope) * timeincr;
-      Rcpp::Rcout << q_sub[i][j][tt];
       
+      
+      
+      runon_sub[i][j][tt] = q_sub[i][j][tt];
      
       double Rain_in;
       
-      if ((Rain > 0.0) & (tt == 0)){
-        Rain_in = 10.0*Rain;
-      } else {
-        Rain_in = 0.0;
-      }
+       if ((Rain > 0.0) & (tt == 0)){
+         Rain_in = 10.0*Rain;
+       } else {
+         Rain_in = 0.0;
+       }
       
-      
+
       // Rain_in 
       // calculate water depth on soil
       h_sub[i][j][tt] =  h_sub[i][j][tt] + Rain_in
-        - Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i, k_in, W0_in) - q_sub[i][j][tt] + runon_sub[i][j][tt];
+        - (Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i=1.0, k_in, W0_in)*timeincr) - q_sub[i][j][tt] + runon_sub[i][j][tt];
+      // h_sub[i][j][tt] =  h_sub[i][j][tt] + Rain_in
+      //   -  I_sub[i][j][tt] - q_sub[i][j][tt] + runon_sub[i][j][tt];
      
+       //  Rcpp::Rcout << Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i=1.0, k_in, W0_in)*timeincr;
+     // Rcpp::Rcout << alpha_i;
      
      
         // adjust infiltration rate
         if(h_sub[i][j][tt] < (K_s_in*timeincr)) {
           alpha_i = 1.0;
         } else {
-          alpha_i = 1-(h_sub[i][j][tt] - (K_s_in*timeincr))/h_sub[i][j][tt];
+          alpha_i = 1-((h_sub[i][j][tt] - (K_s_in*timeincr))/h_sub[i][j][tt]);
         }
 
         I_sub[i][j][tt] = Infil(h_sub[i][j][tt], P_sub[i][j][tt],
                                 alpha_i, k_in, W0_in)*timeincr;
-        
-         
+      Rcpp::Rcout << h[i][j][t-1];
+ // Rcpp::Rcout << W0_in;
+ //         
         // Water uptake
-        WU_sub[i][j][tt] = WU(M_sub[i][j][tt],P_sub[i][j][tt], gmax_in, k1_in)*timeincr;
+        WU_sub[i][j][tt] = WU(Svir_sub[i][j][tt],P_sub[i][j][tt], gmax_in, k1_in)*timeincr;
         
         // Growth
         Gr_sub[i][j][tt] = Gr(Svir_sub[i][j][tt], P_sub[i][j][tt], c_in, gmax_in, k1_in)*timeincr;
@@ -308,6 +315,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
         
         // Water balance before drainage
         M_sub[i][j][tt] = M_sub[i][j][tt] + I_sub[i][j][tt] - WU_sub[i][j][tt];
+        
         
         // Drainage/Capillary rise (vertical water flux)
         
@@ -327,7 +335,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
         
         // salt upflow
         if(flux_sub[i][j][tt] > 0.0 ) {
-          U_salt[i][j][tt] = CMgw_in * f_in * flux_sub[i][j][tt]*timeincr;
+          U_salt[i][j][tt] = CMgw_in * flux_sub[i][j][tt]*timeincr;
         } else {
           U_salt[i][j][tt] = 0.0;
         }
@@ -365,6 +373,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
     SmI[i][j][t] = SmI_sub[i][j][deltat];
     SmM[i][j][t] = SmM_sub[i][j][deltat];
     Svir[i][j][t] = Svir_sub[i][j][deltat];
+    
     
     
     double sumI = 0.0;
@@ -415,8 +424,7 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
    
 }
 
-
-// [[Rcpp::export]]
+//[[Rcpp::export]]
 List Grid_run(List vegpar, List soilpar, List saltpar){
   int i;
    int j;
@@ -433,49 +441,51 @@ List Grid_run(List vegpar, List soilpar, List saltpar){
          for (j=0; j< cols; j++ ){
 
           SurfaceSoilSaltWBGRID(alpha_i=1.0, cn = 0.01,
- 				       Mn =0.04, Rain =10.0, Zras = 1000.0,
+ 				       Mn =0.004, Rain =10.0, Zras = 1000.0,
  					vegpar=vegpar,soilpar=soilpar,saltpar=saltpar);
 
          }
     }
     List Out(Rcpp::List::create(Rcpp::Named("results") = SurfaceSoilSaltWBGRID(alpha_i=1.0, cn = 0.01,
- 									Mn =0.04, Rain =10.0, Zras = 1000.0,
+ 									Mn =0.004, Rain =10.0, Zras = 1000.0,
 									vegpar=vegpar,soilpar=soilpar,saltpar=saltpar)));
     return Out;
  }
 
 
+
 /*** R
 
-# 
-#  cols=5
-#  rows=5
-# 
-#  Store <- list()
-#  sub_store <- list()
-# 
+ 
+ #  cols=5
+ #  rows=5
+ # 
+ #  Store <- list()
+ #  sub_store <- list()
+ # 
  soilpar_in <- soil_simple()
  vegpar_in <- veg_simple()
  saltpar_in <- salt_simple()
 # 
-#  for (i in 1:(rows-1)) {
+#   for (i in 1:(rows-1)) {
 # 
-#    for (j in 1:(cols-1)){
+#     for (j in 1:(cols-1)){
 # 
-#      sub_store[[j]] <-data.frame(SurfaceSoilSaltWBGRID(alpha_i=1.0, cn = 0.001,
-#  									Mn =0.04, Rain =10.0, Zras = 1000.0,
-#  									vegpar=vegpar_in,
-#  									soilpar=soilpar_in,
-#  									saltpar=saltpar_in))
+#       sub_store[[j]] <-data.frame(SurfaceSoilSaltWBGRID(alpha_i=1.0, cn = 0.001,
+#   									Mn =0.04, Rain =10.0, Zras = 1000.0,
+#   									vegpar=vegpar_in,
+#   									soilpar=soilpar_in,
+#   									saltpar=saltpar_in))
 # 
-#    }
-#    Store[[i]] <- sub_store
-#  }
-# Store
+#     }
+#     Store[[i]] <- sub_store
+#   }
+#  Store
 #  df<- as.data.frame(Store)
 #  df
 # 
 # 
-  Grid_run(vegpar=vegpar_in,soilpar=soilpar_in,saltpar=saltpar_in)
+ Grid_run(vegpar=vegpar_in,soilpar=soilpar_in,saltpar=saltpar_in)
+
 
 */

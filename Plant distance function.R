@@ -248,34 +248,56 @@ library(gdistance)
  Pras <- r # raster(P[,,tt])
  values(Pras) <- 1
  
- Distance <- array(dim=c(nrow(Pras),ncol(Pras),(nrow(Pras)*ncol(Pras))))
+ # Distance <- array(dim=c(nrow(Pras),ncol(Pras),(nrow(Pras)*ncol(Pras))))
+ # 
+ # DistanceBrick <- brick(nrow=nrow(Pras),ncol=ncol(Pras), ncell=(nrow(Pras)*ncol(Pras)), nlayers=(nrow(Pras)*ncol(Pras)))
+ # values(DistanceBrick) <-1
+ # DistanceBrick[,,,,1]
+ # 
+ # for (i in nrow(Pras)){
+ #   for (j in ncol(Pras)){
+ #     
+ #     a<-brick(accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j)),nlayers=(i*j))
+ #     
+ #   }
+ # }
+ # a
  
- DistanceBrick <- brick(nrow=nrow(Pras),ncol=ncol(Pras), ncell=(nrow(Pras)*ncol(Pras)), nlayers=(nrow(Pras)*ncol(Pras)))
- values(DistanceBrick) <-1
- DistanceBrick[,,,,1]
+
+ r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
+ Pras <- r # raster(P[,,tt])
+ values(Pras) <- 1
+ Prasmatr<-as.matrix(Pras)
  
- for (i in nrow(Pras)){
-   for (j in ncol(Pras)){
-     
-     a<-brick(accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j)),nlayers=(i*j))
-     
+ DistArray <- array(dim=c(nrow(Prasmatr),ncol(Prasmatr),(nrow(Prasmatr)*ncol(Prasmatr))))
+ 
+
+ for (i in 1:nrow(Prasmatr)){
+    for (j in 1:ncol(Prasmatr)){
+ # This creates (first raster then matrix) of distances from the cell c(i,j) to all other cells in the grid
+  A<-c(i,j)
+ Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),A)
+ DistMatr<- as.matrix(Distance)
+ DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
+
+  DistArray[,,i*j]<- DistMatrRot
+ 
+    }
    }
- }
- a
- A=c(10,10)
- Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(10,10))
- plot(Distance)
- plot(Distance[,,1])
  
- Distance[3,6,3*6]
- Sys.time(d)
-   d<-function(){
- Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
- }
- acc
- plot(Distance)
- plot(interference)
-   
+ DistArray[,,]
+ 
+ apply(DistArray,)
+ 
+ # Distance[3,6,3*6]
+ # Sys.time(d)
+ #   d<-function(){
+ # Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
+ # }
+ # acc
+ # plot(Distance)
+ # plot(interference)
+ #   
 
  
  ##

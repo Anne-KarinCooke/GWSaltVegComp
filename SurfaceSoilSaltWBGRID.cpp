@@ -260,14 +260,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
             Svir_sub[i][j][tt] = Svir[i][j][t-1];
           }
       
-      // calculation of sub daily runoff and runon
-       //rn[i][j]
-       
-      q_sub[i][j][tt] = OF(h_sub[i][j][tt], cn, Mn, slope) * timeincr;
-      
-      
-      
-      runon_sub[i][j][tt] = q_sub[i][j][tt];
+     
      
       double Rain_in;
       
@@ -280,15 +273,18 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
       // Rain_in 
       // calculate water depth on soil
-      h_sub[i][j][tt] =  h_sub[i][j][tt] + Rain_in
-        - (Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i=1.0, k_in, W0_in)*timeincr) - q_sub[i][j][tt] + runon_sub[i][j][tt];
-      // h_sub[i][j][tt] =  h_sub[i][j][tt] + Rain_in
-      //   -  I_sub[i][j][tt] - q_sub[i][j][tt] + runon_sub[i][j][tt];
-     
-       //  Rcpp::Rcout << Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i=1.0, k_in, W0_in)*timeincr;
-     // Rcpp::Rcout << alpha_i;
-     
-     
+      h_sub[i][j][tt+1] =  h_sub[i][j][tt] + Rain_in
+        - (Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i=1.0, k_in, W0_in)*0.83333) - q_sub[i][j][tt] + runon_sub[i][j][tt];
+
+         // calculation of sub daily runoff and runon
+         //rn[i][j]
+         
+         q_sub[i][j][tt] = OF(h_sub[i][j][tt], cn, Mn, slope) * timeincr;
+       
+       // Rcpp::Rcout << OF(h_sub[i][j][tt], cn=0.01, Mn=0.04, slope=0.001) * 0.8333;
+       Rcpp::Rcout <<q_sub[i][j][tt];
+       
+       runon_sub[i][j][tt] = q_sub[i][j][tt];
         // adjust infiltration rate
         if(h_sub[i][j][tt] < (K_s_in*timeincr)) {
           alpha_i = 1.0;
@@ -297,9 +293,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
         }
 
         I_sub[i][j][tt] = Infil(h_sub[i][j][tt], P_sub[i][j][tt],
-                                alpha_i, k_in, W0_in)*timeincr;
-      Rcpp::Rcout << h[i][j][t-1];
- // Rcpp::Rcout << W0_in;
+                                alpha_i=1.0, k_in=12.0, W0_in=0.2)*0.83333;
+   
+
  //         
         // Water uptake
         WU_sub[i][j][tt] = WU(Svir_sub[i][j][tt],P_sub[i][j][tt], gmax_in, k1_in)*timeincr;
@@ -378,9 +374,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
     
     double sumI = 0.0;
     double sumflux = 0.0;
-    double sumq = 0.0;
     double sumrunon = 0.0;
     double summb = 0.0;
+    double sumq = 0.0;
     
     for(int tt = 0; tt < deltat; tt++)
     {
@@ -428,8 +424,8 @@ List out(Rcpp::List::create(Rcpp::Named("P") = P[rows][cols][time],
 List Grid_run(List vegpar, List soilpar, List saltpar){
   int i;
    int j;
-   int rows = 5;
-     int cols = 5;
+   int rows = 10;
+     int cols = 10;
 // // for testing remove later
  	double alpha_i;
 	double cn;
@@ -485,6 +481,7 @@ List Grid_run(List vegpar, List soilpar, List saltpar){
 #  df
 # 
 # 
+
  Grid_run(vegpar=vegpar_in,soilpar=soilpar_in,saltpar=saltpar_in)
 
 

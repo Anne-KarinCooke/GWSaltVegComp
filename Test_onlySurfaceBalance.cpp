@@ -34,6 +34,67 @@ double Mo(double P, double M, double Svir, double d ){
   return Mort;
   
 }
+// [[Rcpp::export]]
+List veg_simple() {
+  
+  // double Zr = 400.0; //mm, Grass
+  // double gmax = 0.05;//Saco et al, 2013
+  // double c = 10.0;//Saco et al, 2013
+  // double k1 = 5.0;//Saco et al, 2013
+  // double d = 0.24;//Saco et al, 2013 //fraction of plant mortality
+  
+  double k = 12.0;//Saco et al, 2013
+  double W0 = 0.2;//Saco et al, 2013
+  
+  List vegpar = (Rcpp::List::create(Rcpp::Named("k") = k,
+                                    // Rcpp::Named("Zr") = Zr,
+                                    // Rcpp::Named("gmax") = gmax,
+                                    // Rcpp::Named("c") = c,
+                                    // Rcpp::Named("k1") = k1,
+                                    // Rcpp::Named("d") = d,
+                                    Rcpp::Named("W0") = W0));
+  return(vegpar);
+}
+List vegpar = veg_simple();
+double k_in = vegpar["k"];
+// double Zr_in = vegpar["Zr"];
+// double gmax_in = vegpar["gmax"];
+// double c_in = vegpar["c"];
+// double k1_in = vegpar["k1"];
+// double d_in = vegpar["d"];
+double W0_in = vegpar["W0"];
+
+List soil_simple() {
+  // default = Medium Light Clay
+  // double n = 0.418; // porosity
+  // more soil variables for evaporation & losses
+  double K_s = 3.51*10.0; // mm/day
+  // double b = 13.48; // neurotheta LMC
+  
+  // double psi_s_bar = -1.5e-3; // This is the bubbling pressure
+  // double hb = -psi_s_bar*(10e5); //mm
+  // double h1bar = -psi_s_bar;
+  
+
+List soilpar= Rcpp::List::create(//Rcpp::Named("n") = n,
+                                // Rcpp::Named("b") = b,
+                                 Rcpp::Named("K_s") = K_s);
+                                 // Rcpp::Named("hb") = hb,
+                                 // Rcpp::Named("psi_s_bar") = psi_s_bar,
+                                 // Rcpp::Named("h1bar") = h1bar);
+
+  return(soilpar);
+
+}
+
+List soilpar = soil_simple();
+// double n_in = soilpar["n"];
+// double b_in = soilpar["b"];
+double K_s_in = soilpar["K_s"];
+// double hb_in = soilpar["hb"];
+// double psi_s_bar_in = soilpar["psi_s_bar"];
+// double h1bar_in = soilpar["h1bar"];
+
 
 // [[Rcpp::export]]
 List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, double slope, double Zras
@@ -53,9 +114,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   int cols = 10;
   
   int time = 100;
-  double k_in = 12.0;
-  double W0_in = 0.2;
-  double K_s_in = 35.5;
+  // double k_in = 12.0;
+  // double W0_in = 0.2;
+  // double K_s_in = 35.5;
   // double gmax_in = 0.05;
   // double k1_in = 5.0;
   // double c_in = 10.0;

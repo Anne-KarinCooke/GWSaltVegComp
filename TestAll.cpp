@@ -55,10 +55,10 @@ List veg_simple() {
   double c = 10.0;//Saco et al, 2013
   double k1 = 5.0;//Saco et al, 2013
   double d = 0.24;//Saco et al, 2013 //fraction of plant mortality
-
+  
   double k = 12.0;//Saco et al, 2013
   double W0 = 0.2;//Saco et al, 2013
- 
+  
   List vegpar = (Rcpp::List::create(Rcpp::Named("k") = k,
                                     Rcpp::Named("Zr") = Zr,
                                     Rcpp::Named("gmax") = gmax,
@@ -90,7 +90,7 @@ List soil_simple() {
   double psi_s_bar = -1.5e-3; // This is the bubbling pressure
   double hb = -psi_s_bar*(10e5); //mm
   double h1bar = -psi_s_bar;
-
+  
   List soilpar= Rcpp::List::create(Rcpp::Named("n") = n,
                                    Rcpp::Named("b") = b,
                                    Rcpp::Named("K_s") = K_s,
@@ -156,9 +156,19 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   double WU_sub[rows][cols][deltat];
   double Gr_sub[rows][cols][deltat];
   double Mo_sub[rows][cols][deltat];
-  double M_sub[rows][cols][deltat];
   double flux_sub[rows][cols][deltat];
-  double mb_sub[rows][cols][deltat];
+  double M_sub[rows][cols][deltat];
+  double CM_sub[rows][cols][deltat];
+  double SmI_sub[rows][cols][deltat];
+  double SmM_sub[rows][cols][deltat];
+  double Svir_sub[rows][cols][deltat];
+  
+  double U_salt[rows][cols][deltat];
+  double L_salt[rows][cols][deltat];
+  
+  double mb_sub[rows][cols][time];
+  
+  
   // 
   double h[rows][cols][time];
   double q[rows][cols][time];
@@ -168,10 +178,21 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   double Wu[rows][cols][time];
   double M[rows][cols][time];
   double flux[rows][cols][time];
+  double CM[rows][cols][time];
+  double SmI[rows][cols][time];
+  double SmM[rows][cols][time];
+  double Svir[rows][cols][time];
+  
+  double mb[rows][cols][time];
   
   h[0][0][0] = 10.0;
   P[0][0][0] = 20.0;
   M[0][0][0] = 30.0;
+  
+  Svir[0][0][0] = 30.0;
+  CM[0][0][0] = 0.0;
+  SmI[0][0][0] = 0.0;
+  SmM[0][0][0] = 0.0;
   
   for (i=0; i< rows; i++) {
     
@@ -185,6 +206,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
             h_sub[i][j][tt] = h[i][j][t-1];
             P_sub[i][j][tt] = P[i][j][t-1];
             M_sub[i][j][tt] = M[i][j][t-1];
+            SmI_sub[i][j][tt] = SmI[i][j][t-1];
+            SmM_sub[i][j][tt] = SmM[i][j][t-1];
+            Svir_sub[i][j][tt] = Svir[i][j][t-1];
           }
           
           double Rain_in;
@@ -195,7 +219,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
             Rain_in = 0.0;
           }
           
-
+          
           // adjust infiltration rate
           if(h_sub[i][j][tt] < (K_s_in * 0.833333)) {
             alpha_i = 1.0;
@@ -205,47 +229,92 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           q_sub[i][j][tt] = OF(h_sub[i][j][tt], cn, Mn, slope) * 0.833333;
           runon_sub[i][j][tt] = q_sub[i][j][tt] * 0.5;
-         
-         
+          
+          
           
           // calculate water depth on soil
           h_sub[i][j][tt+1] =  h_sub[i][j][tt] + Rain_in
             - (Infil(h_sub[i][j][tt], 20.0, alpha_i, k_in, W0_in) * 0.833333) - q_sub[i][j][tt]  + runon_sub[i][j][tt]; //
           
-
+          
           I_sub[i][j][tt] = Infil(h_sub[i][j][tt], P_sub[i][j][tt], alpha_i, k_in, W0_in) * 0.833333; 
           
           
-         
-           WU_sub[i][j][tt] = WU(M_sub[i][j][tt], P_sub[i][j][tt], gmax_in, k1_in) * 0.833333; //Svir_sub[i][j][tt], for M
-        
-           M_sub[i][j][tt+1] = M_sub[i][j][tt] + I_sub[i][j][tt] - WU_sub[i][j][tt];
-           
-        // 
-           Gr_sub[i][j][tt] = Gr(M_sub[i][j][tt], P_sub[i][j][tt], c_in, gmax_in, k1_in) * 0.833333;//Svir_sub[i][j][tt],
-        //  // // // //Mortality
-           Mo_sub[i][j][tt] = Mo(P_sub[i][j][tt], M_sub[i][j][tt], M_sub[i][j][tt],d_in) * 0.833333;  // Svir_sub[i][j][tt] for second M
-        //  // // //
-        //  // // // // Plant biomass balance
-           P_sub[i][j][tt+1] = P_sub[i][j][tt] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt];
-           
-       
-           flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
-       
-           M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt+1]
-           Rcpp::Rcout <<  M_sub[i][j][tt];
+          
+          WU_sub[i][j][tt] = WU(M_sub[i][j][tt], P_sub[i][j][tt], gmax_in, k1_in) * 0.833333; //Svir_sub[i][j][tt], for M
+          
+          M_sub[i][j][tt+1] = M_sub[i][j][tt] + I_sub[i][j][tt] - WU_sub[i][j][tt];
+          
+          // 
+          Gr_sub[i][j][tt] = Gr(M_sub[i][j][tt], P_sub[i][j][tt], c_in, gmax_in, k1_in) * 0.833333;//Svir_sub[i][j][tt],
+          //  // // // //Mortality
+          Mo_sub[i][j][tt] = Mo(P_sub[i][j][tt], M_sub[i][j][tt], M_sub[i][j][tt],d_in) * 0.833333;  // Svir_sub[i][j][tt] for second M
+          //  // // //
+          //  // // // // Plant biomass balance
+          P_sub[i][j][tt+1] = P_sub[i][j][tt] + Gr_sub[i][j][tt]- Mo_sub[i][j][tt];
+          
+          
+          flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
+          
+          M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt+1] ???
+          Rcpp::Rcout <<  M_sub[i][j][tt];
+          
+          
+          // salt leaching
+          //
+          if(flux_sub[i][j][tt] < 0.0 ) {
+            L_salt[i][j][tt] = f_in * CM_sub[i][j][tt] * flux_sub[i][j][tt] * 0.833333;
+          } else {
+            L_salt[i][j][tt] = 0.0;
+          }
+
+          // salt upflow
+          if(flux_sub[i][j][tt] > 0.0 ) {
+            U_salt[i][j][tt] = CMgw_in * flux_sub[i][j][tt] * 0.833333;
+          } else {
+            U_salt[i][j][tt] = 0.0;
+          }
+
+
+          // # salt mass coming in with infiltration
+          SmI_sub[i][j][tt] = SmI_sub[i][j][tt] + I_sub[i][j][tt] * ConcConst_in;
+
+          // #salt mass in soil
+          SmM_sub[i][j][tt] = SmI_sub[i][j][tt] + U_salt[i][j][tt] - L_salt[i][j][tt];
+
+          //  salt concentration in soil
+          CM_sub[i][j][tt] = (SmM_sub[i][j][tt]/M_sub[i][j][tt])*(1.0/58.44);
+
+          //
+          // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
+          Svir_sub[i][j][tt] =  n_in* Zr_in *(pow((h1bar_in * 10.0E-1),(1/b_in)))*(h1bar_in * 10.0E-1*pow((M_sub[i][j][tt]/(n_in*Zr_in)),-b_in))+pow((3.6*CM_sub[i][j][tt]),(-1.0/b_in));
+
+
+
+          
+          // # checking the mass balance
+          mb_sub[i][j][tt] = I_sub[i][j][tt] - WU_sub[i][j][tt] + (flux_sub[i][j][tt] * 0.833333);
+          
+          
+          
+          
         }
         
         h[i][j][t] = h_sub[i][j][deltat];
         Wu[i][j][t] = WU_sub[i][j][deltat];
         P[i][j][t] = P_sub[i][j][deltat];
         M[i][j][t] = M_sub[i][j][deltat];
-
+        CM[i][j][t] = CM_sub[i][j][deltat];
+        SmI[i][j][t] = SmI_sub[i][j][deltat];
+        SmM[i][j][t] = SmM_sub[i][j][deltat];
+        Svir[i][j][t] = Svir_sub[i][j][deltat];
+        
         
         double sumI = 0.0;
         double sumq = 0.0;
         double sumrunon = 0.0;
         double sumflux = 0.0;
+        double summb = 0.0;
         
         for(int tt = 0; tt < deltat; tt++)
         {
@@ -253,12 +322,14 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           sumrunon += runon_sub[i][j][tt];
           sumq += q_sub[i][j][tt];
           sumflux += flux_sub[i][j][tt] * 0.83333;
+          summb += mb_sub[i][j][tt];
         }
         
         q[i][j][t] = sumq;
         runon[i][j][t] = sumrunon;
         In[i][j][t] = sumI;
         flux[i][j][t] = sumflux;
+        mb[i][j][t] = summb;
         
       }
     }
@@ -271,8 +342,13 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
                               Rcpp::Named("Wu") = Wu[rows][cols][time],
                               Rcpp::Named("P") = P[rows][cols][time],
                               Rcpp::Named("flux") = flux[rows][cols][time],
-                              Rcpp::Named("M") = M[rows][cols][time]));
-                           
+                              Rcpp::Named("M") = M[rows][cols][time],
+                              Rcpp::Named("SmM") = SmM[rows][cols][time],
+                              Rcpp::Named("CM") = CM[rows][cols][time],
+                              Rcpp::Named("mb") = mb[rows][cols][time],
+                              Rcpp::Named("Svir") = Svir[rows][cols][time],
+                              Rcpp::Named("SmI") = SmI[rows][cols][time]));
+  
   return out;
 }
 
@@ -306,9 +382,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 /*** R
 soilpar_in <- soil_simple()
-vegpar_in <- veg_simple()
-saltpar_in <- salt_simple()
-
-SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
+  vegpar_in <- veg_simple()
+  saltpar_in <- salt_simple()
+  
+  SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
 # Grid_run()
   */

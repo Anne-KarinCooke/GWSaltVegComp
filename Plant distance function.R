@@ -80,6 +80,8 @@
  
  WU_sub[i,j,tt] <- WU_subA[i,j,tt] + WU_subB[i,j,tt] + WU_subC[i,j,tt]
  
+ # Plant biomass density of all species together
+ P_sub[i,j,tt] <- P_subA[i,j,tt] + P_subB[i,j,tt] + P_subC[i,j,tt]
 
  
  # 4. ******************************************************************************************************
@@ -210,43 +212,79 @@ library(gdistance)
    w <- (1/(2*pi*(L*L)))*exp(-(abs(r)*abs(r))/(2*(L*L)))
    return(w)
  }
- # This is basically a kernel function! The R package "spatialfil" provides such a function, I actually didnt need to write it myself
- #convKernel(sigma = 1.4, k = c("gaussian", "LoG", "sharpen", "laplacian",
- #                             "emboss", "sobel"))
- #install.packages("spatialfil")
- # library(spatialfil)
- # convKernel(sigma=1.4,k="gaussian")
+
 
  # Distance of a cell to all other cells, considering 16 directions 
+ 
  # http://personal.colby.edu/personal/m/mgimond/Spatial/Distance_rook_vs_queen_vs_knight.html
  #Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE), scl=FALSE),A)
  # insert some kind of raster and a point A from which these distances shall be calculated
- # plot(Distance)
  
+ 
+
+ ## 
  if (P_subA[i,j,tt] > 0) 
    # Raster with cells that 
    
-   r   <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
- Pras <- r # raster(P[,,tt])
- values(Pras) <- 1
-
- # Distance <- brick(r, nl=ncell(Pras))
- # Distance <- brick(r, nl=i*j)
-   for (i in nrow(Pras)){
-     for (j in ncol(Pras)){
-
-       
-      a<- as.array(values(Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))), dim=c(i,j))
-       
-       # interference <- wfunc(Distance[i,j],0.3)*Pras
-     #   P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
-      }
-   }
- a
  
- r   <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
+    interference <- iwfunc(Distance[i,j],0.3) * P_sub[,,tt]
+ 
+  P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
+ 
+ r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
  Pras <- r # raster(P[,,tt])
  values(Pras) <- 1
+ Prasmatr<-as.matrix(Pras)
+ 
+ DistArray <- array(dim=c(nrow(Prasmatr),ncol(Prasmatr),(nrow(Prasmatr)*ncol(Prasmatr))))
+ 
+
+ for (i in 1:nrow(Prasmatr)){
+    for (j in 1:ncol(Prasmatr)){
+ # This creates (first raster then matrix) of distances from the cell c(i,j) to all other cells in the grid
+ Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))
+ DistMatr<- as.matrix(Distance)
+ DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
+ for(k in 1:ncell(Prasmatr)){
+  DistArray[,,k] <- DistMatrRot
+ }
+    }
+   }
+ 
+ DistArray[,,]
+ 
+ 
+ # Distance[3,6,3*6]
+ # Sys.time(d)
+ #   d<-function(){
+ # Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
+ # }
+ # acc
+ # plot(Distance)
+ # plot(interference)
+ ##
+ # Plant dispersal
+ # wind, animals...
+ Dp <- 0.3 #m^2d^-1
+ 
+ 
+
+ 
+ #Recycling bin
+ 
+ 
+ # 
+ # Pras <- raster(nrows=100,ncols=100,xmn=0,ymn=0,xmx=100,ymx=100)
+ # values(Pras) <- 1
+ # 
+ # for (i in nrow(Pras)){
+ #   for (j in ncol(Pras)){
+ #     
+ #     a<- as.array(values(Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))), dim=c(i,j))
+ #     
+ #   }
+ # }
+ # a
  
  # Distance <- array(dim=c(nrow(Pras),ncol(Pras),(nrow(Pras)*ncol(Pras))))
  # 
@@ -262,53 +300,6 @@ library(gdistance)
  #   }
  # }
  # a
- 
-
- r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
- Pras <- r # raster(P[,,tt])
- values(Pras) <- 1
- Prasmatr<-as.matrix(Pras)
- 
- DistArray <- array(dim=c(nrow(Prasmatr),ncol(Prasmatr),(nrow(Prasmatr)*ncol(Prasmatr))))
- 
-
- for (i in 1:nrow(Prasmatr)){
-    for (j in 1:ncol(Prasmatr)){
- # This creates (first raster then matrix) of distances from the cell c(i,j) to all other cells in the grid
-  A<-c(i,j)
- Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),A)
- DistMatr<- as.matrix(Distance)
- DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
-
-  DistArray[,,i*j]<- DistMatrRot
- 
-    }
-   }
- 
- DistArray[,,]
- 
- apply(DistArray,)
- 
- # Distance[3,6,3*6]
- # Sys.time(d)
- #   d<-function(){
- # Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
- # }
- # acc
- # plot(Distance)
- # plot(interference)
- #   
-
- 
- ##
- # Plant dispersal
- # wind, animals...
- Dp <- 0.3 #m^2d^-1
- 
- 
-
- 
- #Recycling bin
  
  # g <- make_ring(5)
  # laplacian_matrix(g)

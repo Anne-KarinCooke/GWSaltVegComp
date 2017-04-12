@@ -259,7 +259,7 @@ List output = List::create(_["fields : field<cube>"] = f1 );
 
 
 /*** R
-SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=10.0)
+test <- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=10.0)
 
 
 */

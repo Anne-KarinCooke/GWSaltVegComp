@@ -74,6 +74,8 @@
  # Water uptake in mm species C
  WU_subC<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
  
+ interference <- matrix(0,nrow= nrow(raster), ncol =ncol(raster)) 
+ 
  # 3. ******************************************************************************************************
  # Water uptake in that cell, as a sum of water uptake of all present species
  # Water uptake, sum of WU_subA,B,C
@@ -223,21 +225,13 @@ library(gdistance)
  
 
  ## 
- if (P_subA[i,j,tt] > 0) 
-   # Raster with cells that 
-   
- 
-    interference <- iwfunc(Distance[i,j],0.3) * P_sub[,,tt]
- 
-  P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
- 
+
  r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
  Pras <- r # raster(P[,,tt])
  values(Pras) <- 1
  Prasmatr<-as.matrix(Pras)
  
  DistArray <- array(dim=c(nrow(Prasmatr),ncol(Prasmatr),(nrow(Prasmatr)*ncol(Prasmatr))))
- 
 
  for (i in 1:nrow(Prasmatr)){
     for (j in 1:ncol(Prasmatr)){
@@ -245,28 +239,25 @@ library(gdistance)
  Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))
  DistMatr<- as.matrix(Distance)
  DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
- for(k in 1:ncell(Prasmatr)){
+  for(k in 1:ncell(Prasmatr)){
   DistArray[,,k] <- DistMatrRot
- }
-    }
+  }
+     }
    }
  
  DistArray[,,]
  
  
- # Distance[3,6,3*6]
- # Sys.time(d)
- #   d<-function(){
- # Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
- # }
- # acc
- # plot(Distance)
- # plot(interference)
- ##
+
+ 
+ interference[i,j] <- integrate(wfunc(DistArray[i,j],0.3) * P_sub[,,tt])
+ 
+ P_sub[i,j,tt+1] <- P_sub[i,j,tt] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
+ 
+
  # Plant dispersal
  # wind, animals...
  Dp <- 0.3 #m^2d^-1
- 
  
 
  

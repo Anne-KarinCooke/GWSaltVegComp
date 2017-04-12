@@ -117,8 +117,8 @@ double h1bar_in = soilpar["h1bar"];
 // salt function
 // [[Rcpp::export]]
 List salt_simple() {
-  double ConcConst = 0.0;
-  double CMgw = 0.0;
+  double ConcConst = 0.1;
+  double CMgw = 0.1;
   double f = 1.0;
   
   List saltpar= Rcpp::List::create(Rcpp::Named("ConcConst") = ConcConst,
@@ -261,14 +261,14 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           
           
-          WU_sub(i,j,tt) = WU(M_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in) * 0.833333; //Svir_sub(i,j,tt), for M
+          WU_sub(i,j,tt) = WU(Svir_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in) * 0.833333; 
           
           M_sub(i,j,tt) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt);
           
           // 
-          Gr_sub(i,j,tt) = Gr(M_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in) * 0.833333;//Svir_sub(i,j,tt),
+          Gr_sub(i,j,tt) = Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in) * 0.833333;
           //  // // // //Mortality
-          Mo_sub(i,j,tt) = Mo(P_sub(i,j,tt), M_sub(i,j,tt), M_sub(i,j,tt),d_in) * 0.833333;  // Svir_sub(i,j,tt) for second M
+          Mo_sub(i,j,tt) = Mo(P_sub(i,j,tt), M_sub(i,j,tt), Svir_sub(i,j,tt),d_in) * 0.833333;  
           //  // // //
           //  // // // // Plant biomass balance
           P_sub(i,j,tt) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt);
@@ -276,9 +276,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt),Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
-          M_sub(i,j,tt) = M_sub(i,j,tt) +  (flux_sub(i,j,tt) * 0.833333); // M_sub(i,j,tt)  or M_sub[tt+1] ???
-          
-          //Rcpp::Rcout <<  M(i,j,t);
+          M_sub(i,j,tt) = M_sub(i,j,tt) +  (flux_sub(i,j,tt) * 0.833333);
+        
           
           
           // salt leaching
@@ -400,10 +399,10 @@ soilpar_in <- soil_simple()
   saltpar_in <- salt_simple()
   
  result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
- result$fields[4]
+ result$fields[12]
  
  
- #hdata <- as.data.frame(result$fields[1])
+# hdata <- as.data.frame(result$fields[1])
 # write.table(hdata, "C:/Users/acoo7451/Desktop/hdata.txt", sep="\t")
  
  # Grid_run()

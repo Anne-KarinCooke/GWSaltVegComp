@@ -215,7 +215,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
            //  Rcpp::Rcout << h_sub(i,j,tt);
        }
  
-        h(i,j,t) = h_sub(i,j,deltat);
+        h(i,j,t) = h_sub(i,j,(deltat-1));
   //
   //
         double sumI = 0.0;
@@ -249,10 +249,11 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
  f1( 3 ) = runon;
  fields["field<cube>"] = f1;
 
- 
+
  List output = List::create(_["fields : field<cube>"] = f1 );
- 
+
  return output;
+
 
 
 }
@@ -260,7 +261,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
 /*** R
-SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0)
+test <- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0)
+test$fields[1]
 
 
 */

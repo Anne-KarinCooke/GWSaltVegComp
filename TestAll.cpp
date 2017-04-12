@@ -257,7 +257,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
           M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt+1] ???
-          Rcpp::Rcout <<  M_sub[i][j][tt];
+          
+          Rcpp::Rcout <<  M[i][j][t];
           
           
           // salt leaching

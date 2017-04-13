@@ -1,5 +1,8 @@
-#include <Rcpp.h>
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
+using namespace arma;
+
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
   
@@ -107,20 +110,15 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   int tt = 0;
   // int t_old = 0;
   int deltat = 12;
+
   
   // float timeincr = 1/deltat;
   
   int rows = 10;
   int cols = 10;
-  
   int time = 100;
-  // double k_in = 12.0;
-  // double W0_in = 0.2;
-  // double K_s_in = 35.5;
-  // double gmax_in = 0.05;
-  // double k1_in = 5.0;
-  // double c_in = 10.0;
-  // double d_in = 0.24;
+  
+
   
   // //h sub
   double h_sub[rows][cols][deltat];
@@ -183,7 +181,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
             - (Infil(h_sub[i][j][tt], 20.0, alpha_i, k_in, W0_in)*0.833333);// - q_sub[i][j][tt] + runon_sub[i][j][tt];
           
           I_sub[i][j][tt] = Infil(h_sub[i][j][tt], 20.0, alpha_i, k_in, W0_in)*0.83333; 
-          Rcpp::Rcout << h_sub[i][j][tt];
+        //  Rcpp::Rcout << h_sub[i][j][tt];
           
         }
         
@@ -206,16 +204,23 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
         runon[i][j][t+1] = sumrunon;
         In[i][j][t+1] = sumI;
         
+
       }
+  
     }
   }
   
-  List out(Rcpp::List::create(Rcpp::Named("h") = h[rows][cols][time],
-                              Rcpp::Named("q") = q[rows][cols][time],
-                                                              Rcpp::Named("In") = In[rows][cols][time],
-                                                                                                Rcpp::Named("runon") = runon[rows][cols][time]));
-  
-  return out;
+
+   
+   List out(Rcpp::List::create(Rcpp::Named("h") = h[rows][cols][time],
+                               Rcpp::Named("q") = q[rows][cols][time],
+                               Rcpp::Named("In") = In[rows][cols][time],
+                               Rcpp::Named("runon") = runon[rows][cols][time]));
+
+
+   return out;
+ 
+ 
 }
 
 // 
@@ -248,5 +253,4 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 /*** R
 SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0)
-# Grid_run()
   */

@@ -125,6 +125,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 //    arma::field<arma::cube> runon_sub(rows, cols, deltat);
 //    arma::field<arma::cube> I_sub(rows, cols, deltat);
    
+
    arma::cube h_sub = arma::zeros(rows, cols, deltat);
    arma::cube q_sub= arma::zeros(rows, cols, deltat);
    arma::cube runon_sub= arma::zeros(rows, cols, deltat);
@@ -133,6 +134,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
    // q_sub.fill(0.0);
    // runon_sub.fill(0.0);
    // I_sub.fill(0.0);
+
 
   // double h_sub[rows][cols][deltat];
   // double q_sub[rows][cols][deltat];
@@ -159,6 +161,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // q.fill(0.0);
   // runon.fill(0.0);
   // In.fill(0.0);
+
   
   // double h[rows][cols][time];
   // double q[rows][cols][time];
@@ -180,7 +183,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
  
        for (t = 1; t< time; t++){
   
-         for (tt = 0; tt< deltat; tt++){
+         for (tt = 0; tt< (deltat-1); tt++){
   
             if(tt == 0) {
               h_sub(i,j,tt) = h(i,j,t-1);
@@ -208,6 +211,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           
           // calculate water depth on soil
+
              h_sub(i,j,tt) =  h_sub(i,j,tt) + Rain_in
              - (Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.833333) - q_sub(i,j,tt) + runon_sub(i,j,tt);
           
@@ -218,6 +222,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
          h(i,j,t) = h_sub(i,j,(deltat-1));
 
          double sumI = 0.0;
+
         double sumq = 0.0;
         double sumrunon = 0.0;
 
@@ -251,7 +256,9 @@ fields["field<cube>"] = f1;
 
 List output = List::create(_["fields : field<cube>"] = f1 );
  
+
  return output;
+
 
 
 }
@@ -259,7 +266,9 @@ List output = List::create(_["fields : field<cube>"] = f1 );
 
 
 /*** R
+
 test <- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=10.0)
+
 
 
 */

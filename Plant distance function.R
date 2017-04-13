@@ -10,6 +10,7 @@
 # 7. Salt impact on Germiantion
 # 8. Salt impact on long-term seed production
 # 9. Interaction functions (distance betweeen plants)
+# 10. Seed dispersal
 
 
 # 1. *****************************************************************************************
@@ -73,6 +74,8 @@
  WU_subB<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
  # Water uptake in mm species C
  WU_subC<- array(matrix(0,nrow= nrow(raster), ncol =ncol(raster)),dim=c(nrow(raster),ncol(raster),deltat))
+ 
+ interference <- matrix(0,nrow= nrow(raster), ncol =ncol(raster)) 
  
  # 3. ******************************************************************************************************
  # Water uptake in that cell, as a sum of water uptake of all present species
@@ -223,21 +226,13 @@ library(gdistance)
  
 
  ## 
- if (P_subA[i,j,tt] > 0) 
-   # Raster with cells that 
-   
- 
-    interference <- iwfunc(Distance[i,j],0.3) * P_sub[,,tt]
- 
-  P_sub[i,j,tt+1] <- P.old[i,j] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
- 
+
  r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
  Pras <- r # raster(P[,,tt])
  values(Pras) <- 1
  Prasmatr<-as.matrix(Pras)
  
  DistArray <- array(dim=c(nrow(Prasmatr),ncol(Prasmatr),(nrow(Prasmatr)*ncol(Prasmatr))))
- 
 
  for (i in 1:nrow(Prasmatr)){
     for (j in 1:ncol(Prasmatr)){
@@ -245,30 +240,35 @@ library(gdistance)
  Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))
  DistMatr<- as.matrix(Distance)
  DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
- for(k in 1:ncell(Prasmatr)){
+  for(k in 1:ncell(Prasmatr)){
   DistArray[,,k] <- DistMatrRot
- }
-    }
+  }
+     }
    }
  
  DistArray[,,]
  
+
+ interference[i,j] <- integrate(wfunc(DistArray[i,j],0.3) * P_sub[,,tt])
  
- # Distance[3,6,3*6]
- # Sys.time(d)
- #   d<-function(){
- # Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=TRUE),c(Pras[,]))
- # }
- # acc
- # plot(Distance)
- # plot(interference)
- ##
- # Plant dispersal
- # wind, animals...
- Dp <- 0.3 #m^2d^-1
- 
+ P_sub[i,j,tt+1] <- P_sub[i,j,tt] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
  
 
+
+ # 10. Seed dispersal
+ 
+ # P_sub[i,j,tt+1] = ... + Dp*divergence*P - qsd
+ Dp=0.27
+ # qsd has direction of runoff/runon
+ # magnitude of qsd calculates as:
+ c1 = 2.25 #[1/mm] Saco 2013
+ c2 = 0.2 # [m/d] Saco 2013
+ 
+ qsd = c1*q*P # for c1 < q < c2 (Saco, 2007)
+ qsd = c2* P # for c1*q > c2 (Saco, 2007)
+ 
+ 
+ 
  
  #Recycling bin
  

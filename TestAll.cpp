@@ -257,7 +257,8 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
           M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt+1] ???
-          Rcpp::Rcout <<  M_sub[i][j][tt];
+          
+          Rcpp::Rcout <<  M[i][j][t];
           
           
           // salt leaching
@@ -381,10 +382,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
 /*** R
-soilpar_in <- soil_simple()
-  vegpar_in <- veg_simple()
-  saltpar_in <- salt_simple()
-  
-  SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
+# soilpar_in <- soil_simple()
+#   vegpar_in <- veg_simple()
+#   saltpar_in <- salt_simple()
+#   
+#   SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
 # Grid_run()
   */

@@ -10,6 +10,7 @@
 # 7. Salt impact on Germiantion
 # 8. Salt impact on long-term seed production
 # 9. Interaction functions (distance betweeen plants)
+# 10. Seed dispersal
 
 
 # 1. *****************************************************************************************
@@ -247,19 +248,27 @@ library(gdistance)
  
  DistArray[,,]
  
- 
 
- 
  interference[i,j] <- integrate(wfunc(DistArray[i,j],0.3) * P_sub[,,tt])
  
  P_sub[i,j,tt+1] <- P_sub[i,j,tt] + Gr_sub[i,j,tt]- Mo_sub[i,j,tt] + interference
  
 
- # Plant dispersal
- # wind, animals...
- Dp <- 0.3 #m^2d^-1
- 
 
+ # 10. Seed dispersal
+ 
+ # P_sub[i,j,tt+1] = ... + Dp*divergence*P - qsd
+ Dp=0.27
+ # qsd has direction of runoff/runon
+ # magnitude of qsd calculates as:
+ c1 = 2.25 #[1/mm] Saco 2013
+ c2 = 0.2 # [m/d] Saco 2013
+ 
+ qsd = c1*q*P # for c1 < q < c2 (Saco, 2007)
+ qsd = c2* P # for c1*q > c2 (Saco, 2007)
+ 
+ 
+ 
  
  #Recycling bin
  

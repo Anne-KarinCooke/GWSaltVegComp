@@ -129,10 +129,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
    arma::cube q_sub(rows, cols, deltat);
    arma::cube runon_sub(rows, cols, deltat);
    arma::cube I_sub(rows, cols, deltat);
-   h_sub.fill(0.0);
-   q_sub.fill(0.0);
-   runon_sub.fill(0.0);
-   I_sub.fill(0.0);
+
 
   // double h_sub[rows][cols][deltat];
   // double q_sub[rows][cols][deltat];
@@ -155,10 +152,6 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   arma::cube q(rows, cols, time);
   arma::cube runon(rows, cols, time);
   arma::cube In(rows, cols, time);
-  h.fill(0.0);
-  q.fill(0.0);
-  runon.fill(0.0);
-  In.fill(0.0);
   
   // double h[rows][cols][time];
   // double q[rows][cols][time];
@@ -180,7 +173,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
  
        for (t = 1; t< time; t++){
   
-         for (tt = 0; tt< deltat; tt++){
+         for (tt = 0; tt< (deltat-1); tt++){
   
            if(tt == 0) {
              h_sub(i,j,tt) = h(i,j,t-1);
@@ -208,7 +201,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
           // calculate water depth on soil
-          h_sub(i,j,tt) =  h_sub(i,j,tt) + Rain_in
+          h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.833333) - q_sub(i,j,tt) + runon_sub(i,j,tt);
   
            I_sub(i,j,tt) = Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.83333;

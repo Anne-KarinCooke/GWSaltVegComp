@@ -382,10 +382,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
 /*** R
-soilpar_in <- soil_simple()
-  vegpar_in <- veg_simple()
-  saltpar_in <- salt_simple()
-  
-  SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
+# soilpar_in <- soil_simple()
+#   vegpar_in <- veg_simple()
+#   saltpar_in <- salt_simple()
+#   
+#   SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
 # Grid_run()
   */

@@ -118,7 +118,7 @@ double h1bar_in = soilpar["h1bar"];
 // [[Rcpp::export]]
 List salt_simple() {
   double ConcConst = 0.1;
-  double CMgw = 0.1;
+  double CMgw = 0.0;
   double f = 1.0;
   
   List saltpar= Rcpp::List::create(Rcpp::Named("ConcConst") = ConcConst,
@@ -148,7 +148,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   int rows = 10;
   int cols = 10;
   
-  int time = 100;
+  int time = 11;
   
   // //h sub
   
@@ -214,14 +214,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   SmI(0,0,0) = 0.0;
   SmM(0,0,0) = 0.0;
   
+  
   for (i=0; i< rows; i++) {
     
     for (j=0; j< cols; j++ ){
       
       for (t = 1; t< time; t++){
         
-        for (tt = 0; tt< deltat; tt++){
+        for (tt = 0; tt< (deltat-1); tt++){
           
+         
           if(tt == 0) {
             h_sub(i,j,tt) = h(i,j,t-1);
             P_sub(i,j,tt) = P(i,j,t-1);
@@ -253,17 +255,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           
           // calculate water depth on soil
-          h_sub(i,j,tt) =  h_sub(i,j,tt) + Rain_in
+          h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in) * 0.833333) - q_sub(i,j,tt)  + runon_sub(i,j,tt); //
           
           
           I_sub(i,j,tt) = Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in) * 0.833333; 
           
-          Rcpp::Rcout <<    h_sub(i,j,tt);
           
           WU_sub(i,j,tt) = WU(Svir_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in) * 0.833333; 
           
-          M_sub(i,j,tt) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt);
+          M_sub(i,j,tt+1) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt);
           
           // 
           Gr_sub(i,j,tt) = Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in) * 0.833333;
@@ -271,12 +272,12 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           Mo_sub(i,j,tt) = Mo(P_sub(i,j,tt), M_sub(i,j,tt), Svir_sub(i,j,tt),d_in) * 0.833333;  
           //  // // //
           //  // // // // Plant biomass balance
-          P_sub(i,j,tt) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt);
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt);
           
           
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt),Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
-          M_sub(i,j,tt) = M_sub(i,j,tt) +  (flux_sub(i,j,tt) * 0.833333);
+          M_sub(i,j,tt+1) = M_sub(i,j,tt+1) +  (flux_sub(i,j,tt) * 0.833333);
         
           
           
@@ -297,10 +298,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
           // # salt mass coming in with infiltration
-          SmI_sub(i,j,tt) = SmI_sub(i,j,tt) + I_sub(i,j,tt) * ConcConst_in;
+          SmI_sub(i,j,tt+1) = SmI_sub(i,j,tt) + (I_sub(i,j,tt) * ConcConst_in);
 
           // #salt mass in soil
-          SmM_sub(i,j,tt) = SmI_sub(i,j,tt) + U_salt(i,j,tt) - L_salt(i,j,tt);
+          SmM_sub(i,j,tt+1) = SmI_sub(i,j,tt) + U_salt(i,j,tt) - L_salt(i,j,tt);
 
           //  salt concentration in soil
           CM_sub(i,j,tt) = (SmM_sub(i,j,tt)/M_sub(i,j,tt))*(1.0/58.44);
@@ -394,14 +395,14 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 }
 
 /*** R
-# soilpar_in <- soil_simple()
-#   vegpar_in <- veg_simple()
-#   saltpar_in <- salt_simple()
+soilpar_in <- soil_simple()
+  vegpar_in <- veg_simple()
+  saltpar_in <- salt_simple()
 #   
-#  result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
-#  result$fields[12]
+ result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
+  result$fields[1]
 
-SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in) 
+# SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in) 
  
 # hdata <- as.data.frame(result$fields[1])
 # write.table(hdata, "C:/Users/acoo7451/Desktop/hdata.txt", sep="\t")

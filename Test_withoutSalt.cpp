@@ -158,7 +158,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   double Mo_sub[rows][cols][deltat];
   double M_sub[rows][cols][deltat];
   double flux_sub[rows][cols][deltat];
-  double mb_sub[rows][cols][deltat];
+  //double mb_sub[rows][cols][deltat];
   // 
   double h[rows][cols][time];
   double q[rows][cols][time];
@@ -232,15 +232,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
        
            flux_sub[i][j][tt] = L_n(M_sub[i][j][tt],Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
        
-           M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt+1]
-           Rcpp::Rcout <<  h[i][j][t];
+           M_sub[i][j][tt+1] = M_sub[i][j][tt] +  (flux_sub[i][j][tt] * 0.833333); // M_sub[i][j][tt]  or M_sub[tt  
+          Rcpp::Rcout <<  h[i][j][t];
+
         }
         
         h[i][j][t] = h_sub[i][j][deltat];
         Wu[i][j][t] = WU_sub[i][j][deltat];
         P[i][j][t] = P_sub[i][j][deltat];
         M[i][j][t] = M_sub[i][j][deltat];
-
+        
         
         double sumI = 0.0;
         double sumq = 0.0;
@@ -263,6 +264,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
       }
     }
   }
+  Rcpp::Rcout << "time is" <<  time << std::endl;
   
 
       
@@ -273,9 +275,10 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
                               Rcpp::Named("Wu") = Wu[rows][cols][time],
                               Rcpp::Named("P") = P[rows][cols][time],
                               Rcpp::Named("flux") = flux[rows][cols][time],
+
                               Rcpp::Named("M") = M[rows][cols][time]));
         
-      
+     
                            
   return out;
 

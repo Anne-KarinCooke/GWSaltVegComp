@@ -117,7 +117,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   
   int rows = 10;
   int cols = 10;
-  int time = 100;
+  int time = 10;
   
 // 
 //    arma::field<arma::cube> h_sub(rows, cols, deltat);
@@ -125,10 +125,15 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 //    arma::field<arma::cube> runon_sub(rows, cols, deltat);
 //    arma::field<arma::cube> I_sub(rows, cols, deltat);
    
-   arma::cube h_sub(rows, cols, deltat);
-   arma::cube q_sub(rows, cols, deltat);
-   arma::cube runon_sub(rows, cols, deltat);
-   arma::cube I_sub(rows, cols, deltat);
+
+   arma::cube h_sub = arma::zeros(rows, cols, deltat);
+   arma::cube q_sub= arma::zeros(rows, cols, deltat);
+   arma::cube runon_sub= arma::zeros(rows, cols, deltat);
+   arma::cube I_sub= arma::zeros(rows, cols, deltat);
+   // h_sub.fill(0.0);
+   // q_sub.fill(0.0);
+   // runon_sub.fill(0.0);
+   // I_sub.fill(0.0);
 
 
   // double h_sub[rows][cols][deltat];
@@ -148,10 +153,15 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // arma::field<arma::cube> runon(rows, cols, time);
   // arma::field<arma::cube> In(rows, cols, time);
 
-  arma::cube h(rows, cols, time);
-  arma::cube q(rows, cols, time);
-  arma::cube runon(rows, cols, time);
-  arma::cube In(rows, cols, time);
+  arma::cube h = arma::zeros(rows, cols, time);
+  arma::cube q = arma::zeros(rows, cols, time);
+  arma::cube runon = arma::zeros(rows, cols, time);
+  arma::cube In = arma::zeros(rows, cols, time);
+   h.fill(50.0);
+  // q.fill(0.0);
+  // runon.fill(0.0);
+  // In.fill(0.0);
+
   
   // double h[rows][cols][time];
   // double q[rows][cols][time];
@@ -163,7 +173,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // double M[rows][cols][time];
   
   
-   h(0,0,0) = 50.0;
+// h(0,0,0) = 50.0;
   // P[0][0][0]=20.0;
   // M[0][0][0]=30.0;
 
@@ -175,75 +185,77 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   
          for (tt = 0; tt< (deltat-1); tt++){
   
-           if(tt == 0) {
-             h_sub(i,j,tt) = h(i,j,t-1);
-           }
-  
-          double Rain_in;
-  
+            if(tt == 0) {
+              h_sub(i,j,tt) = h(i,j,t-1);
+            }
+          
+           double Rain_in;
+         
            if ((Rain > 0.0) & (tt == 0)){
-            Rain_in = 10.0*Rain;
-          } else {
-            Rain_in = 0.0;
-          }
-
-          q_sub(i,j,tt) = OF(h_sub(i,j,tt), cn, Mn, slope) * 0.833333;
-          runon_sub(i,j,tt) = q_sub(i,j,tt) * 0.5;
-  
-          // Rcpp::Rcout <<  q_sub(i,j,tt);
-  
-          // adjust infiltration rate
+             Rain_in = 10.0*Rain;
+           } else {
+             Rain_in = 0.0;
+           }
+          
+           q_sub(i,j,tt) = OF(h_sub(i,j,tt), cn, Mn, slope) * 0.833333;
+           runon_sub(i,j,tt) = q_sub(i,j,tt) * 0.5;
+          
+           // Rcpp::Rcout <<  q_sub(i,j,tt);
+          
+           // adjust infiltration rate
           if(h_sub(i,j,tt) < (K_s_in*0.83333)) {
             alpha_i = 1.0;
           } else {
             alpha_i = 1-((h_sub(i,j,tt) - (K_s_in*0.83333))/h_sub(i,j,tt));
           }
-
-
+          
+          
           // calculate water depth on soil
-          h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
-            - (Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.833333) - q_sub(i,j,tt) + runon_sub(i,j,tt);
-  
+
+             h_sub(i,j,tt) =  h_sub(i,j,tt) + Rain_in
+             - (Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.833333) - q_sub(i,j,tt) + runon_sub(i,j,tt);
+          
            I_sub(i,j,tt) = Infil(h_sub(i,j,tt), 20.0, alpha_i, k_in, W0_in)*0.83333;
            //  Rcpp::Rcout << h_sub(i,j,tt);
-       }
- 
-        h(i,j,t) = h_sub(i,j,(deltat-1));
-  //
-  //
-        double sumI = 0.0;
+        }
+          // Rcpp::Rcout << h_sub(i,j,(deltat-1));
+         h(i,j,t) = h_sub(i,j,(deltat-1));
+
+         double sumI = 0.0;
+
         double sumq = 0.0;
         double sumrunon = 0.0;
-  //
+
         for(int tt = 0; tt < deltat; tt++)
         {
-          sumI += I_sub(i,j,tt);
+         sumI += I_sub(i,j,tt);
           sumrunon += runon_sub(i,j,tt);
           sumq += q_sub(i,j,tt);
         }
-  //
+   //
         q(i,j,t) = sumq;
         runon(i,j,t) = sumrunon;
         In(i,j,t) = sumI;
-  //
-  //
+
+
       }
 
     }
   }
   //
 
-// 
- List fields;
- arma::field<arma::cube> f1(4);
- f1( 0 ) = h;
- f1( 1 ) = q;
- f1( 2 ) = In;
- f1( 3 ) = runon;
- fields["field<cube>"] = f1;
+
+List fields;
+arma::field<arma::cube> f1(4);
+f1( 0 ) = h;
+f1( 1 ) = q;
+f1( 2 ) = In;
+f1( 3 ) = runon;
+fields["field<cube>"] = f1;
 
 
- List output = List::create(_["fields : field<cube>"] = f1 );
+List output = List::create(_["fields : field<cube>"] = f1 );
+ 
 
  return output;
 
@@ -254,8 +266,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
 
 /*** R
-test <- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0)
-test$fields[1]
+
+test <- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=10.0)
+
 
 
 */

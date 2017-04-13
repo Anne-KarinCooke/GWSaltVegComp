@@ -72,14 +72,14 @@ List veg_simple() {
   return(vegpar);
 }
 
-List vegpar = veg_simple();
-double k_in = vegpar["k"];
-double Zr_in = vegpar["Zr"];
-double gmax_in = vegpar["gmax"];
-double c_in = vegpar["c"];
-double k1_in = vegpar["k1"];
-double d_in = vegpar["d"];
-double W0_in = vegpar["W0"];
+// List vegpar = veg_simple();
+// double k_in = vegpar["k"];
+// double Zr_in = vegpar["Zr"];
+// double gmax_in = vegpar["gmax"];
+// double c_in = vegpar["c"];
+// double k1_in = vegpar["k1"];
+// double d_in = vegpar["d"];
+// double W0_in = vegpar["W0"];
 
 // Soil function
 // [[Rcpp::export]]
@@ -105,13 +105,13 @@ List soil_simple() {
   
 }
 
-List soilpar = soil_simple();
-double n_in = soilpar["n"];
-double b_in = soilpar["b"];
-double K_s_in = soilpar["K_s"];
-double hb_in = soilpar["hb"];
-double psi_s_bar_in = soilpar["psi_s_bar"];
-double h1bar_in = soilpar["h1bar"];
+// List soilpar = soil_simple();
+// double n_in = soilpar["n"];
+// double b_in = soilpar["b"];
+// double K_s_in = soilpar["K_s"];
+// double hb_in = soilpar["hb"];
+// double psi_s_bar_in = soilpar["psi_s_bar"];
+// double h1bar_in = soilpar["h1bar"];
 
 
 // salt function
@@ -127,13 +127,16 @@ List salt_simple() {
   return(saltpar);
 }
 
-List saltpar = salt_simple();
-double ConcConst_in = saltpar["ConcConst"];
-double f_in = saltpar["f"];
-double CMgw_in = saltpar["CMgw"];
+// List saltpar = salt_simple();
+// double ConcConst_in = saltpar["ConcConst"];
+// double f_in = saltpar["f"];
+// double CMgw_in = saltpar["CMgw"];
 
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, double slope, double Zras,List soilpar, List vegpar, List saltpar){ // Surface Balance , 
+List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
+                           Rcpp::List dims,
+                           double alpha_i, double cn, double Mn, double Rain, 
+                           double slope, double Zras){ // Surface Balance , 
   
   
   int i = 0;
@@ -143,12 +146,30 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // int t_old = 0;
   int deltat = 12;
   
-  // float timeincr = 1/deltat;
+  double timeincr = 1/deltat;
   
-  int rows = 10;
-  int cols = 10;
+  double n_in = soilpar["n"];
+  double b_in = soilpar["b"];
+  double K_s_in = soilpar["K_s"];
+  double hb_in = soilpar["hb"];
+  double psi_s_bar_in = soilpar["psi_s_bar"];
+  double h1bar_in = soilpar["h1bar"];
   
-  int time = 11;
+  double k_in = vegpar["k"];
+  double Zr_in = vegpar["Zr"];
+  double gmax_in = vegpar["gmax"];
+  double c_in = vegpar["c"];
+  double k1_in = vegpar["k1"];
+  double d_in = vegpar["d"];
+  double W0_in = vegpar["W0"];
+  
+  double ConcConst_in = saltpar["ConcConst"];
+  double f_in = saltpar["f"];
+  double CMgw_in = saltpar["CMgw"];
+  
+  int rows = dims["rows"];
+  int cols = dims["cols"];
+  int time = dims["time"];
   
   // //h sub
   
@@ -205,9 +226,9 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
   // double Svir[rows][cols][time];
   // double mb[rows][cols][time];
   
-  h(0,0,0) = 10.0;
-  P(0,0,0) = 20.0;
-  M(0,0,0) = 30.0;
+  h.fill(10.0);
+  P.fill(20.0);
+  M.fill(30.0);
   
   Svir(0,0,0) = 30.0;
   CM(0,0,0) = 0.0;
@@ -243,20 +264,20 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           
           // adjust infiltration rate
-          if(h_sub(i,j,tt) < (K_s_in * 0.833333)) {
+          if(h_sub(i,j,tt) < (timeincr * K_s_in)) {
             alpha_i = 1.0;
           } else {
-            alpha_i = 1-((h_sub(i,j,tt) - (K_s_in * 0.833333))/h_sub(i,j,tt));
+            alpha_i = 1-((h_sub(i,j,tt) - (timeincr * K_s_in))/h_sub(i,j,tt));
           }
           
-          q_sub(i,j,tt) = OF(h_sub(i,j,tt), cn, Mn, slope) * 0.833333;
+          q_sub(i,j,tt) = timeincr * OF(h_sub(i,j,tt), cn, Mn, slope);
           runon_sub(i,j,tt) = q_sub(i,j,tt) * 0.5;
           
           
           
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
-            - (Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in) * 0.833333) - q_sub(i,j,tt)  + runon_sub(i,j,tt); //
+            - (timeincr * Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt)  + runon_sub(i,j,tt); //
           
           
           I_sub(i,j,tt) = Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in) * 0.833333; 
@@ -317,7 +338,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * 0.833333);
           
           
-          
+        Rcpp::Rcout << h_sub(i,j,tt) << std::endl;  
           
         }
         
@@ -395,12 +416,15 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 }
 
 /*** R
-soilpar_in <- soil_simple()
-  vegpar_in <- veg_simple()
-  saltpar_in <- salt_simple()
+# soilpar_in <- soil_simple()
+#   vegpar_in <- veg_simple()
+#   saltpar_in <- salt_simple()
 #   
- result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
-  result$fields[1]
+ result<- SurfaceSoilSaltWBGRID(soilpar=soil_simple(), vegpar=veg_simple(),
+                                saltpar = salt_simple(), dims = list(rows=10,cols=10,time=100),
+                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0)
+result$fields[[1]][1:10,1:10,2]
+str(result$fields)
 
 # SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in) 
  

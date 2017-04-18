@@ -279,11 +279,11 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
            
           
            
-          WU_sub(i,j,tt) = timeincr * WU(Svir_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in); 
+          WU_sub(i,j,tt+1) = timeincr * WU(Svir_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in); 
            
+          
            
-           
-          M_sub(i,j,tt+1) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt);
+          M_sub(i,j,tt+1) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt+1);
           
           // 
           Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in);
@@ -293,7 +293,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           //  // // // // Plant biomass balance
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt);
           
-         
+          Rcpp::Rcout <<  P_sub(i,j,tt);
           
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras,n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
@@ -422,7 +422,8 @@ soilpar_in <- soil_simple()
   saltpar_in <- salt_simple()
 #   
  result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
-  result$fields[5]
+ result$fields[13]
+ 
 
 # SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in) 
  

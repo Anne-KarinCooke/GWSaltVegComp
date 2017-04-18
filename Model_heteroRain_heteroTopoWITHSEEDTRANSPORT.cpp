@@ -146,6 +146,10 @@ double CMgw_in = saltpar["CMgw"];
   int tt = 0;
   // int t_old = 0;
   int deltat = 12;
+  // # qsd has direction of runoff/runon
+  // # magnitude of qsd calculates as:
+  double c1 = 2.25; // [1/mm] Saco 2013
+  double c2 = timeincr * 0.2;  //[m/d] tranformed to [m/deltat] ; Saco 2013
   
   float timeincr = 1.0/deltat;
   
@@ -175,6 +179,10 @@ double CMgw_in = saltpar["CMgw"];
   arma::cube U_salt = arma::zeros(rows, cols, deltat);
   arma::cube L_salt = arma::zeros(rows, cols, deltat);
 
+  arma::cube qsd = arma::zeros(rows, cols, deltat);
+  arma::cube runonsd = arma::zeros(rows, cols, deltat);
+  
+  
 
   
   // 
@@ -281,13 +289,7 @@ double CMgw_in = saltpar["CMgw"];
           //  // // //
           //  // // // // Plant biomass balance
           
-            // # qsd has direction of runoff/runon
-            // # magnitude of qsd calculates as:
-          double c1 = 2.25; // [1/mm] Saco 2013
-          double c2 = timeincr * 0.2;  //[m/d] tranformed to [m/deltat] ; Saco 2013
-          
-          arma::cube qsd = arma::zeros(rows, cols, deltat);
-          
+
           if((q_sub(i,j,tt) > c1) & (q_sub(i,j,tt)<c2))
           {
             qsd(i,j,tt) = c1 * q_sub(i,j,tt)*P(i,j,tt); //(Saco, 2007)
@@ -297,9 +299,10 @@ double CMgw_in = saltpar["CMgw"];
             qsd(i,j,tt) = c2 * P(i,j,tt);
           }
             
+          runonsd(i,j,tt) = qsd(i,j,tt) * rn(i,j);
             
               
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd(i,j,tt) + ;
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd(i,j,tt) + runonsd(i,j,tt);
           
          // Rcpp::Rcout <<  P_sub(i,j,tt);
           
@@ -426,4 +429,10 @@ double CMgw_in = saltpar["CMgw"];
 
 /*** R
 
+result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
+                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, rn=rn_matrix)
+
+
+result$fields[[1]][1:10,1:10,2]
   */

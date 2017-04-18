@@ -9,10 +9,10 @@ source("Rainfall.R")
 ### RUN TIME (how many days)
 time <- 100
 ### Raster size
-ext <- 40 ## EXTEND of PLOT in [m]
+ext <- 200 ## EXTEND of PLOT in [m]
 Z <- 3000 ##Groundwater depth in mm from 0 elevation
-rows <- 10## rows of cells
-cols <- 10 ## columns of cells
+rows <- 100## rows of cells
+cols <- 100 ## columns of cells
 
 # alpha <- c(0.6,1.5) # 
 alpha <- seq(0.6,1.5,by=0.1)
@@ -66,13 +66,28 @@ result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, rn=rn_matrix)
 
 
-result$fields[[1]][1:10,1:10,20]
+result$fields[[1]][1:10,1:10,2]
 #str(result$fields)
-result$fields[[4]]
 
+result$fields[[11]]
 
+library(rasterVis)
+qr<-brick(result$fields[[6]][1:10,1:10,20:40])
+levelplot(qr,main="P [g/m^2] ",sub="day 20 to day 40") 
 
-
+# f1( 0 ) = h;
+# f1( 1 ) = q;
+# f1( 2 ) = In;
+# f1( 3 ) = runon;
+# f1( 4 ) = Wu;
+# f1( 5 ) = P;
+# f1( 6 ) = flux;
+# f1( 7 ) = M;
+# f1( 8 ) = SmM;
+# f1( 9 ) = CM;
+# f1( 10 ) = mb;
+# f1( 11 ) = Svir;
+# f1( 12 ) = SmI;
 
 # #   
 #   result<- SurfaceSoilSaltWBGRID(soilpar=soil_simple(), vegpar=veg_simple(),

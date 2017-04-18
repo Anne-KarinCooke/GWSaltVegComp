@@ -4,7 +4,7 @@
 
 
 ### Sourcing the grid, taudem etc, generates flowdir (ang) and slope raster
-source("Rasters.R")
+source("Rainfall.R")
 
 ### RUN TIME (how many days)
 time <- 100
@@ -46,17 +46,29 @@ Zras_matrix <- as.matrix(Zras,nrow= nrow(Zras), ncol=ncol(Zras))
   
 sourceCpp("Model_heteroRain_heteroTopo.cpp")
 
-soilpar_in <- soil_simple()
-vegpar_in <- veg_simple()
-saltpar_in <- salt_simple()
-result<- SurfaceSoilSaltWBGRID(soilpar=soil_simple(), vegpar=veg_simple(),
-                               saltpar = salt_simple(), dims = list(rows=rows,cols=cols,time=time),
+
+
+# Sourcing the cpp functions that define the constants for soil, veg and salt
+sourceCpp("soilfun.cpp")
+sourceCpp("vegfun.cpp")
+sourceCpp("saltfun.cpp")
+# 
+
+# # creating parameter lists
+#soilpar1 <- Soil_cpp("S Clay Loam")
+soilpar1 <- Soil_cpp("C Sand")
+vegpar1 <-Veg_cpp("Fantasy Tree")
+saltpar1 <- Salt_cpp("Both")  ## other options: "Rain", "Both"
+
+
+result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, rn=rn_matrix)
 
 
 result$fields[[1]][1:10,1:10,20]
 #str(result$fields)
-result$fields[[6]]
+result$fields[[4]]
 
 
 

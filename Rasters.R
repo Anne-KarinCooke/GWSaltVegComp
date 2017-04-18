@@ -56,7 +56,7 @@ for (i in 2:nrow(elev)){
 ##************DISTANCE TO GROUNDWATER RASTER************************************************************************
 
 
-Z=3000 #### Groundwater depth in mm from 0 elevation
+#Z=3000 #### Groundwater depth in mm from 0 elevation
 
 Zras<-raster(elev)
 values(Zras)<-(values(elev)*1000)+Z

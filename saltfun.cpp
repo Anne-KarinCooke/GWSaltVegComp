@@ -2,10 +2,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-
-// SALT                            
-
-List  Salt_cpp(std::string stype) {
+List Salt_cpp(std::string stype) {
 
      // default, NO SALT from nowhere
      double ConcConst = 0.0; //ConcConst is the concentration of the salt in the infiltrating water in g/l

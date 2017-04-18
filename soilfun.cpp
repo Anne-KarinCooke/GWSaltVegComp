@@ -1,6 +1,5 @@
 #include <Rcpp.h>
 using namespace Rcpp;
-// [[Rcpp::export]]
 
 /// COPIED FROM EcoHydro2D Github
 

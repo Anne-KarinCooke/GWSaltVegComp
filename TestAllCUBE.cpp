@@ -231,7 +231,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
     
     for (j=0; j< cols; j++ ){
       
-      for (t = 1; t< (time-1); t++){
+      for (t = 1; t< (time); t++){
         
         for (tt = 0; tt< (deltat-1); tt++){
           
@@ -271,7 +271,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
-            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt)  + runon_sub(i,j,tt); //
+            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + runon_sub(i,j,tt); //
            
            
           
@@ -279,16 +279,16 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
            
           
            
-          WU_sub(i,j,tt+1) = timeincr * WU(M_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in); 
+          WU_sub(i,j,tt) = timeincr * WU(Svir_sub(i,j,tt), P_sub(i,j,tt), gmax_in, k1_in); 
            
            
            
-          M_sub(i,j,tt+1) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt+1);
+          M_sub(i,j,tt+1) = M_sub(i,j,tt) + I_sub(i,j,tt) - WU_sub(i,j,tt);
           
           // 
-          Gr_sub(i,j,tt) = timeincr * Gr(M_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in);
+          Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in);
           //  // // // //Mortality
-          Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), M_sub(i,j,tt+1), M_sub(i,j,tt),d_in);  
+          Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), M_sub(i,j,tt+1), Svir_sub(i,j,tt),d_in);  
           //  // // //
           //  // // // // Plant biomass balance
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt);
@@ -315,8 +315,7 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
           } else {
             U_salt(i,j,tt) = 0.0;
           }
-
-
+          
           // # salt mass coming in with infiltration
           SmI_sub(i,j,tt+1) = SmI_sub(i,j,tt) + (I_sub(i,j,tt) * ConcConst_in);
           
@@ -326,20 +325,21 @@ List SurfaceSoilSaltWBGRID(double alpha_i, double cn, double Mn, double Rain, do
 
           //  salt concentration in soil
           CM_sub(i,j,tt+1) = (SmM_sub(i,j,tt+1)/M_sub(i,j,tt+1))*(1.0/58.44);
-          
+          // Rcpp::Rcout <<  CM_sub(i,j,tt);
           //
           // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
-          Svir_sub(i,j,tt+1) = n_in * Zr_in * (pow((h1bar_in * 10.0E-1),(1/b_in))) * (h1bar_in * 10.0E-1 * pow((M_sub(i,j,tt+1)/(n_in * Zr_in)),-b_in))+pow((3.6 * CM_sub(i,j,tt+1)),(-1.0/b_in));
-          
-       
-           Rcpp::Rcout << M_sub(i,j,tt);
+          // Svir_sub(i,j,tt+1) = n_in * Zr_in * (pow((h1bar_in * 0.1),(1.0/b_in))) * 
+          //   (h1bar_in * 0.1 * pow((M_sub(i,j,tt)/(n_in * Zr_in)),(-1.0*b_in)))+pow((3.6 * CM_sub(i,j,tt)),(-1.0/b_in));
+      
+          Svir_sub(i,j,tt+1) = n_in * Zr_in * (pow((h1bar_in * 0.1),(1.0/b_in))) * 
+          pow((h1bar_in * 0.1 * pow((M_sub(i,j,tt+1)/(n_in * Zr_in)),-b_in))+(3.6 * CM_sub(i,j,tt+1)),(-1.0/b_in));
+           
             
           
           // # checking the mass balance
           mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
           
-          
-          
+
           
         }
         
@@ -422,7 +422,7 @@ soilpar_in <- soil_simple()
   saltpar_in <- salt_simple()
 #   
  result<- SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=10.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in)
-  result$fields[12]
+  result$fields[5]
 
 # SurfaceSoilSaltWBGRID(alpha_i =1.0, cn=0.01, Mn=0.04, Rain=1.0, slope=0.001,Zras=1000.0, soilpar=soilpar_in, vegpar=vegpar_in,saltpar=saltpar_in) 
  

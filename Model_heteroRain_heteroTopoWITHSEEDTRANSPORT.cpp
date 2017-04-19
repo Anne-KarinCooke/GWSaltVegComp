@@ -434,5 +434,5 @@ result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
 
 # 
 # result$fields[[1]][1:10,1:10,2]
- result$fields[[6]]
+ result$fields[[1]]
   */

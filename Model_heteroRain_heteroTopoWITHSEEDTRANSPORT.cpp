@@ -146,12 +146,14 @@ double CMgw_in = saltpar["CMgw"];
   int tt = 0;
   // int t_old = 0;
   int deltat = 12;
+
+  
+  float timeincr = 1.0/deltat;
+  
   // # qsd has direction of runoff/runon
   // # magnitude of qsd calculates as:
   double c1 = 2.25; // [1/mm] Saco 2013
   double c2 = timeincr * 0.2;  //[m/d] tranformed to [m/deltat] ; Saco 2013
-  
-  float timeincr = 1.0/deltat;
   
   int rows = dims["rows"];
   int cols = dims["cols"];
@@ -263,9 +265,8 @@ double CMgw_in = saltpar["CMgw"];
           
           q_sub(i,j,tt) = timeincr * OF(h_sub(i,j,tt), cn, Mn, slope(i,j));
           runon_sub(i,j,tt) = q_sub(i,j,tt) * rn(i,j);
-          
+
            
-          
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + runon_sub(i,j,tt); //
@@ -292,11 +293,11 @@ double CMgw_in = saltpar["CMgw"];
 
           if((q_sub(i,j,tt) > c1) & (q_sub(i,j,tt)<c2))
           {
-            qsd(i,j,tt) = c1 * q_sub(i,j,tt)*P(i,j,tt); //(Saco, 2007)
+            qsd(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
           }
           
           if((q_sub(i,j,tt)*c1) > c2){ //(Saco, 2007)
-            qsd(i,j,tt) = c2 * P(i,j,tt);
+            qsd(i,j,tt) = c2 * P_sub(i,j,tt);
           }
             
           runonsd(i,j,tt) = qsd(i,j,tt) * rn(i,j);
@@ -345,11 +346,9 @@ double CMgw_in = saltpar["CMgw"];
           Svir_sub(i,j,tt+1) = n_in * Zr_in * (pow((h1bar_in * 0.1),(1.0/b_in))) * 
           pow((h1bar_in * 0.1 * pow((M_sub(i,j,tt+1)/(n_in * Zr_in)),-b_in))+(3.6 * CM_sub(i,j,tt+1)),(-1.0/b_in));
            
-            
-          
+ 
           // # checking the mass balance
           mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
-          
 
           
         }
@@ -433,6 +432,7 @@ result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, rn=rn_matrix)
 
-
-result$fields[[1]][1:10,1:10,2]
+# 
+# result$fields[[1]][1:10,1:10,2]
+ result$fields[[6]]
   */

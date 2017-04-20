@@ -10,7 +10,7 @@ source("Rainfall.R")
 time <- 100
 ### Raster size
 ext <- 200 ## EXTEND of PLOT in [m]
-Z <- 500 ##Groundwater depth in mm from 0 elevation
+Z <- 8000 ##Groundwater depth in mm from 0 elevation
 rows <- 10## rows of cells
 cols <- 10 ## columns of cells
 
@@ -42,8 +42,6 @@ slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
 Zras_matrix <- as.matrix(Zras,nrow= nrow(Zras), ncol=ncol(Zras))
 
 
-  
-sourceCpp("Model_largechanges.cpp")
 
 
 # Sourcing the cpp functions that define the constants for soil, veg and salt
@@ -56,21 +54,22 @@ sourceCpp("saltfun.cpp")
 #soilpar1 <- Soil_cpp("S Clay Loam")
 soilpar1 <- Soil_cpp("C Sand")
 vegpar1 <-Veg_cpp("Fantasy Tree")
-saltpar1 <- Salt_cpp("Both")  ## other options: "Rain", "Both"
+saltpar1 <- Salt_cpp("None")  ## other options: "Rain", "Both"
 
-
+sourceCpp("Model_largechanges.cpp")
 result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
 
 
-result$fields[[1]][1:10,1:10,2]
+result$fields[[1]][1:10,1:10,90]
 #str(result$fields)
 
-result$fields[[11]]
+result$fields[[16]]
+result$fields[[17]]
 
 library(rasterVis)
-qr<-brick(result$fields[[6]][1:10,1:10,20:40])
+qr<-brick(result$fields[[6]][2:9,2:9,10:40])
 levelplot(qr,main="P [g/m^2] ",sub="day 20 to day 40") 
 
 # f1( 0 ) = h;
@@ -86,6 +85,11 @@ levelplot(qr,main="P [g/m^2] ",sub="day 20 to day 40")
 # f1( 10 ) = mb;
 # f1( 11 ) = Svir;
 # f1( 12 ) = SmI;
+# f1( 13 ) = Smh;
+# f1( 14 ) = Ch;
+# f1( 15 ) = qsd;
+# f1( 16 ) = runonsd;
+# f1( 17 ) = seep;
 
 # #   
 #   result<- SurfaceSoilSaltWBGRID(soilpar=soil_simple(), vegpar=veg_simple(),

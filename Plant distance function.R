@@ -202,7 +202,7 @@
 #  Interaction functions (distance betweeen plants)   
    
 library(raster)  
-library(igraph)
+
 library(gdistance)
 
  # Lefever, R., Lejeune, O., & Couteron, P. (2001). Generic modelling of vegetation patterns. A case study of tiger bush in sub-saharian sahel. In Mathematical models for biological pattern formation (pp. 83-112). Springer New York.
@@ -223,9 +223,10 @@ library(gdistance)
  #Distance <-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE), scl=FALSE),A)
  # insert some kind of raster and a point A from which these distances shall be calculated
  
- 
 
  ## 
+ 
+ 
 
  r   <- raster(nrows=5,ncols=5,xmn=0,ymn=0,xmx=100,ymx=100)
  Pras <- r # raster(P[,,tt])
@@ -240,8 +241,11 @@ library(gdistance)
  Distance<-accCost(geoCorrection(transition(Pras, transitionFunction=function(x){1},16,symm=FALSE),scl=FALSE),c(i,j))
  DistMatr<- as.matrix(Distance)
  DistMatrRot <-t(DistMatr)[,ncol(DistMatr):1] 
+ 
   for(k in 1:ncell(Prasmatr)){
   DistArray[,,k] <- DistMatrRot
+
+ 
   }
      }
    }
@@ -259,7 +263,19 @@ library(gdistance)
  
  # P_sub[i,j,tt+1] = ... + Dp*divergence*P - qsd
  Dp=0.27
- # qsd has direction of runoff/runon
+ library(igraph)
+ library("pathClass")
+ # calc.diffusionKernel(L, is.adjacency = FALSE, beta = 0)
+ # L Laplacian or transition probability matrix
+ # is.adjacency is L a laplace or adjacency matrix
+ # beta beta parameter of the diffusion kernel. beta controls the extent of diffusion.
+ 
+ 
+ laplacian_matrix(Pp, norm=TRUE, sparse=FALSE)
+ 
+ calc.diffusionKernel(L, is.adjacency = FALSE, beta = 0.27)
+
+ # qsd has direction of runoff/runon -> this has already been used in Model_heteroRain_heteroTopoWITHSEEDTRANSPORT.cpp
  # magnitude of qsd calculates as:
  c1 = 2.25 #[1/mm] Saco 2013
  c2 = 0.2 # [m/d] Saco 2013
@@ -267,7 +283,7 @@ library(gdistance)
  qsd = c1*q*P # for c1 < q < c2 (Saco, 2007)
  qsd = c2* P # for c1*q > c2 (Saco, 2007)
  
- 
+
  
  
  #Recycling bin

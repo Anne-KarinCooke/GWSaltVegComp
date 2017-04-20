@@ -34,6 +34,14 @@ List Salt_cpp(std::string stype) {
     
   }
   
+  if (stype == "None") {
+    
+    ConcConst = 0.0;
+    CMgw = 0.0;
+    f = 1;
+    
+  }
+  
   
   return(Rcpp::List::create(Rcpp::Named("ConcCOnst") = ConcConst,
                             Rcpp::Named("CMgw") = CMgw,

@@ -10,9 +10,9 @@ source("Rainfall.R")
 time <- 100
 ### Raster size
 ext <- 200 ## EXTEND of PLOT in [m]
-Z <- 3000 ##Groundwater depth in mm from 0 elevation
-rows <- 100## rows of cells
-cols <- 100 ## columns of cells
+Z <- 500 ##Groundwater depth in mm from 0 elevation
+rows <- 10## rows of cells
+cols <- 10 ## columns of cells
 
 # alpha <- c(0.6,1.5) # 
 alpha <- seq(0.6,1.5,by=0.1)
@@ -31,21 +31,19 @@ for (k in 1:length(alpha)) {
 
 Rain <- c(Rain)
 
-
 ### Sourcing the grid, taudem etc, generates flowdir (ang) and slope raster
 source("Rasters.R")
-### Source the runon raster (flowdir)
-source("flowdir.R")
-#Runon raster generated from flowdir.R
-rn_matrix<- as.matrix(rn,nrow= nrow(rn), ncol=ncol(rn))
-# slope raster generated from Rasters.R
+### preparations, put them somewhere else later
+flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
+flowdir[is.na(flowdir)] <- 8   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
+flowdir <- as.matrix(rn,nrow= nrow(flowdir), ncol=ncol(flowdir))
+# slope raster generated from Rasters.R transformed into matrix
 slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
 Zras_matrix <- as.matrix(Zras,nrow= nrow(Zras), ncol=ncol(Zras))
 
 
   
-sourceCpp("Model_heteroRain_heteroTopo.cpp")
-
+sourceCpp("Model_largechanges.cpp")
 
 
 # Sourcing the cpp functions that define the constants for soil, veg and salt
@@ -63,7 +61,7 @@ saltpar1 <- Salt_cpp("Both")  ## other options: "Rain", "Both"
 
 result<- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
-                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, rn=rn_matrix)
+                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
 
 
 result$fields[[1]][1:10,1:10,2]

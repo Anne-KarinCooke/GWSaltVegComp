@@ -13,14 +13,14 @@ List Salt_cpp(std::string stype) {
   if (stype == "Groundwater") {
     
     ConcConst = 0.0;
-    CMgw = 0.1;
+    CMgw = 0.01;
     f = 1;
     
   }
   
   if (stype == "Rain") {
     
-    ConcConst = 0.1;
+    ConcConst = 0.01;
     CMgw = 0.0;
     f = 1;
     
@@ -28,8 +28,8 @@ List Salt_cpp(std::string stype) {
   
   if (stype == "Both") {
     
-    ConcConst = 0.1;
-    CMgw = 0.1;
+    ConcConst = 0.01;
+    CMgw = 0.01;
     f = 1;
     
   }
@@ -43,7 +43,7 @@ List Salt_cpp(std::string stype) {
   }
   
   
-  return(Rcpp::List::create(Rcpp::Named("ConcCOnst") = ConcConst,
+  return(Rcpp::List::create(Rcpp::Named("ConcConst") = ConcConst,
                             Rcpp::Named("CMgw") = CMgw,
                             Rcpp::Named("f") = f));
                             

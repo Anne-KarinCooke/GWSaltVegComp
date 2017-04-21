@@ -13,7 +13,7 @@ List  Veg_cpp(std::string stype) {
    double k = 12.0;//Saco et al, 2013
    double W0 = 0.2;//Saco et al, 2013
    double gmax = 0.05;//Saco et al, 2013
-   double c = 0.10;//Saco et al, 2013
+   double c = 10.0;//Saco et al, 2013
    double k1 = 5.0;//Saco et al, 2013
    double d = 0.24;//Saco et al, 2013 //fraction of plant mortality
 
@@ -25,7 +25,7 @@ List  Veg_cpp(std::string stype) {
      k = 12.0;
      W0 = 0.2;
      gmax = 0.05;
-     c = 0.10;
+     c = 10.0;
      k1 = 5.0;
      d = 0.24;
     

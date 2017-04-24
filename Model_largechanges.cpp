@@ -51,10 +51,13 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   
 }
 // [[Rcpp::export]]
-mat SurfRedistr( NumericMatrix flowdir, mat filler, mat origin, int ii, int jj,int rows, int cols, const long double pi = 3.141593){
+mat SurfRedistr( NumericMatrix flowdir, mat filler, mat origin, int i, int j,int rows, int cols, const long double pi = 3.141593){
   
   mat destination(rows, cols,fill::zeros); 
   
+  
+  int ii;
+  int jj;
   
   for (ii=1; ii< (rows-1); ii++) {
     
@@ -195,9 +198,9 @@ mat SurfRedistr( NumericMatrix flowdir, mat filler, mat origin, int ii, int jj,i
                               
                             }
        }
-   // }
+    }
     
-  }
+ // }
   
   return  destination;
 }
@@ -445,11 +448,12 @@ double CMgw_in = saltpar["CMgw"];
           
           mat fillerOne(rows, cols, fill::ones);
 
-          mat runon_storage(rows, cols, fill::zeros);
-          mat q_subSlice(rows,cols); 
-          q_subSlice = q_sub.slice(tt);
-          runon_storage = SurfRedistr(flowdir, fillerOne,  q_subSlice, i, j , rows = rows, cols = cols);
-          runon_sub(i,j,tt+1) = runon_storage(i,j);
+          mat runon_store(rows, cols, fill::ones); 
+          
+          runon_store = SurfRedistr(flowdir, fillerOne,  q_sub.slice(tt), i, j , rows = rows, cols = cols);
+          runon_sub(i,j,tt+1) = runon_store(i,j);
+          Rcpp::Rcout <<  runon_sub(i,j,tt);
+        
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
@@ -484,10 +488,13 @@ double CMgw_in = saltpar["CMgw"];
           if((q_sub(i,j,tt)*c1) > c2){ //(Saco, 2007)
             qsd_sub(i,j,tt) = c2 * P_sub(i,j,tt);
           }
-       
-          mat runonsd_storage(rows, cols, fill::zeros);
-          runonsd_storage = SurfRedistr(flowdir, fillerOne, qsd_sub.slice(tt), i, j , rows = rows, cols = cols);
-          runonsd_sub(i,j,tt+1) = runon_storage(i,j);
+
+
+          mat runonsd_store(rows, cols, fill::ones); 
+          
+          runonsd_store = SurfRedistr(flowdir, fillerOne,  qsd_sub.slice(tt), i, j , rows = rows, cols = cols);
+          runonsd_sub(i,j,tt+1) = runonsd_store(i,j);
+
           
               
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + runonsd_sub(i,j,tt);
@@ -549,10 +556,8 @@ double CMgw_in = saltpar["CMgw"];
           
           Ch_sub(i,j,tt+1) = (Smh_sub(i,j,tt+1)/h_sub(i,j,tt+1));
           
-          //Rcpp::Rcout <<  Ch_sub(i,j,tt);
-           // Smh_sub.slice(tt+1) = Smh_sub.slice(tt+1) - SurfRedistr(flowdir, Ch_sub.slice(tt+1), q_sub.slice(tt), i = i, j = j , rows = rows, cols = cols) ;
-           // Smh_sub.slice(tt+1) = Smh_sub.slice(tt+1) + SurfRedistr(flowdir, Ch_sub.slice(tt+1), runon_sub.slice(tt), i = i, j = j , rows = rows, cols = cols); 
-           // 
+     
+         
           
           
                                             }
@@ -636,4 +641,8 @@ double CMgw_in = saltpar["CMgw"];
 }
 
 /*** R
+result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
+                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
+result$fields[[4]]
   */

@@ -121,14 +121,17 @@ List  Soil_cpp(std::string stype) {
   
   
   // Other derived parameters
-  double s_h = pow(psi_sh/psi_s_bar,-1/b); // soil moisture at hygroscopic point
-  double beta = 2*b+4; //page 714 Laio et al., 2001a
+  // double s_h = pow(psi_sh/psi_s_bar,-1/b); // soil moisture at hygroscopic point
+  // double beta = 2*b+4; //page 714 Laio et al., 2001a
+  // 
+  // // Define parameters for Eagleson function
+  // // Beta parameters
+  // double  beta1 = 2+3/b;
+  // // alpha parameter
+  // double a1 = 1+(3/2)/(beta1-1);
+  // 
   
-  // Define parameters for Eagleson function
-  // Beta parameters
-  double  beta1 = 2+3/b;
-  // alpha parameter
-  double a1 = 1+(3/2)/(beta1-1);
+  double h1bar  = -psi_s_bar;
   
   return(Rcpp::List::create(Rcpp::Named("n") = n,
                             Rcpp::Named("K_s") = K_s,
@@ -136,11 +139,7 @@ List  Soil_cpp(std::string stype) {
                             Rcpp::Named("hb") = hb,
                             Rcpp::Named("psi_s_bar") = psi_s_bar,
                             Rcpp::Named("s_fc") = s_fc,
-                            Rcpp::Named("s_h") = s_h,
-                            Rcpp::Named("beta") = beta,
-                            Rcpp::Named("beta1") = beta1,
-                            Rcpp::Named("a1") = a1,
-                            Rcpp::Named("spec_y") = spec_y));
+                            Rcpp::Named("h1bar") = h1bar));
 }
 
 

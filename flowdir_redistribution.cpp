@@ -17,6 +17,8 @@ mat runon(rows, cols,fill::zeros);
  int a;
 int x;
 int y;
+int x1;
+int y1;
 int i;
 int j;
 
@@ -43,8 +45,13 @@ int j;
                   x = flowdirTable(1,a);
                   y = flowdirTable(2,a);
                   
+                  x1 = flowdirTable(1,a+1);
+                  y1 = flowdirTable(2,a+1);
                   
-                  runon(i+x,j+y) += q(i,j) * (1.0 - ((flowdir(i,j) - flowdirTable(0,a+1))/(pi/4)));
+                  
+                  runon(i+x,j+y) = q(i,j) * (1.0 - ((flowdir(i,j) - flowdirTable(0,a+1))/(pi/4)));
+                  runon(i+x1,j+y1) = q(i,j) * ((flowdir(i,j) - flowdirTable(0,a))/(pi/4));
+                  
         
                       }
          

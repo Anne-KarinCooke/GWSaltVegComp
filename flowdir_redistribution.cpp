@@ -39,7 +39,7 @@ int j;
       runon(i+x,j+y) += q(i,j);
         }
       
-                if ((flowdir(i,j) => flowdirTable(0,a)) && (flowdir(i,j) =< flowdirTable(0,a+1))) 
+                if ((flowdir(i,j) >= flowdirTable(0,a)) && (flowdir(i,j) <= flowdirTable(0,a+1))) 
                       { 
                   
                   x = flowdirTable(1,a);

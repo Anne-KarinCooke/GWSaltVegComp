@@ -8,37 +8,53 @@ using namespace arma;
 mat Surface(int rows, int cols, mat flowdir, mat flowdirTable, mat q){
   //flowdirTable
 
-//const double pi = 3.141593; 
+const double pi = 3.141593; 
 
 mat runon(rows, cols,fill::zeros); 
 
 //double number = (flowdir(i,j)/(pi/4));
       
-int a;
-//int x;
-//int y;
+ int a;
+int x;
+int y;
 int i;
 int j;
 
-  for (i=0; i< rows; i++) {
+  for (i=1; i< (rows-1); i++) {
  // 
-    for (j=0; j< cols; j++ ){    
+    for (j=1; j< (cols-1); j++ ){    
      
-        for (a=0; a < 9; a++) {
+         for (a=0; a < 8; a++) {
           
-      if (flowdir(i,j) == flowdirTable(0,a)){   ///(pi/4)
-
-     // x = flowdirTable(a,1);
-     // y = flowdirTable(a,2);
-      
-      runon(i+flowdirTable(1,a),j+flowdirTable(2,a)) += q(i,j);
+      if (flowdir(i,j) == flowdirTable(0,a))
         
+        {  
+        
+        x = flowdirTable(1,a);
+        y = flowdirTable(2,a);
+        
+      
+      runon(i+x,j+y) += q(i,j);
         }
+      
+                if ((flowdir(i,j) > flowdirTable(0,a)) && (flowdir(i,j) < flowdirTable(0,a+1))) // kleiner gleich
+                      { 
+                  
+                  x = flowdirTable(1,a);
+                  y = flowdirTable(2,a);
+                  
+                  
+                  runon(i+x,j+y) += q(i,j) * (1.0 - ((flowdir(i,j) - flowdirTable(0,a+1))/(pi/4)));
+        
+                      }
+         
+               }
+      
        }
     }
- }
- return runon;
  
+ return runon;
+
 }
  
   
@@ -220,6 +236,8 @@ int j;
 #   }
 # }
 whatever <- Surface(10,10,flowdir,flowdirTable,qq)
+whatever
 
  
-*/
+
+  */

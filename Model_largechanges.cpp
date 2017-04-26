@@ -97,6 +97,8 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
   int a;
   int x;
   int y;
+  int x1;
+  int y1;
   int ii;
   int jj;
   
@@ -123,8 +125,12 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
           x = flowdirTable(1,a);
           y = flowdirTable(2,a);
           
+          x1 = flowdirTable(1,a+1);
+          y1 = flowdirTable(2,a+1);
+          
           
           destination(ii+x,jj+y) += qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
+          destination(ii+x1,jj+y1) += qq(i,j) * ((flowdir(ii,jj) - flowdirTable(0,a))/(pi/4));
           
         }
         

@@ -50,161 +50,93 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   return flux;
   
 }
-// // [[Rcpp::export]]
-//  mat SurfRedistr( NumericMatrix flowdir, mat filler, mat origin, int i, int j,int rows, int cols, const long double pi = 3.141593){
-//   
-//   mat destination(rows, cols,fill::zeros); 
-//   
-//   
-//   int ii;
-//   int jj;
-//   
-//   for (ii=1; ii< (rows-1); ii++) {
-//     
-//     for (jj=1; jj< (cols-1); jj++ ){
-//       
-//       // if(((ii+1) <= cols) &  ((jj+1) <= rows) & ((ii-1) >= 1) & ((jj-1) >= 1)){
-//          
-// 
-//   
-//                                               if(flowdir(ii,jj) == 0)
-//                                               {
-//                                                 destination(ii,jj+1) += filler(ii,jj) * origin(ii,jj); // right
-//                                               }
-//                                               if(flowdir(ii,jj) == (pi/4))
-//                                               {
-//                                                 destination(ii-1,jj+1) += filler(ii,jj) * origin(ii,jj); // top right
-//                                               }
-//                                               if(flowdir(ii,jj) == (pi/2))
-//                                               {
-//                                                 destination(ii-1,jj) += filler(ii,jj) * origin(ii,jj); // top 
-//                                               }
-//                                               if(flowdir(ii,jj) == (3*pi/4))
-//                                               {
-//                                                 destination(ii-1,jj-1) += filler(ii,jj) * origin(ii,jj); // top left
-//                                               }
-//                                               if(flowdir(ii,jj) == pi)
-//                                               {
-//                                                 destination(ii,jj-1) += filler(ii,jj) * origin(ii,jj); //  left
-//                                               }
-//                                               if(flowdir(ii,jj) == (5*pi/4))
-//                                               {
-//                                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj); //  bottom left
-//                                               }
-//                                               if(flowdir(ii,jj) == (3*pi/2))
-//                                               {
-//                                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj); //  bottom 
-//                                               }
-//                                               if(flowdir(ii,jj) == (7*pi/4))
-//                                               {
-//                                                 destination(ii+1,jj+1) += filler(ii,jj) * origin(ii,jj); //  bottom right
-//                                               }
-//                                               
-//                             
-//                             if((flowdir(ii,jj)>0) & (flowdir(ii,jj)<(pi/4)))
-//                             {
-//                               if(flowdir(ii,jj)/((pi/2)-(pi/4))<0.5) {
-//                                 destination(ii,jj+1) += filler(ii,jj) * origin(ii,jj)*(1-flowdir(ii,jj)/((pi/4)-0)); //// more to the right
-//                                 destination(ii-1,jj+1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)/((pi/4)-0)));
-//                               }
-//                               else{
-//                                 destination(ii-1,jj+1) += filler(ii,jj) * origin(ii,jj)*(1-(flowdir(ii,jj)/((pi/4)-0))); ////more to the top right
-//                                 destination(ii,jj+1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)/((pi/4)-0)));
-//                               }}
-//                             
-//                             
-//                             if((flowdir(ii,jj)>(pi/4)) & (flowdir(ii,jj)<(pi/2)))
-//                             {
-//                               if((flowdir(ii,jj)-(pi/4))/((pi/4)-0)<0.5) {
-//                                 destination(ii-1,jj+1) += filler(ii,jj) * origin(ii,jj)*((1-flowdir(ii,jj)-(pi/4))/((pi/4)-0)); //// more to the top right
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi/4))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(pi/4))/((pi/4)-0))); ////more to the top 
-//                                 destination(ii-1,jj+1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi/4))/((pi/4)-0));
-//                               }}
-//                             
-//                             
-//                             if((flowdir(ii,jj)>(pi/2)) & (flowdir(ii,jj)<(3*pi/4))){
-//                               
-//                               if((flowdir(ii,jj)-(pi/2))/((pi/4)-0)<0.5) {
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(pi/2)))/((pi/4)-0)); //// more to the top 
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi/2))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(pi/2))/((pi/4)-0))); ////more to the top left
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi/2))/((pi/4)-0));
-//                               }}
-//                             
-//                             if((flowdir(ii,jj)>(3*pi/4)) & (flowdir(ii,jj)<pi))
-//                               
-//                             {
-//                               if((flowdir(ii,jj)-(3*pi/4))/((pi/4)-0)<0.5) {
-//                                 destination(ii+1,jj-1) += ((1-(flowdir(ii,jj)-(3*pi/4)))/((pi/4)-0)); //// more to the top left
-//                                 destination(ii,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(3*pi/4))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii,jj-1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(3*pi/4))/((pi/4)-0))); ////more to the left
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(3*pi/4))/((pi/4)-0));
-//                               }}
-//                             
-//                             if((flowdir(ii,jj)>pi) & (flowdir(ii,jj)<(5*pi/4)))
-//                             {
-//                               if((flowdir(ii,jj)-(pi))/((pi/4)-0)<0.5) {
-//                                 destination(ii,jj-1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(pi)))/((pi/4)-0)); //// more to the left
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(pi))/((pi/4)-0))); ////more to the bottom left
-//                                 destination(ii,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(pi))/((pi/4)-0));
-//                               }}
-//                             
-//                             if((flowdir(ii,jj)>(5*pi/4)) & (flowdir(ii,jj)<(3*pi/2)))
-//                             {
-//                               if((flowdir(ii,jj)-(5*pi/4))/((pi/4)-0)<0.5) {
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(5*pi/4)))/((pi/4)-0)); //// more to the bottom left
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(5*pi/4))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(5*pi/4))/((pi/4)-0))); ////more to the bottom
-//                                 destination(ii+1,jj-1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(5*pi/4))/((pi/4)-0));
-//                               }
-//                             }
-//                             
-//                             
-//                             if((flowdir(ii,jj)>(3*pi/2)) & (flowdir(ii,jj)<(7*pi/4)))
-//                             {
-//                               if((flowdir(ii,jj)-(3*pi/2))/((pi/4)-0)<0.5) {
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(3*pi/2)))/((pi/4)-0)); //// more to the bottom 
-//                                 destination(ii+1,jj+1) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(3*pi/2))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii+1,jj+1) += filler(ii,jj) * origin(ii,jj)*((1-(flowdir(ii,jj)-(3*pi/2))/((pi/4)-0))); ////more to the bottom right
-//                                 destination(ii+1,jj) += filler(ii,jj) * origin(ii,jj)*((flowdir(ii,jj)-(3*pi/2))/((pi/4)-0));
-//                               }
-//                             }
-//                             
-//                             
-//                             if((flowdir(ii,jj)>(7*pi/4)) & (flowdir(ii,jj)<(2*pi))){
-//                               
-//                               if((flowdir(ii,jj)-(7*pi/4))/((pi/4)-0)<0.5) {
-//                                 destination(ii+1,jj+1) += origin(ii,jj)*((1-(flowdir(ii,jj)-(7*pi/4)))/((pi/4)-0)); //// more to the bottom right
-//                                 destination(ii,jj+1) += origin(ii,jj)*((flowdir(ii,jj)-(7*pi/4))/((pi/4)-0));
-//                               }
-//                               else{
-//                                 destination(ii,jj+1) += origin(ii,jj)*((1-(flowdir(ii,jj)-(7*pi/4))/((pi/4)-0))); ////more to the right
-//                                 destination(ii+1,jj+1) += origin(ii,jj)*((flowdir(ii,jj)-(7*pi/4))/((pi/4)-0));
-//                               }
-//                               
-//                             }
-//        }
-//     }
-//     
- // }
+
+arma::mat flowdirTable(3,9, fill::zeros);
+
+flowdirTable(0,0) = 0.0;
+flowdirTable(0,1) = 0.7853982;
+flowdirTable(0,2) = 1.570796;
+flowdirTable(0,3) = 2.356195;
+flowdirTable(0,4) = 3.141593; 
+flowdirTable(0,5) = 3.926991;
+flowdirTable(0,6) = 4.712389;
+flowdirTable(0,7) = 5.497788;
+flowdirTable(0,8) = 6.283186;
+
+flowdirTable(1,0) = 0.0;
+flowdirTable(1,1) = -1.0;
+flowdirTable(1,2) = -1.0;
+flowdirTable(1,3) = -1.0;
+flowdirTable(1,4) = 0.0;
+flowdirTable(1,5) = 1.0;
+flowdirTable(1,6) = 1.0;
+flowdirTable(1,7) = 1.0;
+flowdirTable(1,8) = 0.0;
+
+
+flowdirTable(2,0) = 1.0;
+flowdirTable(2,1) = 1.0;
+flowdirTable(2,2) = 0.0;
+flowdirTable(2,3) = -1.0;
+flowdirTable(2,4) = -1.0;
+flowdirTable(2,5) = -1.0;
+flowdirTable(2,6) = 0.0;
+flowdirTable(2,7) = 1.0;
+flowdirTable(2,8) = 1.0;
+
+// [[Rcpp::export]]
+mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
+  //flowdirTable
   
-//   return  destination;
-// }
-//   
+  const double pi = 3.141593; 
+  
+  mat destination(ro, co,fill::zeros); 
+  
+  //double number = (flowdir(i,j)/(pi/4));
+  
+  int a;
+  int x;
+  int y;
+  int ii;
+  int jj;
+  
+  for (ii=1; ii< (ro-1); ii++) {
+    // 
+    for (jj=1; jj< (co-1); jj++ ){    
+      
+      for (a=0; a < 8; a++) {
+        
+        if (flowdir(ii,jj) == flowdirTable(0,a))
+          
+        {  
+          
+          x = flowdirTable(1,a);
+          y = flowdirTable(2,a);
+          
+          
+          destination(ii+x,jj+y) += qq(ii,jj);
+        }
+        
+        if ((flowdir(ii,jj) >= flowdirTable(0,a)) && (flowdir(ii,jj) <= flowdirTable(0,a+1))) 
+        { 
+          
+          x = flowdirTable(1,a);
+          y = flowdirTable(2,a);
+          
+          
+          destination(ii+x,jj+y) += qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
+          
+        }
+        
+      }
+      
+     }
+  }
+  
+  return destination;
+  
+}
+
   // [[Rcpp::export]]
   List  Veg_cpp(std::string stype) {
     
@@ -428,7 +360,7 @@ List Salt_cpp(std::string stype) {
   List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
                              Rcpp::List dims, NumericVector Rain,
                              double alpha_i, double cn, double Mn, 
-                             NumericMatrix slope, NumericMatrix Zras, NumericMatrix flowdir){
+                             NumericMatrix slope, NumericMatrix Zras, mat flowdir){
     
     double ConcConst_in = saltpar["ConcConst"];
     double f_in = saltpar["f"];
@@ -598,18 +530,16 @@ List Salt_cpp(std::string stype) {
           
           q_sub(i,j,tt) = timeincr * OF(h_sub(i,j,tt), cn, Mn, slope(i,j));
           
-          // mat fillerOne(rows, cols, fill::ones);
-          // 
-          // mat runon_store(rows, cols, fill::ones); 
-          // 
-          // runon_store = SurfRedistr(flowdir, fillerOne,  q_sub.slice(tt), i, j , rows = rows, cols = cols);
-          // runon_sub(i,j,tt+1) = runon_store(i,j);
-          // //Rcpp::Rcout <<  runon_sub(i,j,tt);
         
+          
+          mat runon_store(rows, cols, fill::ones);
+          runon_store = Surface(rows, cols, flowdir, flowdirTable, q_sub.slice(tt));
+          runon_sub(i,j,tt+1) = runon_store(i,j);  
+          
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
-            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt); // + runon_sub(i,j,tt) 
+            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt) ;
            
            
           
@@ -642,14 +572,13 @@ List Salt_cpp(std::string stype) {
           }
 
 
-          // mat runonsd_store(rows, cols, fill::ones); 
-          // 
-          // runonsd_store = SurfRedistr(flowdir, fillerOne,  qsd_sub.slice(tt), i, j , rows = rows, cols = cols);
-          // runonsd_sub(i,j,tt+1) = runonsd_store(i,j);
-          // 
-          // 
+       
+          mat runonsd_store(rows, cols, fill::ones);
+          runonsd_store = Surface(rows, cols, flowdir, flowdirTable,qsd_sub.slice(tt));
+          runonsd_sub(i,j,tt+1) = runonsd_store(i,j); 
+          
               
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) ;// + runonsd_sub(i,j,tt);
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + runonsd_sub(i,j,tt);
           
           
           
@@ -731,31 +660,31 @@ List Salt_cpp(std::string stype) {
 
         double sumI = 0.0;
         double sumq = 0.0;
-       // double sumrunon = 0.0;
+       double sumrunon = 0.0;
         double sumflux = 0.0;
         double summb = 0.0;
         double sumqsd = 0.0;
-       // double sumrunonsd = 0.0;
+        double sumrunonsd = 0.0;
         
         for(int tt = 0; tt < deltat; tt++)
         {
           sumI += I_sub(i,j,tt);
-          //sumrunon += runon_sub(i,j,tt);
+          sumrunon += runon_sub(i,j,tt);
           sumq += q_sub(i,j,tt);
           sumflux += flux_sub(i,j,tt) * timeincr;
           summb += mb_sub(i,j,tt);
           
           sumqsd += qsd_sub(i,j,tt);
-          //sumrunonsd += runonsd_sub(i,j,tt);
+          sumrunonsd += runonsd_sub(i,j,tt);
         }
         
         q(i,j,t) = sumq;
-        //runon(i,j,t) = sumrunon;
+        runon(i,j,t) = sumrunon;
         In(i,j,t) = sumI;
         flux(i,j,t) = sumflux;
         mb(i,j,t) = summb;
         qsd(i,j,t) = sumqsd;
-        //runonsd(i,j,t) = sumrunonsd;
+        runonsd(i,j,t) = sumrunonsd;
         
       }
     }
@@ -767,7 +696,7 @@ List Salt_cpp(std::string stype) {
   f1( 0 ) = h;
   f1( 1 ) = q;
   f1( 2 ) = In;
-  f1( 3 ) = q; //runon
+  f1( 3 ) = runon;
   f1( 4 ) = Wu;
   f1( 5 ) = P;
   f1( 6 ) = flux;
@@ -780,7 +709,7 @@ List Salt_cpp(std::string stype) {
   f1( 13 ) = Smh;
   f1( 14 ) = Ch;
   f1( 15 ) = qsd;
-  f1( 16 ) = q; //runonsd
+  f1( 16 ) = runonsd;
   f1( 17 ) = seep;
   fields["field<cube>"] = f1;
   

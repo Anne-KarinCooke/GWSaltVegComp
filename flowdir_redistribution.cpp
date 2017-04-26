@@ -49,8 +49,8 @@ int j;
                   y1 = flowdirTable(2,a+1);
                   
                   
-                  runon(i+x,j+y) = q(i,j) * (1.0 - ((flowdir(i,j) - flowdirTable(0,a+1))/(pi/4)));
-                  runon(i+x1,j+y1) = q(i,j) * ((flowdir(i,j) - flowdirTable(0,a))/(pi/4));
+                  runon(i+x,j+y) += q(i,j) * (1.0 - ((flowdir(i,j) - flowdirTable(0,a+1))/(pi/4)));
+                  runon(i+x1,j+y1) += q(i,j) * ((flowdir(i,j) - flowdirTable(0,a))/(pi/4));
                   
         
                       }

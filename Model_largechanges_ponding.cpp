@@ -1,20 +1,94 @@
 
-/*** R
+#include <RcppArmadillo.h>
+// [[Rcpp::depends(RcppArmadillo)]]
+using namespace Rcpp;
+using namespace arma;
 
 
-      set.seed(100)
-      microdepth<-0.5 #[m]
-    values(elev) <- runif(ncell(elev),0,microdepth)
+// Creating a elevation matrix (DEM)
+// [[Rcpp::export]]
+
+mat write_elev(int rows, int cols){  // works! already tested separately
+  double gslp =0.02;
+  double ext = 200.0;
+  int iii;
+  mat elev(rows, cols, fill::randn);
+  
+  elev.row(1) = elev.row(1) + (gslp*ext);
+  
+  for (iii=0; iii< rows; iii++) {
+    
+    elev.row(iii) = elev.row(iii)+(gslp*(ext-((ext/rows)*(iii-1))));
+  }
+  return elev;
+}
+// [[Rcpp::export]]
+mat diff_next_highest(int rows, int cols, mat elev){
+  
+  arma::mat diff_next_highest(rows, cols, fill::zeros);
+  
+  int i;
+  int j;
+  for (i=1; i< (rows-1); i++) {
+    
+    for (j=1; j< (cols-1); j++ ){  
       
-      gslp=0.02 
-      elev[1,]<-elev[1,]+(gslp*ext)
-        for (i in 2:nrow(elev)){
-          elev[i,]<-elev[i,]+(gslp*(ext-((ext/nrow(elev))*(i-1))))
-        }
+      
+      mat y = elev.submat(i-1, j-1, i+1, j+1); //D8
+      y(2,2) = 10000.0; // I tried around with ignore (which exists in cpp of course, but couldnt find yet how to do it with arma classes)
+      
+      vec val;
+      
+      val= y(i,j) > y(2,2);
+      double minimum = val.min();
+
+      
+      
+      diff_next_highest(i,j) = minimum - elev(i,j);
+    }
+  }
+  
+  return diff_next_highest;
+}
 
 
+// write a tiff in cpp
+#include <tiffio.h>
+
+TIFF *out= TIFFOpen("elev.tif", "w");
+
+int sampleperpixel = 1;    // or 3 if there is no alpha channel, you should get a understanding of alpha in class soon.
+char *image=new char [rows*cols*sampleperpixel];
+
+TIFFSetField (out, TIFFTAG_IMAGEWIDTH, cols);  // set the width of the image
+TIFFSetField(out, TIFFTAG_IMAGELENGTH, rows);    // set the height of the image
+TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, sampleperpixel);   // set number of channels per pixel
+TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8);    // set the size of the channels
+TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
+//   Some other essential fields to set that you do not have to understand for now.
+// TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+// TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+
+
+// including Taudem command line
+
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+
+
+int main()
+{
+  std::system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif"); // executes DinfFlowdir Taudem code
+ // std::cout << std::ifstream("test.txt").rdbuf();
+}
+
+
+
+/*** R
+     
           writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
-          fel=raster("elev.tif")
+          # fel=raster("elev.tif")
           
 # DInf flow directions
           system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
@@ -30,10 +104,25 @@
             # slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
 */
 
-#include <RcppArmadillo.h>
-// [[Rcpp::depends(RcppArmadillo)]]
-using namespace Rcpp;
-using namespace arma;
+
+
+// /* system example : DIR */
+// #include <stdio.h>      /* printf */
+// #include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
+// 
+// int main ()
+// {
+//   int i;
+//   printf ("Checking if processor is available...");
+//   if (system(NULL)) puts ("Ok");
+//   else exit (EXIT_FAILURE);
+//   printf ("Executing command DIR...\n");
+//   i=system ("dir");
+//   printf ("The value returned was: %d.\n",i);
+//   return 0;
+// }
+
+
 
 
 
@@ -86,39 +175,6 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   
 }
 
-arma::mat flowdirTable(3,9, fill::zeros);
-
-
-flowdirTable(0,0) = 0.0;
-flowdirTable(0,1) = 0.7853982;
-flowdirTable(0,2) = 1.570796;
-flowdirTable(0,3) = 2.356195;
-flowdirTable(0,4) = 3.141593; 
-flowdirTable(0,5) = 3.926991;
-flowdirTable(0,6) = 4.712389;
-flowdirTable(0,7) = 5.497788;
-flowdirTable(0,8) = 6.283186;
-
-flowdirTable(1,0) = 0.0;
-flowdirTable(1,1) = -1.0;
-flowdirTable(1,2) = -1.0;
-flowdirTable(1,3) = -1.0;
-flowdirTable(1,4) = 0.0;
-flowdirTable(1,5) = 1.0;
-flowdirTable(1,6) = 1.0;
-flowdirTable(1,7) = 1.0;
-flowdirTable(1,8) = 0.0;
-
-
-flowdirTable(2,0) = 1.0;
-flowdirTable(2,1) = 1.0;
-flowdirTable(2,2) = 0.0;
-flowdirTable(2,3) = -1.0;
-flowdirTable(2,4) = -1.0;
-flowdirTable(2,5) = -1.0;
-flowdirTable(2,6) = 0.0;
-flowdirTable(2,7) = 1.0;
-flowdirTable(2,8) = 1.0;
 
 // [[Rcpp::export]]
 mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
@@ -150,7 +206,7 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
           y = flowdirTable(2,a);
           
           
-          destination(ii+x,jj+y) += qq(ii,jj);
+          destination(ii+x,jj+y) = qq(ii,jj);
         }
         
         if ((flowdir(ii,jj) >= flowdirTable(0,a)) && (flowdir(ii,jj) <= flowdirTable(0,a+1))) 
@@ -160,7 +216,7 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
           y = flowdirTable(2,a);
           
           
-          destination(ii+x,jj+y) += qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
+          destination(ii+x,jj+y) = qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
           
         }
         
@@ -392,6 +448,46 @@ List Salt_cpp(std::string stype) {
   
 }
 
+// [[Rcpp::export]] 
+mat write_flowdirTable() {
+  // mat::fixed<3,9> flowdirTable;
+  arma::mat flowdirTable(3,9, fill::zeros);
+  
+  flowdirTable(0,0) = 0.0;
+  flowdirTable(0,1) = 0.7853982;
+  flowdirTable(0,2) = 1.570796;
+  flowdirTable(0,3) = 2.356195;
+  flowdirTable(0,4) = 3.141593; 
+  flowdirTable(0,5) = 3.926991;
+  flowdirTable(0,6) = 4.712389;
+  flowdirTable(0,7) = 5.497788;
+  flowdirTable(0,8) = 6.283186;
+  
+  flowdirTable(1,0) = 0.0;
+  flowdirTable(1,1) = -1.0;
+  flowdirTable(1,2) = -1.0;
+  flowdirTable(1,3) = -1.0;
+  flowdirTable(1,4) = 0.0;
+  flowdirTable(1,5) = 1.0;
+  flowdirTable(1,6) = 1.0;
+  flowdirTable(1,7) = 1.0;
+  flowdirTable(1,8) = 0.0;
+  
+  
+  flowdirTable(2,0) = 1.0;
+  flowdirTable(2,1) = 1.0;
+  flowdirTable(2,2) = 0.0;
+  flowdirTable(2,3) = -1.0;
+  flowdirTable(2,4) = -1.0;
+  flowdirTable(2,5) = -1.0;
+  flowdirTable(2,6) = 0.0;
+  flowdirTable(2,7) = 1.0;
+  flowdirTable(2,8) = 1.0;
+  
+  return flowdirTable;
+  
+}
+
 // [[Rcpp::export]]
   List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
                              Rcpp::List dims, NumericVector Rain,
@@ -569,7 +665,7 @@ List Salt_cpp(std::string stype) {
         
           
           mat runon_store(rows, cols, fill::ones);
-          runon_store = Surface(rows, cols, flowdir, flowdirTable, q_sub.slice(tt));
+          runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
           runon_sub(i,j,tt+1) = runon_store(i,j);  
           
         
@@ -578,36 +674,48 @@ List Salt_cpp(std::string stype) {
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt) ;
            
            
-           // PONDING CHECK!!!
-           
-          mat y = elev.submat(i-1, j-1, i+1, i-1);
-
-          // [[Rcpp::export]]
-          arma::vec subset_vec(const arma::vec& y) {
-            return y.elem(find(y > elev(i,j)));
-          }
-          
-          vec largerelev = subset_vec(y);
-          
-          // [[Rcpp::export]]
-          double vecmin(vec x) {
-         
-            vec::iterator it = std::min_element(x.begin(), x.end());
-   
-            return *it;
-          }
-          
-          
-          double xx = vecmin(largerelev);
-          double elev_diff = xx-elev(i,j);
-          
-          elev(i,j) = (h_sub(i,j,tt+1) + elev(i,j)) - elev_diff;
-          //   rerun Taudem
-          //   apply new flowdir
-          //   recalculate q
+          //  // PONDING CHECK!!!
+          //  
+          //  if (h_sub(i,j,tt+1) + elev(i,j) > "next highest cell") {
+          //    
+          //    elev(i,j) = (h_sub(i,j,tt+1) + elev(i,j)) - (elev(next highest cell)-elev(i,j));
+          //    
+          //    rerun Taudem, apply new flowdir with updated elevations
+          //      
+          //      recalculate q
+          //  }
+          //  
+          // mat y = elev.submat(i-1, j-1, i+1, i-1);
+          // 
+          // // [[Rcpp::export]]
+          // arma::vec subset_vec(const arma::vec& y) {
+          //   return y.elem(find(y > elev(i,j)));
+          // }
+          // 
+          // vec largerelev = subset_vec(y);
+          // 
+          // // [[Rcpp::export]]
+          // double vecmin(vec x) {
+          // 
+          //   vec::iterator it = std::min_element(x.begin(), x.end());
+          // 
+          //   return *it;
+          // }
+          // 
+          // 
+          // double xx = vecmin(largerelev);
+          // double elev_diff = xx-elev(i,j);
+          // 
+          // elev(i,j) = (h_sub(i,j,tt+1) + elev(i,j)) - elev_diff; // now elev is changed
+          // // write new elev matrix into a new tiff
+          // //   rerun Taudem command line
+          // //    new flowdir
+          // //   recalculate runon
+          //   
+          // 
+          // h_sub(i,j,tt+1) - h_sub(i,j,tt+1) + elev(i,j)
             
-          
-          h_sub(i,j,tt+1) - h_sub(i,j,tt+1) + elev(i,j)
+            
           
           I_sub(i,j,tt) = timeincr * Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in); 
            
@@ -640,7 +748,7 @@ List Salt_cpp(std::string stype) {
 
        
           mat runonsd_store(rows, cols, fill::ones);
-          runonsd_store = Surface(rows, cols, flowdir, flowdirTable,qsd_sub.slice(tt));
+          runonsd_store = Surface(rows, cols, flowdir, write_flowdirTable(),qsd_sub.slice(tt));
           runonsd_sub(i,j,tt+1) = runonsd_store(i,j); 
           
               
@@ -703,9 +811,7 @@ List Salt_cpp(std::string stype) {
           
           Ch_sub(i,j,tt+1) = (Smh_sub(i,j,tt+1)/h_sub(i,j,tt+1));
           
-     
-         
-          
+
           
                                             }
         
@@ -726,7 +832,7 @@ List Salt_cpp(std::string stype) {
 
         double sumI = 0.0;
         double sumq = 0.0;
-       double sumrunon = 0.0;
+        double sumrunon = 0.0;
         double sumflux = 0.0;
         double summb = 0.0;
         double sumqsd = 0.0;

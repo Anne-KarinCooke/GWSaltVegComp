@@ -51,48 +51,14 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   
 }
 
-arma::mat flowdirTable(3,9, fill::zeros);
-
-flowdirTable(0,0) = 0.0;
-flowdirTable(0,1) = 0.7853982;
-flowdirTable(0,2) = 1.570796;
-flowdirTable(0,3) = 2.356195;
-flowdirTable(0,4) = 3.141593; 
-flowdirTable(0,5) = 3.926991;
-flowdirTable(0,6) = 4.712389;
-flowdirTable(0,7) = 5.497788;
-flowdirTable(0,8) = 6.283186;
-
-flowdirTable(1,0) = 0.0;
-flowdirTable(1,1) = -1.0;
-flowdirTable(1,2) = -1.0;
-flowdirTable(1,3) = -1.0;
-flowdirTable(1,4) = 0.0;
-flowdirTable(1,5) = 1.0;
-flowdirTable(1,6) = 1.0;
-flowdirTable(1,7) = 1.0;
-flowdirTable(1,8) = 0.0;
-
-
-flowdirTable(2,0) = 1.0;
-flowdirTable(2,1) = 1.0;
-flowdirTable(2,2) = 0.0;
-flowdirTable(2,3) = -1.0;
-flowdirTable(2,4) = -1.0;
-flowdirTable(2,5) = -1.0;
-flowdirTable(2,6) = 0.0;
-flowdirTable(2,7) = 1.0;
-flowdirTable(2,8) = 1.0;
 
 // [[Rcpp::export]]
 mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
-  //flowdirTable
   
   const double pi = 3.141593; 
   
-  mat destination(ro, co,fill::zeros); 
+  mat destination(ro, co, fill::zeros); 
   
-  //double number = (flowdir(i,j)/(pi/4));
   
   int a;
   int x;
@@ -116,7 +82,7 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
           y = flowdirTable(2,a);
           
           
-          destination(ii+x,jj+y) += qq(ii,jj);
+          destination(ii+x,jj+y) = qq(ii,jj);
         }
         
         if ((flowdir(ii,jj) >= flowdirTable(0,a)) && (flowdir(ii,jj) <= flowdirTable(0,a+1))) 
@@ -129,8 +95,8 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
           y1 = flowdirTable(2,a+1);
           
           
-          destination(ii+x,jj+y) += qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
-          destination(ii+x1,jj+y1) += qq(i,j) * ((flowdir(ii,jj) - flowdirTable(0,a))/(pi/4));
+          destination(ii+x,jj+y) = qq(ii,jj) * (1.0 - ((flowdir(ii,jj) - flowdirTable(0,a+1))/(pi/4)));
+          destination(ii+x1,jj+y1) = qq(ii,jj) * ((flowdir(ii,jj) - flowdirTable(0,a))/(pi/4));
           
         }
         
@@ -142,6 +108,7 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
   return destination;
   
 }
+
 
   // [[Rcpp::export]]
   List  Veg_cpp(std::string stype) {
@@ -362,11 +329,53 @@ List Salt_cpp(std::string stype) {
   
 }
 
+// [[Rcpp::export]] 
+mat write_flowdirTable() {
+// mat::fixed<3,9> flowdirTable;
+arma::mat flowdirTable(3,9, fill::zeros);
+
+flowdirTable(0,0) = 0.0;
+flowdirTable(0,1) = 0.7853982;
+flowdirTable(0,2) = 1.570796;
+flowdirTable(0,3) = 2.356195;
+flowdirTable(0,4) = 3.141593; 
+flowdirTable(0,5) = 3.926991;
+flowdirTable(0,6) = 4.712389;
+flowdirTable(0,7) = 5.497788;
+flowdirTable(0,8) = 6.283186;
+
+flowdirTable(1,0) = 0.0;
+flowdirTable(1,1) = -1.0;
+flowdirTable(1,2) = -1.0;
+flowdirTable(1,3) = -1.0;
+flowdirTable(1,4) = 0.0;
+flowdirTable(1,5) = 1.0;
+flowdirTable(1,6) = 1.0;
+flowdirTable(1,7) = 1.0;
+flowdirTable(1,8) = 0.0;
+
+
+flowdirTable(2,0) = 1.0;
+flowdirTable(2,1) = 1.0;
+flowdirTable(2,2) = 0.0;
+flowdirTable(2,3) = -1.0;
+flowdirTable(2,4) = -1.0;
+flowdirTable(2,5) = -1.0;
+flowdirTable(2,6) = 0.0;
+flowdirTable(2,7) = 1.0;
+flowdirTable(2,8) = 1.0;
+
+return flowdirTable;
+
+}
+
 // [[Rcpp::export]]
   List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
                              Rcpp::List dims, NumericVector Rain,
                              double alpha_i, double cn, double Mn, 
                              NumericMatrix slope, NumericMatrix Zras, mat flowdir){
+    
+    
     
     double ConcConst_in = saltpar["ConcConst"];
     double f_in = saltpar["f"];
@@ -399,6 +408,9 @@ List Salt_cpp(std::string stype) {
   
   
   float timeincr = 1.0/deltat;
+  
+  
+  
   
   // # qsd has direction of runoff/runon
   // # magnitude of qsd calculates as:
@@ -538,9 +550,9 @@ List Salt_cpp(std::string stype) {
           
         
           
-          mat runon_store(rows, cols, fill::ones);
-          runon_store = Surface(rows, cols, flowdir, flowdirTable, q_sub.slice(tt));
-          runon_sub(i,j,tt+1) = runon_store(i,j);  
+          mat runon_store(rows, cols, fill::zeros);
+          runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
+          runon_sub(i,j,tt) = runon_store(i,j);  
           
         
           // calculate water depth on soil
@@ -580,8 +592,10 @@ List Salt_cpp(std::string stype) {
 
        
           mat runonsd_store(rows, cols, fill::ones);
-          runonsd_store = Surface(rows, cols, flowdir, flowdirTable,qsd_sub.slice(tt));
-          runonsd_sub(i,j,tt+1) = runonsd_store(i,j); 
+          runonsd_store = Surface(rows, cols, flowdir, write_flowdirTable(),qsd_sub.slice(tt));
+          runonsd_sub(i,j,tt) = runonsd_store(i,j); 
+
+         
           
               
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + runonsd_sub(i,j,tt);
@@ -728,8 +742,9 @@ List Salt_cpp(std::string stype) {
 }
 
 /*** R
-result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
-                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
-result$fields[[4]]
+ result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
+                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
+
+#result$fields[[4]]
   */

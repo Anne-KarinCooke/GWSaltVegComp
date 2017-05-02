@@ -1,4 +1,3 @@
-
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
@@ -7,10 +6,8 @@ using namespace arma;
 
 // Creating a elevation matrix (DEM)
 // [[Rcpp::export]]
+mat write_elev(int rows, int cols, double gslp, double ext){  // works! already tested separately
 
-mat write_elev(int rows, int cols){  // works! already tested separately
-  double gslp =0.02;
-  double ext = 200.0;
   int iii;
   mat elev(rows, cols, fill::randn);
   
@@ -22,110 +19,43 @@ mat write_elev(int rows, int cols){  // works! already tested separately
   }
   return elev;
 }
+
+// [[Rcpp::export]]
+arma::vec matrix_sub(arma::mat y, double B) {
+  // arma::mat Z = M * M.t();                        
+  arma::vec v = y.elem( find( y > B )); // Find IDs & obtain values
+  return v;
+}
+
 // [[Rcpp::export]]
 mat diff_next_highest(int rows, int cols, mat elev){
   
-  arma::mat diff_next_highest(rows, cols, fill::zeros);
+  arma::mat diff_next_highest_cell(rows, cols, fill::zeros);
   
   int i;
   int j;
   for (i=1; i< (rows-1); i++) {
     
-    for (j=1; j< (cols-1); j++ ){  
+    for (j=1; j< (cols-1); j++ ){
       
       
       mat y = elev.submat(i-1, j-1, i+1, j+1); //D8
-      y(2,2) = 10000.0; // I tried around with ignore (which exists in cpp of course, but couldnt find yet how to do it with arma classes)
-      
-      vec val;
-      
-      val= y(i,j) > y(2,2);
-      double minimum = val.min();
-
       
       
-      diff_next_highest(i,j) = minimum - elev(i,j);
+      vec rest = matrix_sub(y,elev(i,j));
+      
+      NumericVector rest1 = as<NumericVector>(wrap(rest));
+      
+      double minimum = min(rest1);
+      
+      diff_next_highest_cell(i,j) =  minimum- elev(i,j);
+      
+      
     }
   }
   
-  return diff_next_highest;
+  return diff_next_highest_cell;
 }
-
-
-// write a tiff in cpp
-#include <tiffio.h>
-
-TIFF *out= TIFFOpen("elev.tif", "w");
-
-int sampleperpixel = 1;    // or 3 if there is no alpha channel, you should get a understanding of alpha in class soon.
-char *image=new char [rows*cols*sampleperpixel];
-
-TIFFSetField (out, TIFFTAG_IMAGEWIDTH, cols);  // set the width of the image
-TIFFSetField(out, TIFFTAG_IMAGELENGTH, rows);    // set the height of the image
-TIFFSetField(out, TIFFTAG_SAMPLESPERPIXEL, sampleperpixel);   // set number of channels per pixel
-TIFFSetField(out, TIFFTAG_BITSPERSAMPLE, 8);    // set the size of the channels
-TIFFSetField(out, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);    // set the origin of the image.
-//   Some other essential fields to set that you do not have to understand for now.
-// TIFFSetField(out, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
-// TIFFSetField(out, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
-
-
-// including Taudem command line
-
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-
-
-int main()
-{
-  std::system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif"); // executes DinfFlowdir Taudem code
- // std::cout << std::ifstream("test.txt").rdbuf();
-}
-
-
-
-/*** R
-     
-          writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
-          # fel=raster("elev.tif")
-          
-# DInf flow directions
-          system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
-            
-### Slope
-            slp=raster("elevslp.tif")
-            slp[is.na(slp)] <- 0
-          
-            # flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
-            # flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
-            # flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
-            # # slope raster generated from Rasters.R transformed into matrix
-            # slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
-*/
-
-
-
-// /* system example : DIR */
-// #include <stdio.h>      /* printf */
-// #include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
-// 
-// int main ()
-// {
-//   int i;
-//   printf ("Checking if processor is available...");
-//   if (system(NULL)) puts ("Ok");
-//   else exit (EXIT_FAILURE);
-//   printf ("Executing command DIR...\n");
-//   i=system ("dir");
-//   printf ("The value returned was: %d.\n",i);
-//   return 0;
-// }
-
-
-
-
-
 
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
@@ -174,7 +104,6 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   return flux;
   
 }
-
 
 // [[Rcpp::export]]
 mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
@@ -264,8 +193,6 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
                               Rcpp::Named("d") = d));
     
   }
-
-
 
 // [[Rcpp::export]]
 List  Soil_cpp(std::string stype) {
@@ -398,7 +325,6 @@ List  Soil_cpp(std::string stype) {
                             Rcpp::Named("a1") = a1,
                             Rcpp::Named("spec_y") = spec_y));
 }
-
 
 // [[Rcpp::export]]
 List Salt_cpp(std::string stype) {
@@ -534,9 +460,26 @@ mat write_flowdirTable() {
   int rows = dims["rows"];
   int cols = dims["cols"];
   int time = dims["time"];
+  double gslp = dims["glsp"];
+  double ext = dims["ext"];
   
-  // //h sub
-  
+
+  /*** R
+
+  elev <- write_elev(rows,cols,gslp =0.02,ext =200.0)
+  elev <- raster(elev)
+  writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
+  # DInf flow directions
+  system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
+   slp=raster("elevslp.tif")
+   slp[is.na(slp)] <- 0
+   slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
+   ang=raster("elevang.tif")
+   flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
+   flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
+   flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
+                          
+  */
   
   arma::cube h_sub = arma::zeros(rows, cols, deltat);
   arma::cube q_sub = arma::zeros(rows, cols, deltat);
@@ -673,49 +616,18 @@ mat write_flowdirTable() {
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt) ;
            
-           
-          //  // PONDING CHECK!!!
-          //  
-          //  if (h_sub(i,j,tt+1) + elev(i,j) > "next highest cell") {
-          //    
-          //    elev(i,j) = (h_sub(i,j,tt+1) + elev(i,j)) - (elev(next highest cell)-elev(i,j));
-          //    
-          //    rerun Taudem, apply new flowdir with updated elevations
-          //      
-          //      recalculate q
-          //  }
-          //  
-          // mat y = elev.submat(i-1, j-1, i+1, i-1);
-          // 
-          // // [[Rcpp::export]]
-          // arma::vec subset_vec(const arma::vec& y) {
-          //   return y.elem(find(y > elev(i,j)));
-          // }
-          // 
-          // vec largerelev = subset_vec(y);
-          // 
-          // // [[Rcpp::export]]
-          // double vecmin(vec x) {
-          // 
-          //   vec::iterator it = std::min_element(x.begin(), x.end());
-          // 
-          //   return *it;
-          // }
-          // 
-          // 
-          // double xx = vecmin(largerelev);
-          // double elev_diff = xx-elev(i,j);
-          // 
-          // elev(i,j) = (h_sub(i,j,tt+1) + elev(i,j)) - elev_diff; // now elev is changed
-          // // write new elev matrix into a new tiff
-          // //   rerun Taudem command line
-          // //    new flowdir
-          // //   recalculate runon
-          //   
-          // 
-          // h_sub(i,j,tt+1) - h_sub(i,j,tt+1) + elev(i,j)
-            
-            
+        // Ponding check
+        
+        // mat diff = diff_next_highest(rows, cols, elev);
+        // 
+        //   if ((h_sub(i,j,tt+1) + elev(i,j) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
+        // 
+        //   elev(i,j) =  elev(i,j) + diff(i,j); // now elev is changed
+        //     // write new elev matrix into a new tiff -- is elev really changed?? or maybe a substitue is changed
+        //     //   rerun Taudem command line
+        //     //    new flowdir and slope
+        //     //   recalculate runon
+        //        }
           
           I_sub(i,j,tt) = timeincr * Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in); 
            
@@ -895,7 +807,7 @@ mat write_flowdirTable() {
 
 /*** R
 result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
+                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext),
                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
 result$fields[[4]]
   */

@@ -463,10 +463,12 @@ mat write_flowdirTable() {
   double gslp = dims["glsp"];
   double ext = dims["ext"];
   
+  mat elev = write_elev(rows,cols,gslp,ext );
+  
 
   /*** R
 
-  elev <- write_elev(rows,cols,gslp =0.02,ext =200.0)
+  elev <- write_elev(rows=10,cols=10,gslp =0.02,ext =200.0)
   elev <- raster(elev)
   writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
   # DInf flow directions
@@ -605,8 +607,7 @@ mat write_flowdirTable() {
           
           q_sub(i,j,tt) = timeincr * OF(h_sub(i,j,tt), cn, Mn, slope(i,j));
           
-        
-          
+
           mat runon_store(rows, cols, fill::ones);
           runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
           runon_sub(i,j,tt+1) = runon_store(i,j);  
@@ -614,20 +615,45 @@ mat write_flowdirTable() {
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
-            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt) ;
+            - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt);
            
         // Ponding check
         
-        // mat diff = diff_next_highest(rows, cols, elev);
-        // 
-        //   if ((h_sub(i,j,tt+1) + elev(i,j) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
-        // 
-        //   elev(i,j) =  elev(i,j) + diff(i,j); // now elev is changed
-        //     // write new elev matrix into a new tiff -- is elev really changed?? or maybe a substitue is changed
-        //     //   rerun Taudem command line
-        //     //    new flowdir and slope
-        //     //   recalculate runon
-        //        }
+        mat diff = diff_next_highest(rows, cols, elev);
+
+          if ((h_sub(i,j,tt+1) + elev(i,j) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
+            
+            mat elev_substitute(rows,cols);
+            elev_substitute = elev;
+
+           elev_substitute(i,j) =  elev(i,j) + diff(i,j); 
+           
+            /*** R
+
+              elev_substitute <- raster(elev_substitute)
+              writeRaster(elev_subsitute, filename="elev.tif", format="GTiff", overwrite=TRUE)
+# DInf flow directions
+              system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
+              slp=raster("elevslp.tif")
+              slp[is.na(slp)] <- 0
+              slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
+              ang=raster("elevang.tif")
+              flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
+              flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
+              flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
+              
+              */
+            mat runon_store(rows, cols, fill::ones);
+            runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
+            runon_sub(i,j,tt+1) = runon_store(i,j);  
+            
+            h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
+              - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt);
+              
+               }
+          
+          
+          
           
           I_sub(i,j,tt) = timeincr * Infil(h_sub(i,j,tt), P_sub(i,j,tt), alpha_i, k_in, W0_in); 
            

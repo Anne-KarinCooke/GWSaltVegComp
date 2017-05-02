@@ -492,29 +492,30 @@ return flowdirTable;
   SmI.fill(0.0);
   SmM.fill(0.0);
   
-
   
-  for (i=0; i< rows; i++) {
-    
-    for (j=0; j< cols; j++ ){
+   
+   for (i=0; i< rows; i++) {
+     
+     for (j=0; j< cols; j++ ){
+       //initialise cubes at 0
+       h(i,j,0)=10.0;
+       P(i,j,0)=20.0;
+       M(i,j,0)=30.0;
+       Svir(i,j,0) = 30.0;
+       CM(i,j,0) = 0.0;
+       SmI(i,j,0) = 0.0;
+       SmM(i,j,0) = 0.0;
+       Smh(i,j,0) = 0.0;
+       Ch(i,j,0) = 0.0;
+       seep(i,j,0) = 0.0;
+
       
-      //initialise cubes at 0
-      h(i,j,0)=10.0;
-      P(i,j,0)=20.0;
-      M(i,j,0)=30.0;
-      Svir(i,j,0) = 30.0;
-      CM(i,j,0) = 0.0;
-      SmI(i,j,0) = 0.0;
-      SmM(i,j,0) = 0.0;
-      Smh(i,j,0) = 0.0;
-      Ch(i,j,0) = 0.0;
-      seep(i,j,0) = 0.0;
+
       
       for (t = 1; t< (time); t++){
-        
         for (tt = 0; tt< (deltat-1); tt++){
-          
-         
+        
+
           if(tt == 0) {
             h_sub(i,j,tt) = h(i,j,t-1);
             P_sub(i,j,tt) = P(i,j,t-1);
@@ -527,7 +528,9 @@ return flowdirTable;
             Ch_sub(i,j,tt) = Ch(i,j,t-1);
             seep_sub(i,j,tt) = seep(i,j,t-1);
           }
-          
+         
+              
+        
           double Rain_in;
           
           if ((Rain(t) > 0.0) & (tt == 0)){
@@ -552,8 +555,8 @@ return flowdirTable;
           
           mat runon_store(rows, cols, fill::zeros);
           runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
-          runon_sub(i,j,tt) = runon_store(i,j);  
-          
+          runon_sub(i,j,tt) = runon_store(i,j); 
+         //  Rcpp::Rcout <<  q_sub.slice(tt);
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
@@ -584,19 +587,17 @@ return flowdirTable;
             qsd_sub(i,j,tt) = (1.0/c1) * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
             //qsd_sub(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
           }
-          
+
           if((q_sub(i,j,tt)*c1) > c2){ //(Saco, 2007)
             qsd_sub(i,j,tt) = c2 * P_sub(i,j,tt);
           }
 
 
-       
+
           mat runonsd_store(rows, cols, fill::ones);
           runonsd_store = Surface(rows, cols, flowdir, write_flowdirTable(),qsd_sub.slice(tt));
-          runonsd_sub(i,j,tt) = runonsd_store(i,j); 
+          runonsd_sub(i,j,tt) = runonsd_store(i,j);
 
-         
-          
               
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + runonsd_sub(i,j,tt);
           
@@ -649,7 +650,7 @@ return flowdirTable;
            
  
           // # checking the mass balance
-          mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
+          mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (timeincr * flux_sub(i,j,tt));
           
          
           
@@ -658,7 +659,7 @@ return flowdirTable;
           Ch_sub(i,j,tt+1) = (Smh_sub(i,j,tt+1)/h_sub(i,j,tt+1));
           
      
-         
+            
           
           
                                             }
@@ -706,9 +707,10 @@ return flowdirTable;
         qsd(i,j,t) = sumqsd;
         runonsd(i,j,t) = sumrunonsd;
         
+    
+           }
+        }
       }
-    }
-  }
   
 
   List fields;

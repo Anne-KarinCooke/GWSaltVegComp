@@ -549,7 +549,7 @@ mat write_flowdirTable() {
   SmI.fill(0.0);
   SmM.fill(0.0);
   
-
+  for (t = 1; t< (time); t++){
   
   for (i=0; i< rows; i++) {
     
@@ -567,7 +567,7 @@ mat write_flowdirTable() {
       Ch(i,j,0) = 0.0;
       seep(i,j,0) = 0.0;
       
-      for (t = 1; t< (time); t++){
+
         
         for (tt = 0; tt< (deltat-1); tt++){
           
@@ -806,8 +806,8 @@ mat write_flowdirTable() {
 }
 
 /*** R
-result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext),
-                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
-result$fields[[4]]
+# result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+#                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext),
+#                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
+# result$fields[[4]]
   */

@@ -492,11 +492,12 @@ return flowdirTable;
   SmI.fill(0.0);
   SmM.fill(0.0);
   
-  
+  for (t = 1; t< (time); t++){
    
    for (i=0; i< rows; i++) {
      
      for (j=0; j< cols; j++ ){
+
        //initialise cubes at 0
        h(i,j,0)=10.0;
        P(i,j,0)=20.0;
@@ -512,7 +513,7 @@ return flowdirTable;
       
 
       
-      for (t = 1; t< (time); t++){
+
         for (tt = 0; tt< (deltat-1); tt++){
         
 
@@ -556,7 +557,7 @@ return flowdirTable;
           mat runon_store(rows, cols, fill::zeros);
           runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
           runon_sub(i,j,tt) = runon_store(i,j); 
-         //  Rcpp::Rcout <<  q_sub.slice(tt);
+        //  Rcpp::Rcout <<  q_sub.slice(tt);
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
@@ -748,5 +749,5 @@ return flowdirTable;
                                 saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
                                 alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
 
-#result$fields[[4]]
+result$fields[[4]]
   */

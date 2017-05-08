@@ -12,7 +12,7 @@ flowdir=raster("new_elevang.tif")
 flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
 flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
 write(flowdir, file="new_flowdir.txt")
-write(slp_matrix, file="new_flowdir.txt")
+write(slp_matrix, file="slp_matrix.txt")
 
 
 

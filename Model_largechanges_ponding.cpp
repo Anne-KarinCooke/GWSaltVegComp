@@ -1,8 +1,10 @@
+#include <cstdlib>
+#include <iostream>
 #include <RcppArmadillo.h>
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
-
+using namespace std;
 
 // Creating a elevation matrix (DEM)
 // [[Rcpp::export]]
@@ -19,14 +21,12 @@ mat write_elev(int rows, int cols, double gslp, double ext){  // works! already 
   }
   return elev;
 }
-
 // [[Rcpp::export]]
 arma::vec matrix_sub(arma::mat y, double B) {
   // arma::mat Z = M * M.t();                        
   arma::vec v = y.elem( find( y > B )); // Find IDs & obtain values
   return v;
 }
-
 // [[Rcpp::export]]
 mat diff_next_highest(int rows, int cols, mat elev){
   
@@ -56,7 +56,6 @@ mat diff_next_highest(int rows, int cols, mat elev){
   
   return diff_next_highest_cell;
 }
-
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
   
@@ -75,14 +74,12 @@ double WU(double M, double P, double gmax, double k1 ) {  /// not quite happy wi
   double Wu = gmax*(M/(M+k1))*P;   // function is called WU, output is called Wu, cannot be the same
   return Wu;
 }
-
 // [[Rcpp::export]]
 double Gr(double M, double P, double c, double gmax, double k1){
   
   double Gro = c*WU(M,P,gmax,k1);
   return Gro;
 }
-
 // [[Rcpp::export]]
 double Mo(double P, double M, double Svir, double d ){
   
@@ -104,7 +101,6 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
   return flux;
   
 }
-
 // [[Rcpp::export]]
 mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
   //flowdirTable
@@ -157,7 +153,6 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
   return destination;
   
 }
-
   // [[Rcpp::export]]
   List  Veg_cpp(std::string stype) {
     
@@ -193,7 +188,6 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq){
                               Rcpp::Named("d") = d));
     
   }
-
 // [[Rcpp::export]]
 List  Soil_cpp(std::string stype) {
   double psi_sh = -10.0;
@@ -325,7 +319,93 @@ List  Soil_cpp(std::string stype) {
                             Rcpp::Named("a1") = a1,
                             Rcpp::Named("spec_y") = spec_y));
 }
+// [[Rcpp::export]] 
+List flowdir_slope_generation(arma::mat B, int rows, int cols){
 
+  B.save("B.txt", arma::raw_ascii);
+  system("R CMD BATCH GeoTiff.R");
+  // load from disk
+  
+  arma::mat flowdir_new;
+  flowdir_new.load("new_flowdir.txt");
+  
+  
+  arma::mat slp_matrix_new;
+  slp_matrix_new.load("slp_matrix.txt");
+  
+  
+  mat flowdir_new_ten(rows,cols, fill::zeros);
+  mat slp_matrix_new_ten(rows,cols, fill::zeros);
+  
+  
+  for(int i=0; i<5; i++){
+    
+    flowdir_new_ten(0,5+i) = flowdir_new(1,0+i);
+    
+    flowdir_new_ten(1,5+i) = flowdir_new(3,0+i);
+    flowdir_new_ten(2,5+i) = flowdir_new(5,0+i);
+    flowdir_new_ten(3,5+i) = flowdir_new(7,0+i);
+    flowdir_new_ten(4,5+i) = flowdir_new(9,0+i);
+    flowdir_new_ten(5,5+i) = flowdir_new(11,0+i);
+    flowdir_new_ten(6,5+i) = flowdir_new(13,0+i);
+    flowdir_new_ten(7,5+i) = flowdir_new(15,0+i);
+    flowdir_new_ten(8,5+i) = flowdir_new(17,0+i);
+    flowdir_new_ten(9,5+i) = flowdir_new(19,0+i);
+    
+    
+    flowdir_new_ten(0,0+i) = flowdir_new(0,0+i);
+    flowdir_new_ten(1,0+i) = flowdir_new(2,0+i);
+    flowdir_new_ten(2,0+i) = flowdir_new(4,0+i);
+    flowdir_new_ten(3,0+i) = flowdir_new(6,0+i);
+    flowdir_new_ten(4,0+i) = flowdir_new(8,0+i);
+    flowdir_new_ten(5,0+i) = flowdir_new(10,0+i);
+    flowdir_new_ten(6,0+i) = flowdir_new(12,0+i);
+    flowdir_new_ten(7,0+i) = flowdir_new(14,0+i);
+    flowdir_new_ten(8,0+i) = flowdir_new(16,0+i);
+    flowdir_new_ten(9,0+i) = flowdir_new(18,0+i);
+    
+    
+  }
+  
+  for(int i=0; i<5; i++){
+    
+    slp_matrix_new_ten(0,5+i) = slp_matrix_new(1,0+i);
+    
+    slp_matrix_new_ten(1,5+i) = slp_matrix_new(3,0+i);
+    slp_matrix_new_ten(2,5+i) = slp_matrix_new(5,0+i);
+    slp_matrix_new_ten(3,5+i) = slp_matrix_new(7,0+i);
+    slp_matrix_new_ten(4,5+i) = slp_matrix_new(9,0+i);
+    slp_matrix_new_ten(5,5+i) = slp_matrix_new(11,0+i);
+    slp_matrix_new_ten(6,5+i) = slp_matrix_new(13,0+i);
+    slp_matrix_new_ten(7,5+i) = slp_matrix_new(15,0+i);
+    slp_matrix_new_ten(8,5+i) = slp_matrix_new(17,0+i);
+    slp_matrix_new_ten(9,5+i) = slp_matrix_new(19,0+i);
+    
+    
+    slp_matrix_new_ten(0,0+i) = slp_matrix_new(0,0+i);
+    slp_matrix_new_ten(1,0+i) = slp_matrix_new(2,0+i);
+    slp_matrix_new_ten(2,0+i) = slp_matrix_new(4,0+i);
+    slp_matrix_new_ten(3,0+i) = slp_matrix_new(6,0+i);
+    slp_matrix_new_ten(4,0+i) = slp_matrix_new(8,0+i);
+    slp_matrix_new_ten(5,0+i) = slp_matrix_new(10,0+i);
+    slp_matrix_new_ten(6,0+i) = slp_matrix_new(12,0+i);
+    slp_matrix_new_ten(7,0+i) = slp_matrix_new(14,0+i);
+    slp_matrix_new_ten(8,0+i) = slp_matrix_new(16,0+i);
+    slp_matrix_new_ten(9,0+i) = slp_matrix_new(18,0+i);
+    
+    
+  }
+  
+  
+  
+  
+  List output = List::create(Rcpp::Named("flowdir_new") =  flowdir_new_ten,
+                             Rcpp::Named("slope") =  slp_matrix_new_ten);
+  
+  
+  
+  return output;
+}
 // [[Rcpp::export]]
 List Salt_cpp(std::string stype) {
   
@@ -373,7 +453,6 @@ List Salt_cpp(std::string stype) {
                             Rcpp::Named("f") = f));
   
 }
-
 // [[Rcpp::export]] 
 mat write_flowdirTable() {
   // mat::fixed<3,9> flowdirTable;
@@ -413,12 +492,10 @@ mat write_flowdirTable() {
   return flowdirTable;
   
 }
-
 // [[Rcpp::export]]
   List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
                              Rcpp::List dims, NumericVector Rain,
-                             double alpha_i, double cn, double Mn, 
-                             NumericMatrix slope, NumericMatrix Zras, mat flowdir){
+                             double alpha_i, double cn, double Mn ){
     
     double ConcConst_in = saltpar["ConcConst"];
     double f_in = saltpar["f"];
@@ -462,26 +539,15 @@ mat write_flowdirTable() {
   int time = dims["time"];
   double gslp = dims["glsp"];
   double ext = dims["ext"];
+  double Z = dims["Z"];
   
-  mat elev = write_elev(rows,cols,gslp,ext );
+  mat elev = write_elev(rows,cols,gslp,ext);
+  mat diff = diff_next_highest(rows, cols, elev); 
+  List flo = flowdir_slope_generation(elev, rows, cols);
+  mat flowdir_new = flo[1];
+  mat slope = flo[2];
   
-
-  /*** R
-
-  elev <- write_elev(rows=10,cols=10,gslp =0.02,ext =200.0)
-  elev <- raster(elev)
-  writeRaster(elev, filename="elev.tif", format="GTiff", overwrite=TRUE)
-  # DInf flow directions
-  system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
-   slp=raster("elevslp.tif")
-   slp[is.na(slp)] <- 0
-   slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
-   ang=raster("elevang.tif")
-   flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
-   flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
-   flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
-                          
-  */
+  mat Zras = elev*1000+Z;
   
   arma::cube h_sub = arma::zeros(rows, cols, deltat);
   arma::cube q_sub = arma::zeros(rows, cols, deltat);
@@ -609,49 +675,37 @@ mat write_flowdirTable() {
           
 
           mat runon_store(rows, cols, fill::ones);
-          runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
+          runon_store = Surface(rows, cols, flowdir_new, write_flowdirTable(), q_sub.slice(tt));
           runon_sub(i,j,tt+1) = runon_store(i,j);  
           
         
           // calculate water depth on soil
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt);
-           
+
         // Ponding check
-        
-        mat diff = diff_next_highest(rows, cols, elev);
+
 
           if ((h_sub(i,j,tt+1) + elev(i,j) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
-            
+
             mat elev_substitute(rows,cols);
             elev_substitute = elev;
+            elev_substitute(i,j) =  elev(i,j) + diff(i,j);
 
-           elev_substitute(i,j) =  elev(i,j) + diff(i,j); 
-           
-            /*** R
+            List flwslp = flowdir_slope_generation(elev_substitute, rows,cols);
 
-              elev_substitute <- raster(elev_substitute)
-              writeRaster(elev_subsitute, filename="elev.tif", format="GTiff", overwrite=TRUE)
-# DInf flow directions
-              system("mpiexec -n 8 DinfFlowdir -ang elevang.tif -slp elevslp.tif -fel elevfel.tif",show.output.on.console=F,invisible=F)
-              slp=raster("elevslp.tif")
-              slp[is.na(slp)] <- 0
-              slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp))
-              ang=raster("elevang.tif")
-              flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
-              flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
-              flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
-              
-              */
-            mat runon_store(rows, cols, fill::ones);
-            runon_store = Surface(rows, cols, flowdir, write_flowdirTable(), q_sub.slice(tt));
-            runon_sub(i,j,tt+1) = runon_store(i,j);  
-            
+            mat new_Slope = flwslp[2];
+
+            q_sub(i,j,tt) = timeincr * OF(h_sub(i,j,tt), cn, Mn, new_Slope(i,j));
+
+            runon_store = Surface(rows, cols, flwslp[1], write_flowdirTable(), q_sub.slice(tt));
+            runon_sub(i,j,tt+1) = runon_store(i,j);
+
             h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
               - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt);
-              
+
                }
-          
+
           
           
           
@@ -669,7 +723,7 @@ mat write_flowdirTable() {
           Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in);
           //  // // // //Mortality
           Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), M_sub(i,j,tt+1), Svir_sub(i,j,tt),d_in);  
-          //  // // //
+
           //  // // // // Plant biomass balance
           
 
@@ -686,7 +740,7 @@ mat write_flowdirTable() {
 
        
           mat runonsd_store(rows, cols, fill::ones);
-          runonsd_store = Surface(rows, cols, flowdir, write_flowdirTable(),qsd_sub.slice(tt));
+          runonsd_store = Surface(rows, cols, flowdir_new, write_flowdirTable(),qsd_sub.slice(tt));
           runonsd_sub(i,j,tt+1) = runonsd_store(i,j); 
           
               
@@ -832,8 +886,8 @@ mat write_flowdirTable() {
 }
 
 /*** R
-# result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-#                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext),
-#                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir)
+result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                               saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext, Z=Z),
+                               alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain)
 # result$fields[[4]]
   */

@@ -7,12 +7,13 @@
 source("Rainfall.R")
 
 ### RUN TIME (how many days)
-time <- 100
+time <- 1000
 ### Raster size
 ext <- 200 ## EXTEND of PLOT in [m]
 Z <- 3000.0 ##Groundwater depth in mm from 0 elevation
 rows <- 10## rows of cells
 cols <- 10 ## columns of cells
+gslp <- 0.02
 
 # alpha <- c(0.6,1.5) # 
 alpha <- seq(0.6,1.5,by=0.1)
@@ -32,8 +33,8 @@ for (k in 1:length(alpha)) {
 Rain <- c(Rain)
 
 ### Sourcing the grid, taudem etc, generates flowdir (ang) and slope raster
-#source("Rasters.R")
-### preparations, put them somewhere else later
+# source("Rasters.R")
+# ## preparations, put them somewhere else later
 # flowdir <- ang # ang is angle flowdir[i,j] from DInf TauDEM as raster
 # flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
 # flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
@@ -47,12 +48,16 @@ Rain <- c(Rain)
 
 
 # Sourcing the cpp functions that define the constants for soil, veg and salt
-flowdir <- read.table("flowdir.txt")
-flowdir <- as.matrix(flowdir)
-slp_matrix <- read.table("slp_matrix.txt")
-slp_matrix <- as.matrix(slp_matrix)
-Zras_matrix <- read.table("Zras_matrix.txt")
-Zras_matrix <- as.matrix(Zras_matrix)
+# flowdir <- read.table("flowdir.txt")
+# flowdir <- as.matrix(flowdir)
+# slp_matrix <- read.table("slp_matrix.txt")
+# slp_matrix <- as.matrix(slp_matrix)
+# library(raster)
+# 
+# Zras<-raster(elev)
+# values(Zras)<-(values(elev)*1000)+Z
+# # Zras_matrix <- read.table("Zras_matrix.txt")
+# Zras_matrix <- as.matrix(Zras)
 
 sourceCpp("soilfun.cpp")
 sourceCpp("vegfun.cpp")
@@ -65,11 +70,23 @@ soilpar1 <- Soil_cpp("S Clay Loam")
 vegpar1 <-Veg_cpp("Fantasy Tree")
 saltpar1 <- Salt_cpp("Groundwater")  ## other options: "Rain", "Both", "None", "Groundwater"
 
-sourceCpp("Model_largechanges.cpp")
+sourceCpp("Model_largechanges_ponding.cpp")  # dims has changed in new version
+#sourceCpp("Model_largechanges.cpp")  # dims has changed in new version
+
+# total <- 20
+# pb <- winProgressBar(title = "progress bar", min = 0,
+#                      max = total, width = 300)
+# 
+# for(i in 1:total){
+#   Sys.sleep(0.1)
+#   setWinProgressBar(pb, i, title=paste( round(i/total*100, 0),
+#                                         "% done"))
+# }
+#close(pb)
 #system.time(
 result <-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time),
-                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain, slope=slp_matrix,Zras=Zras_matrix, flowdir = flowdir) #)
+                                saltpar = saltpar1, dims = list(rows=rows,cols=cols,time=time, gslp=gslp, ext=ext, Z=Z),
+                                alpha_i =1.0, cn=0.01, Mn=0.04, Rain=Rain) #)
 
 
 qr<-brick(result$fields[[8]][2:9,2:9,50:100])
@@ -78,18 +95,17 @@ levelplot(qr,main="P [g/m^2] ",sub="day 20 to day 40")
 
 result$fields[[11]][1:10,1:10,90:100]
 
-result$fields[[6]][1:10,1:10,80:90]
+result$fields[[6]][1:10,1:10,300:400]
           
 #system.time()
 #str(result$fields)
 
-
+Ppalette <- brewer.pal(5,"YlGn")
 
 library(rasterVis)
-qr<-brick(result$fields[[6]][2:9,2:9,1:100])
-levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 100, salt from gw, randomly varied alpha and lambda") 
+qr<-brick(result$fields[[17]][2:9,2:9,10:110])
+levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 100, salt from gw, randomly varied alpha and lambda",col.regions = terrain.colors(20)) 
 animate(qr, n=1)
-
 
 
 # f1( 0 ) = h;

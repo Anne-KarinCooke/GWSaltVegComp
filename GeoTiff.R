@@ -13,7 +13,3 @@ flowdir[is.na(flowdir)] <- 8.0   ###********************The loop had problems wi
 flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir))
 write(flowdir, file="new_flowdir.txt")
 write(slp_matrix, file="slp_matrix.txt")
-
-
-
-

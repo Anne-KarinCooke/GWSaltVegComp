@@ -39,27 +39,24 @@ for(int i=0; i<(cols/2); i++){
   flowdir_new_ten(0,(cols/2)+i) = flowdir_new(1,0+i);
   flowdir_new_ten(0,0+i) = flowdir_new(0,0+i);
   
-  for(int j=0; j<cols; j++){
-    for(int k=1; k<rows; k++){
+  for(int j=1; j<cols; j++){
+  for(int k=1; (k<rows) & (k%2!=0) ; k++){
+   
+   for(int l=1; (l<rows) & (l%2==0) ; l++){
+ 
 
-  
-      if(k%2!=0) {    
+
+
     flowdir_new_ten(j,(cols/2)+i) = flowdir_new(k,0+i); //1,3,5
 
-      }
 
-    
-    if(k%2==0) {          
-    
-    flowdir_new_ten(j,0+i) = flowdir_new(k,0+i); //2,4,6
- 
+    flowdir_new_ten(j,0+i) = flowdir_new(l,0+i); //2,4,6
+
+       
     }
-    
-    }
- 
-  }  
-   
+  }
  }
+}
 
 
 

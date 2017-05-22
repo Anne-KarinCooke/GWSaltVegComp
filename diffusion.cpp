@@ -96,44 +96,41 @@ mat Diffusion(int ro, int co, mat DiffdirTable, mat grad, mat Msub, double dt, d
     }
   }
   
-  return diffloss;
-  
-}
+
+  List diffoutput = Rcpp::List::create(Rcpp::Named("diffloss") = diffloss,
+                            Rcpp::Named("diffgain") = diffgain));
+  return diffoutput;
+    
+    }
 
 // diffusion of M
-double D; // d can be Dp or Dm 
+double D; // D can be Dp or Dm 
 double dx = extent/rows; // grid cell spacing
 double dt = timeincr * pow(dx,2)/D; // time step
 double Dp = 0.3;
 
 //diffGradstore = diffGrad(rows, cols, write_DiffdirectionTable(),  M_sub.slice(tt), dx); // matrix
-//mat slope exists
-diffstore = Diffusion(rows,cols, write_DiffdirectionTable(), slope, M_sub.slice(tt),dt, Dp); //matrix
 
-//maybe instead of concentratin gradient just elevation gradient
 
-M_sub(i,j,tt+1) = M_sub(i,j,tt+1) +  (timeincr * flux_sub(i,j,tt));
-M_sub(i,j,tt+1) = M_sub(i,j,tt+1) + diffstore(i,j);
-  
-  
-// distance matrix for plant interference function
-// [[Rcpp::export]]
-mat Distances(int ro, int co, double kk, double ll){
+// what to insert into the model later:
 
-  mat dist(ro, co,fill::zeros); 
-  
-  for (ii=1; ii< (ro-1); ii++) {
-    
-    for (jj=1; jj< (co-1); jj++ ){  
-      
-      dist(ii,jj) = sqrt(pow((ii-kk),2) + pow((ii-ll),2));
-      
-    }
-  }
-  return dist;
-}
+List diffstoreM = Diffusion(rows,cols, write_DiffdirectionTable(), slope, P_sub.slice(tt),dt, Dm);
+mat difflossM = diffstoreM[1];
+mat diffgainM = diffstoreM[2];
 
-//Distances(rows,cols,i,j);
+// soil moisture update
+M_sub.slice(tt+1) = M_sub.slice(tt+1) - difflossM + diffgainM; // cube slices instead of single cells
+
+// seeds
+
+mat ones(rows,cols, fill::ones); // seed diffusion goes with wind and in all direction, not just downslope
+List diffstoreP = Diffusion(rows,cols, write_DiffdirectionTable(), ones, P_sub.slice(tt),dt, Dp);
+mat difflossP = diffstoreP[1];
+mat diffgainP = diffstoreP[2];
+
+P_sub.slice(tt+1) = P_sub.slice(tt+1) - difflossP + diffgainP;
+
+
 
 /*** R
 

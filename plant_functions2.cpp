@@ -72,15 +72,25 @@ double dur(){
   CM(i,j,t) - CM(i,j,)
 }
 
+
+
 double length = 90;
 
-for(int i = 0; i < length; i++)
+
+for (t = 1; t< (time); t++){
+  
+  if  CM(i,j,t) > threshold
+  
+  
+/// for(int i = 0; i < length; i++)
 {
   
   sum = vector1[length + j - 1] + vector1[length + j - 2];
   a = sum / length;
   
   if CM(i,j,t) - CM(i,j,t-90) = 
+    
+    moving_average = (sum + last_update * time_since_last_update) / window_length;
   
         
 //### Species A Halophyte
@@ -104,23 +114,33 @@ double sigmaPC;
 
 
 // this has to be added
-c2=c20*exp(-sigmaP*CM_sub(i,j,tt)) 
+mat c2 = c20*exp(-sigmaP*CM_sub.slice(tt))
   
   //already in main model
-  if((q_sub(i,j,tt) > c1) & (q_sub(i,j,tt)<c2))  
+  if((q_sub(i,j,tt) > c1) & (q_sub(i,j,tt)<c2(i,j)))  
   {
     qsd_sub(i,j,tt) = (1.0/c1) * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
     //qsd_sub(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
   }
   
-  if((q_sub(i,j,tt)*c1) > c2){ //(Saco, 2007)
-    qsd_sub(i,j,tt) = c2 * P_sub(i,j,tt);
+  if((q_sub(i,j,tt)*c1) > c2(i,j)){ //(Saco, 2007)
+    qsd_sub(i,j,tt) = c2(i,j) * P_sub(i,j,tt);
   }
+  
+  // seeds  // all the earlier defined funtions and important input in diffusion.cpp
+  
+  mat ones(rows,cols, fill::ones); // seed diffusion goes with wind and in all direction, not just downslope
+  List diffstoreP = Diffusion(rows,cols, write_DiffdirectionTable(), ones, P_sub.slice(tt), c2, dt, Dp);
+  mat difflossP = diffstoreP[1];
+  mat diffgainP = diffstoreP[2];
+  
+  P_sub.slice(tt+1) = P_sub.slice(tt+1) - difflossP + diffgainP;
+  
                   
 
  // distance matrix for plant interference function
  // [[Rcpp::export]]
- mat Distances(int ro, int co, double kk, double ll){
+ mat Distances(int ro, int co, double kk, double ll, double dx){  ///kk and ll are the i and j of the certain cell around with the distance matrix is calculated
    
    mat dist(ro, co,fill::zeros); 
    
@@ -128,7 +148,7 @@ c2=c20*exp(-sigmaP*CM_sub(i,j,tt))
      // 
      for (jj=1; jj< (co-1); jj++ ){  
        
-       dist(ii,jj) = sqrt(pow((ii-kk),2) + pow((ii-ll),2));
+       dist(ii,jj) = sqrt(pow((ii-kk),2) + pow((ii-ll),2))*dx; //*dx for output in m
        
      }
    }
@@ -138,13 +158,13 @@ c2=c20*exp(-sigmaP*CM_sub(i,j,tt))
 
 // Interference function 
 // [[Rcpp::export]]
-double interference(int ro, int co, double kk, double ll, mat Psub, double L, double pi = 3.141593){
+double interference(int ro, int co, double kk, double ll, mat Psub, double L, double dx, double pi = 3.141593){
   
   mat interf(ro, co,fill::zeros);
   mat w(ro, co,fill::zeros);
   
 
-     w = (1/(2*pi*(L*L)))*exp(-(abs(Distances(ro, co, kk, ll))*abs(Distances(ro, co, kk, ll)))/(2*(L*L)));
+     w = (1/(2*pi*(L*L)))*exp(-(abs(Distances(ro, co, kk, ll, dx))*abs(Distances(ro, co, kk, ll, dx)))/(2*(L*L)));
      interf = w*Psub;
      
      for (ii=1; ii< (ro-1); ii++) {

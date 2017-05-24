@@ -67,7 +67,7 @@ mat write_DiffdirectionTable() {
 
 // Diffusion
 // [[Rcpp::export]]
-mat Diffusion(int ro, int co, mat DiffdirTable, mat grad, mat Msub, double dt, double D){
+mat Diffusion(int ro, int co, mat DiffdirTable, mat grad, mat Medium, mat filler,double dt, double D){
   
   
   mat diffloss(ro, co,fill::zeros); 
@@ -88,9 +88,9 @@ mat Diffusion(int ro, int co, mat DiffdirTable, mat grad, mat Msub, double dt, d
         x = DiffdirTable(0,a);
         y = DiffdirTable(1,a);
         
-        diffloss(ii,jj) += -D * grad(ii+x,jj+y)*Msub(ii,jj)*dt;
+        diffloss(ii,jj) += -D * grad(ii,jj) * Medium(ii,jj)* filler(ii,jj) * dt; // ot grad(ii+x,jj+y)?
  
-        diffgain(ii+x,jj+y) = -D * grad(ii+x,jj+y)*Msub(ii,jj)*dt; 
+        diffgain(ii+x,jj+y) = -D * grad(ii,jj) * Medium(ii,jj) * filler(ii,jj) * dt; //grad(ii+x,jj+y) ?
 
       }
     }
@@ -108,29 +108,47 @@ double D; // D can be Dp or Dm
 double dx = extent/rows; // grid cell spacing
 double dt = timeincr * pow(dx,2)/D; // time step
 double Dp = 0.3;
+double Dm = 0.27;
 
 //diffGradstore = diffGrad(rows, cols, write_DiffdirectionTable(),  M_sub.slice(tt), dx); // matrix
 
 
 // what to insert into the model later:
+// for M and P filler is just ones
+// for salt, the filler matrix includes the slat masses in each cell
 
-List diffstoreM = Diffusion(rows,cols, write_DiffdirectionTable(), slope, P_sub.slice(tt),dt, Dm);
-mat difflossM = diffstoreM[1];
-mat diffgainM = diffstoreM[2];
+mat filler(rows, cols, fill::ones);
+
 
 // soil moisture update
+List diffstoreM = Diffusion(rows,cols, write_DiffdirectionTable(), slope, M_sub.slice(tt), filler, dt, Dm);
+mat difflossM = diffstoreM[1];
+mat diffgainM = diffstoreM[2];
+mat c2
 M_sub.slice(tt+1) = M_sub.slice(tt+1) - difflossM + diffgainM; // cube slices instead of single cells
 
 // seeds
 
 mat ones(rows,cols, fill::ones); // seed diffusion goes with wind and in all direction, not just downslope
-List diffstoreP = Diffusion(rows,cols, write_DiffdirectionTable(), ones, P_sub.slice(tt),dt, Dp);
+List diffstoreP = Diffusion(rows,cols, write_DiffdirectionTable(), ones, P_sub.slice(tt), c2, dt, Dp);
 mat difflossP = diffstoreP[1];
 mat diffgainP = diffstoreP[2];
 
 P_sub.slice(tt+1) = P_sub.slice(tt+1) - difflossP + diffgainP;
 
+// also diffusion of salt with the diffusion of M
 
+// soil salution salt update
+List diffstoreS = Diffusion(rows,cols, write_DiffdirectionTable(), slope, M_sub.slice(tt), CM_sub.slice(tt), dt, Dm);
+mat difflossS = diffstoreS[1];
+mat diffgainS = diffstoreS[2];
+
+M_sub.slice(tt+1) = M_sub.slice(tt+1) - difflossM + diffgainM; // cube slices instead of single cells
+
+// #salt mass in soil
+//SmM_sub(i,j,tt+1) = SmI_sub(i,j,tt+1) + U_salt(i,j,tt) - L_salt(i,j,tt) - (CM_sub(i,j,tt) * seep_sub(i,j,tt+1));
+SmM_sub.slice(tt+1) = SmM_sub.slice(tt+1) - difflossS + diffgainS; 
+//CM_sub(i,j,tt+1) = SmM_sub(i,j,tt+1)/M_sub(i,j,tt+1);
 
 /*** R
 

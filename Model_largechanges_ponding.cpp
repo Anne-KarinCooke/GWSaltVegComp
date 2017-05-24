@@ -322,79 +322,6 @@ List  Soil_cpp(std::string stype) {
 // [[Rcpp::export]] 
 List flowdir_slope_generation(arma::mat B, int rows, int cols){
 
-  B.save("B.txt", arma::raw_ascii);
-  system("R CMD BATCH GeoTiff.R");
-  // load from disk
-  
-  arma::mat flowdir_new;
-  flowdir_new.load("new_flowdir.txt");
-  
-  
-  arma::mat slp_matrix_new;
-  slp_matrix_new.load("slp_matrix.txt");
-  
-  
-  mat flowdir_new_ten(rows,cols, fill::zeros);
-  mat slp_matrix_new_ten(rows,cols, fill::zeros);
-  
-  
-  for(int i=0; i<5; i++){
-    
-    flowdir_new_ten(0,5+i) = flowdir_new(1,0+i);
-    
-    flowdir_new_ten(1,5+i) = flowdir_new(3,0+i);
-    flowdir_new_ten(2,5+i) = flowdir_new(5,0+i);
-    flowdir_new_ten(3,5+i) = flowdir_new(7,0+i);
-    flowdir_new_ten(4,5+i) = flowdir_new(9,0+i);
-    flowdir_new_ten(5,5+i) = flowdir_new(11,0+i);
-    flowdir_new_ten(6,5+i) = flowdir_new(13,0+i);
-    flowdir_new_ten(7,5+i) = flowdir_new(15,0+i);
-    flowdir_new_ten(8,5+i) = flowdir_new(17,0+i);
-    flowdir_new_ten(9,5+i) = flowdir_new(19,0+i);
-    
-    
-    flowdir_new_ten(0,0+i) = flowdir_new(0,0+i);
-    flowdir_new_ten(1,0+i) = flowdir_new(2,0+i);
-    flowdir_new_ten(2,0+i) = flowdir_new(4,0+i);
-    flowdir_new_ten(3,0+i) = flowdir_new(6,0+i);
-    flowdir_new_ten(4,0+i) = flowdir_new(8,0+i);
-    flowdir_new_ten(5,0+i) = flowdir_new(10,0+i);
-    flowdir_new_ten(6,0+i) = flowdir_new(12,0+i);
-    flowdir_new_ten(7,0+i) = flowdir_new(14,0+i);
-    flowdir_new_ten(8,0+i) = flowdir_new(16,0+i);
-    flowdir_new_ten(9,0+i) = flowdir_new(18,0+i);
-    
-    
-  }
-  
-  for(int i=0; i<5; i++){
-    
-    slp_matrix_new_ten(0,5+i) = slp_matrix_new(1,0+i);
-    
-    slp_matrix_new_ten(1,5+i) = slp_matrix_new(3,0+i);
-    slp_matrix_new_ten(2,5+i) = slp_matrix_new(5,0+i);
-    slp_matrix_new_ten(3,5+i) = slp_matrix_new(7,0+i);
-    slp_matrix_new_ten(4,5+i) = slp_matrix_new(9,0+i);
-    slp_matrix_new_ten(5,5+i) = slp_matrix_new(11,0+i);
-    slp_matrix_new_ten(6,5+i) = slp_matrix_new(13,0+i);
-    slp_matrix_new_ten(7,5+i) = slp_matrix_new(15,0+i);
-    slp_matrix_new_ten(8,5+i) = slp_matrix_new(17,0+i);
-    slp_matrix_new_ten(9,5+i) = slp_matrix_new(19,0+i);
-    
-    
-    slp_matrix_new_ten(0,0+i) = slp_matrix_new(0,0+i);
-    slp_matrix_new_ten(1,0+i) = slp_matrix_new(2,0+i);
-    slp_matrix_new_ten(2,0+i) = slp_matrix_new(4,0+i);
-    slp_matrix_new_ten(3,0+i) = slp_matrix_new(6,0+i);
-    slp_matrix_new_ten(4,0+i) = slp_matrix_new(8,0+i);
-    slp_matrix_new_ten(5,0+i) = slp_matrix_new(10,0+i);
-    slp_matrix_new_ten(6,0+i) = slp_matrix_new(12,0+i);
-    slp_matrix_new_ten(7,0+i) = slp_matrix_new(14,0+i);
-    slp_matrix_new_ten(8,0+i) = slp_matrix_new(16,0+i);
-    slp_matrix_new_ten(9,0+i) = slp_matrix_new(18,0+i);
-    
-    
-  }
   
   
   
@@ -532,7 +459,7 @@ mat write_flowdirTable() {
   // # qsd has direction of runoff/runon
   // # magnitude of qsd calculates as:
   double c1 = 2.25; // [1/mm] Saco 2013
-  double c2 = timeincr * 0.0002 ;  //[m/d] tranformed to [mm/deltat] ; Saco 2013
+  double c02 = timeincr * 0.0002 ;  //[m/d] tranformed to [mm/deltat] ; Saco 2013
   
   int rows = dims["rows"];
   int cols = dims["cols"];
@@ -751,7 +678,8 @@ mat write_flowdirTable() {
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
           M_sub(i,j,tt+1) = M_sub(i,j,tt+1) +  (timeincr * flux_sub(i,j,tt));
-        
+          
+    
         // Seepage
         
         if(M_sub(i,j,tt+1) > (s_fc_in * n_in * Zr_in)){

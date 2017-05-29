@@ -81,7 +81,13 @@ double Gr(double M, double P, double c, double gmax, double k1, double P0, doubl
   double Gro = c*WU(M,P,gmax,k1)*(P0*exp(-sigmaP*CM)-P);
   return Gro;
 }
-
+//gaussian function for halophytes
+// [[Rcpp::export]]
+double gauss(double CM, double mean, double var, double pi = 3.141593){
+  
+  double gauss = (1/(var*sqrt(2*pi)))*exp(pow((CM-mean),2)/(2*(var*var)));
+  return gauss;
+}
 // [[Rcpp::export]]
 double Mo(double P, double M, double Svir, double d, double sigmaP, double CM){
   

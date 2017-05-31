@@ -279,10 +279,8 @@ List seedDiffusion(int ro, int co, mat DiffdirTable, mat Medium ,double dt, doub
 }
 // vegetation parameter list function 
 // [[Rcpp::export]]
-List  Veg_cpp(std::string stype) {
-  
-  // default
-  double Zr = 400.0; //mm, Grass
+List  Veg_cpp() {
+
   double k = 12.0;//Saco et al, 2013
   double W0 = 0.2;//Saco et al, 2013
   double gmax = 0.05;//Saco et al, 2013
@@ -292,27 +290,14 @@ List  Veg_cpp(std::string stype) {
   
   
   
-  if (stype == "Fantasy Tree") {
-    
-    Zr = 400.0; 
-    k = 12.0;
-    W0 = 0.2;
-    gmax = 0.05;
-    c = 10.0;
-    k1 = 5.0;
-    d = 0.24;
-    
-  }
-  
-  return(Rcpp::List::create(Rcpp::Named("Zr") = Zr,
-                            Rcpp::Named("k") = k,
+  return(Rcpp::List::create(Rcpp::Named("k") = k,
                             Rcpp::Named("W0") = W0,
                             Rcpp::Named("gmax") = gmax,
                             Rcpp::Named("c") = c,
                             Rcpp::Named("k1") = k1,
                             Rcpp::Named("d") = d));
   
-}
+}  
 // salinity parameter list function 
 // [[Rcpp::export]]
 List Salt_cpp(std::string stype) {
@@ -557,7 +542,7 @@ mat write_flowdirTable() {
 }
 // Creating a elevation matrix (DEM)
 // [[Rcpp::export]]
-mat write_elev(int rows, int cols, double gslp, double ext){  // works! already tested separately
+mat write_elev(int rows, int cols, double gslp, double ext){  // has to be rewritten to account for statistical propertis of suface elevation heterogeneity
   
   int iii;
   mat elev(rows, cols, fill::randn);
@@ -636,7 +621,6 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   
 
   double k_in = vegpar["k"];
-  double Zr_in = vegpar["Zr"];
   double gmax_in = vegpar["gmax"];
   double c_in = vegpar["c"];
   double k1_in = vegpar["k1"];
@@ -663,6 +647,8 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   double gslp = diverseInput["gslp"]; 
   // extension of the domain
   double ext = diverseInput["ext"];
+  
+  double Zr_in = diverseInput["Zr"]
   
   double dx = ext/rows; 
 

@@ -27,13 +27,13 @@ Rain <- c(Rain)
 
 sourceCpp("soilfun.cpp")
 sourceCpp("vegfun.cpp")
-sourceCpp("saltfun.cpp")
+sourceCpp("saltfun_static.cpp")
 # 
 
 # # creating parameter lists
 #soilpar1 <- Soil_cpp("S Clay Loam")
 soilpar1 <- Soil_cpp("S Clay Loam")
-vegpar1 <-Veg_cpp("Fantasy Tree")
+vegpar1 <-Veg_cpp()
 saltpar1 <- Salt_cpp("Groundwater")  ## other options: "Rain", "Both", "None", "Groundwater"
 
 ### RUN TIME (how many days)
@@ -72,12 +72,14 @@ c1 <- 2.25; # [1/mm] Saco and Moreno-de las Heras 2013
 c02 <- 0.0002 ;  #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2013
 #seed diffusivity
 Dp <- 0.3 #Saco and Moreno-de las Heras,2013
+Zr <- 400.0 # mm, Grass
+
 
 sourceCpp("Model_withPlantInterference.cpp")  
 
 result <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1, 
                       dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
-                      diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
+                      diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
                       c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
                       
 

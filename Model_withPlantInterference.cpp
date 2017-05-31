@@ -6,58 +6,7 @@ using namespace Rcpp;
 using namespace arma;
 using namespace std;
 
-// Creating a elevation matrix (DEM)
-// [[Rcpp::export]]
-mat write_elev(int rows, int cols, double gslp, double ext){  // works! already tested separately
-  
-  int iii;
-  mat elev(rows, cols, fill::randn);
-  
-  elev.row(1) = elev.row(1) + (gslp * ext);
-  
-  for (iii=0; iii< rows; iii++) {
-    
-    elev.row(iii) = elev.row(iii)+(gslp * (ext-((ext/rows) * (iii-1))));
-  }
-  return elev;
-}
-// Just a function to find a condition and produce a submatrix (used in following function)
-// [[Rcpp::export]]
-arma::vec matrix_sub(arma::mat y, double B) {
-  // arma::mat Z = M * M.t();                        
-  arma::vec v = y.elem( find( y > B )); // Find IDs & obtain values
-  return v;
-}
-// calculates difference in height from one cell to the next highest cell of its surrounding cells
-// [[Rcpp::export]]
-mat diff_next_highest(int rows, int cols, mat elev){
-  
-  arma::mat diff_next_highest_cell(rows, cols, fill::zeros);
-  
-  int i;
-  int j;
-  for (i=1; i< (rows-1); i++) {
-    
-    for (j=1; j< (cols-1); j++ ){
-      
-      
-      mat y = elev.submat(i-1, j-1, i+1, j+1); //D8
-      
-      
-      vec rest = matrix_sub(y,elev(i,j));
-      
-      NumericVector rest1 = as<NumericVector>(wrap(rest));
-      
-      double minimum = min(rest1);
-      
-      diff_next_highest_cell(i,j) =  minimum- elev(i,j);
-      
-      
-    }
-  }
-  
-  return diff_next_highest_cell;
-}
+
 // Infiltration
 // [[Rcpp::export]]
 double Infil(double h, double P, double alpha_i, double k, double W0){
@@ -86,13 +35,6 @@ double Gr(double M, double P, double c, double gmax, double k1, double P0, doubl
   double Gro = c*WU(M,P,gmax,k1)*(P0*exp(-sigmaP*CM)-P);
   return Gro;
 }
-//gaussian function for halophytes
-// [[Rcpp::export]]
-double gauss(double CM, double mean, double var, double pi = 3.141593){
-  
-  double gauss = (1/(var*sqrt(2*pi)))*exp(pow((CM-mean),2)/(2*(var*var)));
-  return gauss;
-}
 //plant mortality function
 // [[Rcpp::export]]
 double Mo(double P, double M, double Svir, double d, double sigmaP, double CM){
@@ -102,120 +44,6 @@ double Mo(double P, double M, double Svir, double d, double sigmaP, double CM){
   return Mort;
   
 }
-// simply the distances from all other cell to one cell
-// [[Rcpp::export]]
-mat Distances(int ro, int co, double kk, double ll, double dx){  ///kk and ll are the i and j of the certain cell around with the distance matrix is calculated
-  
-  mat dist(ro, co,fill::zeros); 
-  
-  int ii;
-  int jj;
-  
-  
-  for (ii=0; ii< (ro); ii++) {
-    for (jj=0; jj< (co); jj++ ){  
-      
-      dist(ii,jj) = sqrt(pow((ii-kk),2) + pow((jj-ll),2))*dx; //*dx for output in m
-      
-    }
-  }
-  return dist;
-} // works =)
-// plant Interference function (competition/dacilitation)
-// [[Rcpp::export]]
-double interference(int ro, int co, double kk, double ll, mat Psub, double dx, double b1, double b2, double q1, double q2, double pi = 3.141593){  // doubel L
-  
-  mat interf(ro, co,fill::zeros);
-  mat w(ro, co,fill::zeros);
-  
-  int ii;
-  int jj;
-
-  
-  for (ii=0; ii< (ro); ii++) {
-    for (jj=0; jj< (co); jj++){  
-      
-      // w = (1/(2*pi*(L*L))) * exp(-(Distances(ro, co, kk, ll, dx) * Distances(ro, co, kk, ll, dx)))/(2*(L*L));
-      
-      mat dist = Distances(ro, co, kk, ll, dx);
-      
-      
-      w(ii,jj) = b1 *exp(-pow((dist(ii,jj)/q1),2)) - b2 *exp(-pow((dist(ii,jj)/q2),2));
-      
-    }
-  }
-  interf = w * Psub;
-  double sum = accu(interf);
-  
-  return sum;
-}
-// function for seed diffusion directions (all directions)
-// [[Rcpp::export]] 
-mat write_DiffdirectionTable() {  // this works
-  
-  arma::mat DiffdirTable(2,8, fill::zeros);
-  
-  DiffdirTable(0,0) = 0.0;
-  DiffdirTable(0,1) = -1.0;
-  DiffdirTable(0,2) = -1.0;
-  DiffdirTable(0,3) = -1.0;
-  DiffdirTable(0,4) = 0.0;
-  DiffdirTable(0,5) = 1.0;
-  DiffdirTable(0,6) = 1.0;
-  DiffdirTable(0,7) = 1.0;
-  
-  
-  DiffdirTable(1,0) = 1.0;
-  DiffdirTable(1,1) = 1.0;
-  DiffdirTable(1,2) = 0.0;
-  DiffdirTable(1,3) = -1.0;
-  DiffdirTable(1,4) = -1.0;
-  DiffdirTable(1,5) = -1.0;
-  DiffdirTable(1,6) = 0.0;
-  DiffdirTable(1,7) = 1.0;
-  
-  return DiffdirTable;
-  
-}
-// // seed Diffusion
-// [[Rcpp::export]] 
-List seedDiffusion(int ro, int co, mat DiffdirTable, mat Medium ,double dt, double Dp, double timeincr, double dx){
-  
-  
-  mat diffloss(ro, co,fill::zeros);
-  mat diffgain(ro, co,fill::zeros);
-  
-  dt = timeincr * ((dx*dx)/Dp); 
-  
-  int a;
-  int x;
-  int y;
-  int ii;
-  int jj;
-  
-  for (ii=1; ii< (ro-1); ii++) {
-    
-    for (jj=1; jj< (co-1); jj++ ){
-      
-      for (a=0; a < 7; a++) {
-        
-        x = DiffdirTable(0,a);
-        y = DiffdirTable(1,a);
-        
-        diffloss(ii,jj) = Dp * Medium(ii,jj) * dt; 
-        
-        diffgain(ii+x,jj+y) = Dp  * Medium(ii,jj) * dt * (1/8); 
-        
-      }
-    }
-  }
-  
-  
-  List diffoutput = Rcpp::List::create(Rcpp::Named("diffloss") = diffloss,
-                                       Rcpp::Named("diffgain") = diffgain);
-  return diffoutput;
-  
-}\
 // Capillary rise and drainage
 // [[Rcpp::export]]
 double L_n(double M, double Z, double n, double Zr, double b, double hb, double K_s, double psi_s_bar){
@@ -334,6 +162,119 @@ mat Subsurface(int ro, int co, mat flowdir, mat flowdirTable, mat M, mat filler,
   }
   
   return destination;
+  
+}
+// simply the distances from all other cell to one cell
+// [[Rcpp::export]]
+mat Distances(int ro, int co, double kk, double ll, double dx){  ///kk and ll are the i and j of the certain cell around with the distance matrix is calculated
+    
+    mat dist(ro, co,fill::zeros); 
+    
+    int ii;
+    int jj;
+    
+    
+    for (ii=0; ii< (ro); ii++) {
+      for (jj=0; jj< (co); jj++ ){  
+        
+        dist(ii,jj) = sqrt(pow((ii-kk),2) + pow((jj-ll),2))*dx; //*dx for output in m
+        
+      }
+    }
+    return dist;
+  } // works =)
+// plant Interference function (competition/dacilitation)
+// [[Rcpp::export]]
+double interference(int ro, int co, double kk, double ll, mat Psub, double dx, double b1, double b2, double q1, double q2, double pi = 3.141593){  // doubel L
+  
+  mat interf(ro, co,fill::zeros);
+  mat w(ro, co,fill::zeros);
+  
+  int ii;
+  int jj;
+  
+  
+  for (ii=0; ii< (ro); ii++) {
+    for (jj=0; jj< (co); jj++){  
+      
+      // w = (1/(2*pi*(L*L))) * exp(-(Distances(ro, co, kk, ll, dx) * Distances(ro, co, kk, ll, dx)))/(2*(L*L));
+      
+      mat dist = Distances(ro, co, kk, ll, dx);
+      
+      
+      w(ii,jj) = b1 *exp(-pow((dist(ii,jj)/q1),2)) - b2 *exp(-pow((dist(ii,jj)/q2),2));
+      
+    }
+  }
+  interf = w * Psub;
+  double sum = accu(interf);
+  
+  return sum;
+}
+// function for seed diffusion directions (all directions)
+// [[Rcpp::export]] 
+mat write_DiffdirectionTable() {  // this works
+  
+  arma::mat DiffdirTable(2,8, fill::zeros);
+  
+  DiffdirTable(0,0) = 0.0;
+  DiffdirTable(0,1) = -1.0;
+  DiffdirTable(0,2) = -1.0;
+  DiffdirTable(0,3) = -1.0;
+  DiffdirTable(0,4) = 0.0;
+  DiffdirTable(0,5) = 1.0;
+  DiffdirTable(0,6) = 1.0;
+  DiffdirTable(0,7) = 1.0;
+  
+  
+  DiffdirTable(1,0) = 1.0;
+  DiffdirTable(1,1) = 1.0;
+  DiffdirTable(1,2) = 0.0;
+  DiffdirTable(1,3) = -1.0;
+  DiffdirTable(1,4) = -1.0;
+  DiffdirTable(1,5) = -1.0;
+  DiffdirTable(1,6) = 0.0;
+  DiffdirTable(1,7) = 1.0;
+  
+  return DiffdirTable;
+  
+}
+// // seed Diffusion
+// [[Rcpp::export]] 
+List seedDiffusion(int ro, int co, mat DiffdirTable, mat Medium ,double dt, double Dp, double timeincr, double dx){
+  
+  
+  mat diffloss(ro, co,fill::zeros);
+  mat diffgain(ro, co,fill::zeros);
+  
+  
+  int a;
+  int x;
+  int y;
+  int ii;
+  int jj;
+  
+  for (ii=1; ii< (ro-1); ii++) {
+    
+    for (jj=1; jj< (co-1); jj++ ){
+      
+      for (a=0; a < 7; a++) {
+        
+        x = DiffdirTable(0,a);
+        y = DiffdirTable(1,a);
+        
+        diffloss(ii,jj) = Dp * Medium(ii,jj) * dt; 
+        
+        diffgain(ii+x,jj+y) = Dp  * Medium(ii,jj) * dt * (1/8); 
+        
+      }
+    }
+  }
+  
+  
+  List diffoutput = Rcpp::List::create(Rcpp::Named("diffloss") = diffloss,
+                                       Rcpp::Named("diffgain") = diffgain);
+  return diffoutput;
   
 }
 // vegetation parameter list function 
@@ -614,8 +555,65 @@ mat write_flowdirTable() {
   return flowdirTable;
   
 }
-
-
+// Creating a elevation matrix (DEM)
+// [[Rcpp::export]]
+mat write_elev(int rows, int cols, double gslp, double ext){  // works! already tested separately
+  
+  int iii;
+  mat elev(rows, cols, fill::randn);
+  
+  elev.row(1) = elev.row(1) + (gslp * ext);
+  
+  for (iii=0; iii< rows; iii++) {
+    
+    elev.row(iii) = elev.row(iii)+(gslp * (ext-((ext/rows) * (iii-1))));
+  }
+  return elev;
+}
+// Just a function to find a condition and produce a submatrix (used in following function)
+// [[Rcpp::export]]
+arma::vec matrix_sub(arma::mat y, double B) {
+  // arma::mat Z = M * M.t();                        
+  arma::vec v = y.elem( find( y > B )); // Find IDs & obtain values
+  return v;
+}
+// calculates difference in height from one cell to the next highest cell of its surrounding cells
+// [[Rcpp::export]]
+mat diff_next_highest(int rows, int cols, mat elev){
+  
+  arma::mat diff_next_highest_cell(rows, cols, fill::zeros);
+  
+  int i;
+  int j;
+  for (i=1; i< (rows-1); i++) {
+    
+    for (j=1; j< (cols-1); j++ ){
+      
+      
+      mat y = elev.submat(i-1, j-1, i+1, j+1); //D8
+      
+      
+      vec rest = matrix_sub(y,elev(i,j));
+      
+      NumericVector rest1 = as<NumericVector>(wrap(rest));
+      
+      double minimum = min(rest1);
+      
+      diff_next_highest_cell(i,j) =  minimum- elev(i,j);
+      
+      
+    }
+  }
+  
+  return diff_next_highest_cell;
+}
+//gaussian function for halophytes
+// [[Rcpp::export]]
+double gauss(double CM, double mean, double var, double pi = 3.141593){
+  
+  double gauss = (1/(var*sqrt(2*pi)))*exp(pow((CM-mean),2)/(2*(var*var)));
+  return gauss;
+}
 
 // the core of the model
 // [[Rcpp::export]]
@@ -667,7 +665,6 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   double ext = diverseInput["ext"];
   
   double dx = ext/rows; 
-  double dt = timeincr * ((dx*dx)/Dm);
 
   
   // Creating the DEM
@@ -707,6 +704,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   //seed diffusivity
   double Dp = diverseInput["Dp"]; 
   
+  double dts = timeincr * ((dx*dx)/Dp);
+  
+  
   // interference parameters, competition and facilitation
   double b1 = diverseInput["b1"];
   double b2 = diverseInput["b2"];
@@ -732,6 +732,8 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   arma::cube I_sub = arma::zeros(rows, cols, deltat);
   //water mass balance
   arma::cube mb_sub = arma::zeros(rows, cols, deltat);
+  //salt mass balance
+  arma::cube mb_salt_sub = arma::zeros(rows, cols, deltat);
   //soil moisture
   arma::cube M_sub = arma::zeros(rows, cols, deltat);
   // vertical water flux, capillary rise and drainage
@@ -794,6 +796,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   arma::cube SmM = arma::zeros(rows, cols, time);
   arma::cube Svir = arma::zeros(rows, cols, time);
   arma::cube mb = arma::zeros(rows, cols, time);
+  arma::cube mb_salt = arma::zeros(rows, cols, time);
   arma::cube qsd = arma::zeros(rows, cols, time);
   arma::cube runonsd = arma::zeros(rows, cols, time);
   arma::cube seep = arma::zeros(rows, cols, time);
@@ -894,7 +897,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
               - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt) + seep_sub(i,j,tt) + runon_sub(i,j,tt);
 
           }
-          
+
           
           
           //Infiltration
@@ -911,7 +914,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           // plant growth
           Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in, P0, sigmaP, CM_sub(i,j,tt));
           //  plant Mortality
-          Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), M_sub(i,j,tt+1), Svir_sub(i,j,tt),d_in, sigmaP, CM_sub(i,j,tt));  
+          Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), M_sub(i,j,tt+1), Svir_sub(i,j,tt), d_in, sigmaP, CM_sub(i,j,tt));  
           
           // seed transport with runoff/runon
           mat c2 = timeincr * c02*exp(-sigmaP*CM_sub.slice(tt));
@@ -937,15 +940,15 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           double germ = (1.0-(M_sub(i,j,tt)/Svir_sub(i,j,tt)));
           
           // seed diffusion (into all directions due to wind/animals)
-          List seed = seedDiffusion(rows, cols, write_DiffdirectionTable(), P_sub.slice(tt), dt, Dp,  timeincr, dx);
+          List seed = seedDiffusion(rows, cols, write_DiffdirectionTable(), P_sub.slice(tt), dts, Dp,  timeincr, dx);
           
           mat seed_diff_loss =  seed[1];
           mat seed_diff_gain =  seed[2];
           
           //  Plant biomass balance
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) 
-            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx);
-          
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt)- Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j)
+           + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);  
           
@@ -1002,8 +1005,10 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
             pow((h1bar_in * 0.1 * pow((M_sub(i,j,tt+1)/(n_in * Zr_in)),-b_in))+(3.6 * (CM_sub(i,j,tt+1)*(1.0/58.44))),(-1.0/b_in));
           
           
-          // # checking the mass balance
-          mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
+          
+          // double beta = Svir_sub(i,j,tt+1)/M_sub(i,j,tt+1);
+          // b2 = b2 * beta;
+          // b1 = 1.0 - b2;
           
           // surface salt transport with runon
           mat salt_runon_store(rows, cols, fill::ones);
@@ -1016,6 +1021,14 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           // salt concentration in overland flow depth h 
           Ch_sub(i,j,tt+1) = (Smh_sub(i,j,tt+1)/h_sub(i,j,tt+1));
 
+          // salt balance
+          
+          mb_salt_sub(i,j,tt) <- SmI_sub(i,j,tt+1) + U_salt(i,j,tt) + runonSubsSalt_sub(i,j,tt+1) - (CM_sub(i,j,tt)*seep_sub(i,j,tt+1)) - 
+            L_salt(i,j,tt) - (Dm * timeincr * CM_sub(i,j,tt) * M_sub(i,j,tt+1));
+          // # checking the mass balance
+          mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
+          
+          
         }
         // Aggregating the subdaily to daily values
 
@@ -1037,6 +1050,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
         double sumrunon = 0.0;
         double sumflux = 0.0;
         double summb = 0.0;
+        double summb_salt = 0.0;
         double sumqsd = 0.0;
         double sumrunonsd = 0.0;
         double sumrunonSubsSalt = 0.0;
@@ -1050,6 +1064,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           sumq += q_sub(i,j,tt);
           sumflux += flux_sub(i,j,tt) * timeincr;
           summb += mb_sub(i,j,tt);
+          summb_salt += mb_salt_sub(i,j,tt);
           
           sumqsd += qsd_sub(i,j,tt);
           sumrunonsd += runonsd_sub(i,j,tt);
@@ -1065,6 +1080,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
         In(i,j,t) = sumI;
         flux(i,j,t) = sumflux;
         mb(i,j,t) = summb;
+        mb_salt(i,j,t) = summb_salt;
         qsd(i,j,t) = sumqsd;
         runonsd(i,j,t) = sumrunonsd;
         runonSubsSalt(i,j,t) = sumrunonSubsSalt;
@@ -1078,7 +1094,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   // Creating output list 
   
   List fields;
-  arma::field<arma::cube> f1(21);
+  arma::field<arma::cube> f1(22);
   f1( 0 ) = h;
   f1( 1 ) = q;
   f1( 2 ) = In;
@@ -1100,13 +1116,13 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   f1( 18 ) = runonSubsSalt;
   f1( 19 ) = salt_runon;
   f1( 20 ) = Subsrunon;
+  f1( 21 ) = mb_salt;
   fields["field<cube>"] = f1;
   
   
   List output = List::create(_["fields : field<cube>"] = f1);
   
   return output;
-  
   
 }
 

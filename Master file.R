@@ -1,7 +1,10 @@
 ## MASTER FILE
 
 # This file sets 
-
+library("devtools")
+find_rtools()
+library("Rcpp")
+library("RcppArmadillo")
 
 source("Rainfall.R")
 # alpha <- c(0.6,1.5) # 
@@ -52,16 +55,16 @@ Mn <- 0.04 # Manning's n
 # EXTEND of PLOT in [m]
 ext <- 200.0 
 # soil moisture diffusivity
- Dm <- 0.27 #Saco and Moreno-de las Heras,2013
+Dm <- 0.27 #Saco and Moreno-de las Heras,2013
 # coefficient impact of plant interference
- zeta <- 0.2
+zeta <- 0.2
 # ecosystem carrying capacity
 P0 <-  200.0
 # sensitivity to salinity
 sigmaP <- 0.5
 # interference parameters, competition and facilitation
- b1 <- 0.1
- b2 <- 0.9
+ b1 <- 0.9
+ b2 <- 0.1
  q1 <-  2.0
  q2 <-  4.0
 # seed dispersal and diffusion
@@ -72,12 +75,11 @@ Dp <- 0.3 #Saco and Moreno-de las Heras,2013
 
 sourceCpp("Model_withPlantInterference.cpp")  
 
-SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1, 
-                      dims = list(rows=rows,cols=cols,time=time, Z=Z),
+result <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1, 
+                      dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
                       diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
-                      c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta), 
-                      Rain=Rain) 
-
+                      c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
+                      
 
 ### results Visualization
 

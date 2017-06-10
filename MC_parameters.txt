@@ -1,0 +1,14 @@
+Z			"""mm''"
+Zr			''mm''
+ConcCost	0		"""g_l-1_TDS"""
+CMgw			"""g_l-1_TDS"""
+d			"""d-1"""
+k1			
+b1	0.1	0.9	
+b2	0.1	0.9	
+q1	1	2	
+q2	2	12	
+sigmaP	0.01	0.8	
+gslp			"""%"""
+sigma2	0.01	1	"""m''"
+range	5	20	"""m''"

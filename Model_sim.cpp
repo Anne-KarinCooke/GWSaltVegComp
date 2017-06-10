@@ -716,125 +716,134 @@ double gauss(double CM, double mean, double var, double pi = 3.141593){
 
 // the core of the model
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
+List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar,
                            Rcpp::List dims, NumericVector Rain,
-                           Rcpp::List diverseInput //, Rcpp::List simInput
+                           Rcpp::List fixedInput, Rcpp::List simInput, mat elev, mat Zras
 ) {
   
-  double ConcConst_in = saltpar["ConcConst"];
-  double f_in = saltpar["f"];
-  double CMgw_in = saltpar["CMgw"];
-  double n_in = soilpar["n"];
-  double b_in = soilpar["b"];
-  double K_s_in = soilpar["K_s"];
-  K_s_in = K_s_in*10.0;  // corrected to be in mm/d
-  double hb_in = soilpar["hb"];
-  double psi_s_bar_in = soilpar["psi_s_bar"];
-  double h1bar_in = soilpar["h1bar"];
-  double s_fc_in = soilpar["s_fc"];
   
-  
-  double k_in = vegpar["k"];
-  double gmax_in = vegpar["gmax"];
-  double c_in = vegpar["c"];
-  double k1_in = vegpar["k1"];
-  double d_in = vegpar["d"];
-  double W0_in = vegpar["W0"];
-  
-  int i = 0;
-  int j = 0;
-  int t = 1;
-  int tt = 0;
-  
-  int deltat = diverseInput["deltat"];
-  
-  // temporal discretization
-  float timeincr = 1.0/deltat;
-  // spatial dimensions of the domain
+  // spatial and temporal dimensions of the domain
   int rows = dims["rows"];
   int cols = dims["cols"];
   // duration of simulation
   int time = dims["time"];
   // groundwater depth
   double Z = dims["Z"];
-  // hillslope
-  double gslp = diverseInput["gslp"]; 
   // extension of the domain
-  double ext = diverseInput["ext"];
+  double ext = dims["ext"];
+  // temporal discretization, subdaily time steps
+  int deltat = fixedInput["deltat"];
   
-  double Zr_in = diverseInput["Zr"];
+  // hillslope
+  double gslp = simInput["gslp"]; 
   
-  double dx = ext/rows; 
+  // salinity
   
-  
-  // // Creating the DEM
-  mat elev = write_elev(rows, cols, gslp, ext);
-  // elev.save("B.txt", arma::raw_ascii);
-  // 
-  // system("R CMD BATCH GeoTiff.R");
-  // load from disk
-  arma::mat flowdir_new;
-  flowdir_new.load("flowdir_new.txt");
-  //mat flowdir_new = sub1(flowdir,1);
-
-
-  arma::mat slope;
-  slope.load("slp_matrix.txt");
-  //mat slope = sub1(slop,1);
-
-
-  
-  // //// Creating the DEM
-  // mat elev = write_elev(rows, cols, gslp, ext);
-  // // matrix with elevation differences
-  // mat diff = diff_next_highest(rows, cols, elev);
-  // // flow directions
-  // int bla = call_Taudem(elev);
-  // 
-  // mat flowdir_new = flowdir_load();
-  // //slope of each cell
-  // mat slope = slope_load();
-  
-  // Creating the groundwater depth matrix
-  mat Zras = Z_matrix(elev, rows, cols,  Z);
+  // salt concentration rainfall/irrigation
+  double ConcConst_in = simInput["ConcConst"];
+  // salt concentration groundwater 
+  double CMgw_in = simInput["CMgw"];
+  // salt leaching efficiency
+  double f_in = fixedInput["f"]
   
   
-  // different parameters have to be set
-  
+  // soil parameters
+  // porosity
+  double n_in = soilpar["n"];
+  // campbells b
+  double b_in = soilpar["b"];
+  /// saturated hudraulic conductivity
+  double K_s_in = soilpar["K_s"];
+  K_s_in = K_s_in*10.0;  // corrected to be in mm/d
+  // bubbling pressure
+  double hb_in = soilpar["hb"];
+  // matrix potential
+  double psi_s_bar_in = soilpar["psi_s_bar"];
+  double h1bar_in = soilpar["h1bar"];
+  // field capacity
+  double s_fc_in = soilpar["s_fc"];
   // soil moisture diffusivity
-  double Dm = diverseInput["Dm"]; 
+  double Dm = fixedInput["Dm"]; 
   
   // infiltration rate
-  double alpha_i = diverseInput["alpha_i"]; 
+  double alpha_i = fixedInput["alpha_i"]; 
   
   // Kinematic wave (runoff) paramters
-  double cn = diverseInput["cn"];  // conversion factor
-  double Mn = diverseInput["Mn"]; // Mannings n
+  double cn = fixedInput["cn"];  // conversion factor
+  double Mn = fixedInput["Mn"]; // Mannings n
+  
+  // vegetation parameters
+  //root depth
+  double Zr_in = simInput["Zr"];
+  double k_in = vegpar["k"];
+  double gmax_in = vegpar["gmax"];
+  // growth conversion factor
+  double c_in = vegpar["c"];
+  // half saturation constant
+  double k1_in = simInput["k1"];
+  // mortality factor, half life?
+  double d_in = simInput["d"];
+  
+  double W0_in = vegpar["W0"];
+  // interference parameters, competition and facilitation
+  double b1 = simInput["b1"];
+  double b2 = simInput["b2"];
+  double q1 = simInput["q1"];
+  double q2 = simInput["q2"];
+  double zeta = fixedInput["zeta"]; // relative importance of non-local effects vs local effects (impact of interference)
   
   // ecosystem carrying capacity of plant biomass density
-  double P0 =  diverseInput["P0"];
+  double P0 =  fixedInput["P0"];
   // plant sensitivity to salinity
-  double sigmaP = diverseInput["sigmaP"];
-  
+  double sigmaP = simInput["sigmaP"];
   // seed dispersal and diffusion parameters
-  double c1 = diverseInput["c1"]; // [1/mm] 
-  double c02 = diverseInput["c02"];  //[m/d] 
+  double c1 = fixedInput["c1"]; // [1/mm] 
+  double c02 = fixedInput["c02"];  //[m/d] 
   //seed diffusivity
-  double Dp = diverseInput["Dp"]; 
+  double Dp = fixedInput["Dp"]; 
   
+  
+  
+  int i = 0;
+  int j = 0;
+  int t = 1;
+  int tt = 0;
+  
+  
+  // temporal discretization
+  float timeincr = 1.0/deltat;
+  // cell size
+  double dx = ext/rows; 
   //double dts = timeincr * ((dx*dx)/Dp);
   
   
-  // interference parameters, competition and facilitation
-  double b1 = diverseInput["b1"];
-  double b2 = diverseInput["b2"];
-  double q1 = diverseInput["q1"];
-  double q2 = diverseInput["q2"];
-  double zeta = diverseInput["zeta"]; // relative importance of non-local effects vs local effects (impact of interference)
+  // old:
+  // // Creating the DEM
+  // mat elev = write_elev(rows, cols, gslp, ext);
+  // // elev.save("B.txt", arma::raw_ascii);
+  // // system("R CMD BATCH GeoTiff.R");
+  // // load from disk
+  // arma::mat flowdir_new;
+  // flowdir_new.load("flowdir_new.txt");
+  // //mat flowdir_new = sub1(flowdir,1);
+  // arma::mat slope;
+  // slope.load("slp_matrix.txt");
+  // //mat slope = sub1(slop,1);
   
   
   
+  //// Creating the DEM
+  // mat elev = write_elev(rows, cols, gslp, ext);
+  // matrix with elevation differences
+  mat diff = diff_next_highest(rows, cols, elev);
+  // flow directions
+  int bla = call_Taudem(elev);
+
+  mat flowdir_new = flowdir_load();
+  //slope of each cell
+  mat slope = slope_load();
   
+
   /// storage cubes (arrays) for the subdaily time steps tt:
   
   /// HYDROLOGY
@@ -862,9 +871,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   
   /// VEGETATION
   /// plant biomass density
-  arma::cube P_sub = arma::zeros(rows, cols, deltat);
-  // plant water uptake
-  arma::cube WU_sub = arma::zeros(rows, cols, deltat);
+  // arma::cube P_sub = arma::zeros(rows, cols, deltat);
+  // // plant water uptake
+  // arma::cube WU_sub = arma::zeros(rows, cols, deltat);
   // plant growth
   arma::cube Gr_sub = arma::zeros(rows, cols, deltat);
   // plant mortality
@@ -905,8 +914,8 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   arma::cube q = arma::zeros(rows, cols, time);
   arma::cube runon = arma::zeros(rows, cols, time);
   arma::cube In = arma::zeros(rows, cols, time);
-  arma::cube P = arma::zeros(rows, cols, time);
-  arma::cube Wu = arma::zeros(rows, cols, time);
+  // arma::cube P = arma::zeros(rows, cols, time);
+  // arma::cube Wu = arma::zeros(rows, cols, time);
   arma::cube M = arma::zeros(rows, cols, time);
   arma::cube flux = arma::zeros(rows, cols, time);
   arma::cube CM = arma::zeros(rows, cols, time);
@@ -923,6 +932,39 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   arma::cube runonSubsSalt = arma::zeros(rows, cols, time);
   arma::cube salt_runon = arma::zeros(rows, cols, time);
   arma::cube Subsrunon = arma::zeros(rows, cols, time);
+  
+  // different species
+  arma::cube P_subA = arma::zeros(rows, cols, deltat);
+  arma::cube P_subB = arma::zeros(rows, cols, deltat);
+  arma::cube P_subC = arma::zeros(rows, cols, deltat);
+  
+  arma::cube Gr_subA = arma::zeros(rows, cols, deltat);
+  arma::cube Gr_subB = arma::zeros(rows, cols, deltat);
+  arma::cube Gr_subC = arma::zeros(rows, cols, deltat);
+  
+  arma::cube Mo_subA = arma::zeros(rows, cols, deltat);
+  arma::cube Mo_subB = arma::zeros(rows, cols, deltat);
+  arma::cube Mo_subC = arma::zeros(rows, cols, deltat);
+  
+  arma::cube WU_subA = arma::zeros(rows, cols, deltat);
+  arma::cube WU_subB = arma::zeros(rows, cols, deltat);
+  arma::cube WU_subC = arma::zeros(rows, cols, deltat);
+  
+  arma::cube P_A = arma::zeros(rows, cols, time);
+  arma::cube P_B = arma::zeros(rows, cols, time);
+  arma::cube P_C = arma::zeros(rows, cols, time);
+  
+  arma::cube WU_A = arma::zeros(rows, cols, time);
+  arma::cube WU_B = arma::zeros(rows, cols, time);
+  arma::cube WU_C = arma::zeros(rows, cols, time);
+  
+  // of all species together
+  
+  arma::cube P_sub = arma::zeros(rows, cols, deltat);
+  arma::cube P = arma::zeros(rows, cols, time);
+  
+  arma::cube WU_sub = arma::zeros(rows, cols, deltat);
+  arma::cube Wu = arma::zeros(rows, cols, time);
   
   
   // actual model loop starts here
@@ -995,26 +1037,29 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt) + runon_sub(i,j,tt+1);
           
           
-          //           // Ponding check and rewrite of elevation mat
-          //           // if (((h_sub(i,j,tt+1) + elev(i,j)*1000.0) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
-          //           //   
-          //           //   mat elev_substitute(rows,cols);
-          //           //   elev_substitute = elev;
-          //           //   elev_substitute(i,j) =  elev(i,j) + diff(i,j);
-          //           //   
-          //           //   List flwslp = flowdir_slope_generation(elev_substitute, rows,cols);
-          //           //   
-          //           //   mat new_Slope = flwslp[2];
-          //           //   
-          //           //   q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt+1), cn, Mn, new_Slope(i,j));
-          //           //   
-          //           //   runon_store = Surface(rows, cols, flwslp[1], write_flowdirTable(), q_sub.slice(tt+1), ones);
-          //           //   runon_sub(i,j,tt+1) = runon_store(i,j);
-          //           //   
-          //           //   h_sub(i,j,tt+1) =  h_sub(i,j,tt+1) + Rain_in
-          //           //     - (timeincr * Infil(h_sub(i,j,tt+1),P_sub(i,j,tt+1), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt+1) + runon_sub(i,j,tt+1);
-          //           //   
-          //           // }
+                //    Ponding check and rewrite of elevation mat
+                    if (((h_sub(i,j,tt+1) + elev(i,j)*1000.0) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
+
+                      mat elev_substitute(rows,cols);
+                     // elev_substitute = elev;
+                      elev_substitute(i,j) =  elev(i,j) + diff(i,j);
+                      
+                      // calling TauDEM again
+                      int bla = call_Taudem(elev);
+                      // flow directions
+                      mat flowdir_adj = flowdir_load();
+                      //slope of each cell
+                      mat slope_adj = slope_load();
+
+                      q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt+1), cn, Mn, slope_adj(i,j));
+
+                      runon_store = Surface(rows, cols, flowdir_adj, write_flowdirTable(), q_sub.slice(tt+1), ones);
+                      runon_sub(i,j,tt+1) = runon_store(i,j);
+
+                      h_sub(i,j,tt+1) =  h_sub(i,j,tt+1) + Rain_in
+                        - (timeincr * Infil(h_sub(i,j,tt+1),P_sub(i,j,tt+1), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt+1) + runon_sub(i,j,tt+1);
+
+                    }
           
           //Infiltration
           I_sub(i,j,tt+1) = timeincr * Infil(h_sub(i,j,tt+1), P_sub(i,j,tt) , alpha_i, k_in, W0_in); 
@@ -1064,11 +1109,11 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           //  Plant biomass balance
           
           P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) ; //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
-// Rcpp::Rcout << P_sub;
+          // Rcpp::Rcout << P_sub;
           // if (P_sub(i,j,tt+1) < 0.0){
           //   P_sub(i,j,tt+1) = 0.0;
           // }
-
+          
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
           
@@ -1249,19 +1294,19 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
 }
 
 /*** R
-# results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
-#                                  dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
-#                                  diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
-#                                                       c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
-# library(rasterVis)
-# coul = brewer.pal(8, "YlGn")
-# coul = colorRampPalette(coul)(100)
+results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
+                                 dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
+                                 diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
+                                                      c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
+  library(rasterVis)
+  coul = brewer.pal(8, "YlGn")
+  coul = colorRampPalette(coul)(100)
+  
+  
+  qr<-brick(results$fields[[6]][2:19,2:19,1:100])
+  
+  levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
 # 
-# 
-#  qr<-brick(results$fields[[6]][2:19,2:19,1:100])
-#  
-#  levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
-# # 
 # results$fields[[6]][2:19,2:19,90:91]
 # # results$fields[[6]][2:19,2:19,94]
 # # results$fields[[6]][2:19,2:19,1:10]
@@ -1271,7 +1316,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
 #  animate(qr, n=1)
 # # # 
 # # results$fields[[2]]
- # results$fields[[6]]
+# results$fields[[6]]
 # f1( 0 ) = h;
 # f1( 1 ) = q;
 # f1( 2 ) = In;

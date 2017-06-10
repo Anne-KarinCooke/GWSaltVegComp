@@ -11,5 +11,5 @@ slp_matrix<- as.matrix(slp,nrow= nrow(slp), ncol=ncol(slp),rownames = FALSE, col
 flowdir=raster("new_elevang.tif")
 flowdir[is.na(flowdir)] <- 8.0   ###The loop had problems with NA, so I changed NA from the blundaries to be 8. 8 is outside of 2pi...
 flowdir <- as.matrix(flowdir,nrow= nrow(flowdir), ncol=ncol(flowdir), rownames=FALSE, colnames=FALSE)
-write.table(flowdir, file="new_flowdir.txt", sep=",")
+write.table(flowdir, file="flowdir_new.txt", sep=",")
 write.table(slp_matrix, file="slp_matrix.txt", sep=",")

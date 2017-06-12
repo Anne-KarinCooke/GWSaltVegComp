@@ -316,47 +316,7 @@ mat seedDiffusionGain(int ro, int co, mat DiffdirTable, mat Medium , double Dp, 
   return diffgain;
 }
 
-// List seedDiffusion(int ro, int co, mat DiffdirTable, mat Medium , double Dp, double timeincr){
-//   
-//   
-//   mat diffloss(ro, co,fill::zeros);
-//   mat diffgain(ro, co,fill::zeros);
-//   float divide = 1.0/8.0;
-//   
-//   int a;
-//   int x;
-//   int y;
-//   int ii;
-//   int jj;
-//   
-//   for (ii=1; ii< (ro-1); ii++) {
-//     
-//     for (jj=1; jj< (co-1); jj++ ){
-//       
-//       
-//       
-//       for (a=0; a < 7; a++) {
-//         
-//         x = DiffdirTable(0,a);
-//         y = DiffdirTable(1,a);
-//         
-//         
-//         diffgain(ii+x,jj+y) = Dp  * Medium(ii,jj) *timeincr * divide; 
-//         diffloss(ii,jj) = Dp * Medium(ii,jj) * timeincr; 
-//         
-//         
-//         
-//       }
-//     }
-//   }
-//   
-//   
-//   List diffoutput = Rcpp::List::create(Rcpp::Named("diffloss") = diffloss,
-//                                        Rcpp::Named("diffgain") = diffgain);
-//   return diffoutput;
-//   
-// }
-// vegetation parameter list function 
+
 // [[Rcpp::export]]
 List  Veg_cpp() {
   
@@ -776,13 +736,13 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   arma::mat flowdir_new;
   flowdir_new.load("flowdir_new.txt");
   //mat flowdir_new = sub1(flowdir,1);
-
-
+  
+  
   arma::mat slope;
   slope.load("slp_matrix.txt");
   //mat slope = sub1(slop,1);
-
-
+  
+  
   
   // //// Creating the DEM
   // mat elev = write_elev(rows, cols, gslp, ext);
@@ -1063,12 +1023,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           
           //  Plant biomass balance
           
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) ; //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
-// Rcpp::Rcout << P_sub;
-          // if (P_sub(i,j,tt+1) < 0.0){
-          //   P_sub(i,j,tt+1) = 0.0;
-          // }
-
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j);// + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+          // Rcpp::Rcout << P_sub;
+          
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
           
@@ -1249,18 +1206,18 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
 }
 
 /*** R
-# results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
-#                                  dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
-#                                  diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
-#                                                       c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
-# library(rasterVis)
-# coul = brewer.pal(8, "YlGn")
-# coul = colorRampPalette(coul)(100)
-# 
-# 
-#  qr<-brick(results$fields[[6]][2:19,2:19,1:100])
-#  
-#  levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
+results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
+                                 dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
+                                 diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
+                                                      c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
+  library(rasterVis)
+  coul = brewer.pal(8, "YlGn")
+  coul = colorRampPalette(coul)(100)
+  
+  
+  qr<-brick(results$fields[[6]][2:19,2:19,1:40])
+  
+  levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
 # # 
 # results$fields[[6]][2:19,2:19,90:91]
 # # results$fields[[6]][2:19,2:19,94]
@@ -1271,7 +1228,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
 #  animate(qr, n=1)
 # # # 
 # # results$fields[[2]]
- # results$fields[[6]]
+# results$fields[[6]]
 # f1( 0 ) = h;
 # f1( 1 ) = q;
 # f1( 2 ) = In;

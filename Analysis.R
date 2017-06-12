@@ -1,6 +1,6 @@
 ### Statistical analysis
 
-data <- read.table("Store.txt")
+data <- read.table("Store.txt", header=T)
 
 for 
 
@@ -12,18 +12,72 @@ startEq ## start of equilibirum condition
 
 # make new table with P_A, P_B, P_C, SmM averaged values (just one matrix each)
 
+# do geostat with SmM
+# make matrix SmM_mat!!!
+
 ### PATCH AND DIVERSITY STATISTICS
+library("SDMTools")
+
+for (i in length(runs)){
+  # get a matrix for each P abc and salt: P_A_mat
+  
+  #P_A  matrix with P values of species A (average of stable state)
+  
+  P_all_stat <- ClassStat(P_all_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+  P_A_stat <- ClassStat(P_A_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+  P_B_stat <- ClassStat(P_B_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+  P_C_stat <- ClassStat(P_C_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+  
+  
+  
+  
+  library("vegan")
+  div_mat <- matrix(0, nrow= runs, ncol=4)
+  
+  for (i in length(runs)){
+    
+    div_mat[i,1] <- i
+    div_mat[i,2]<-sum(P_A_mat)
+    div_mat[i,3]<-sum(P_B_mat)
+    div_mat[i,4]<-sum(P_C_mat)
+  }
+  
+  shannon <- diversity(div_mat, index = "shannon", MARGIN = 1, base = exp(1))
+  simpson <- diversity(div_mat, index = "simpson", MARGIN = 1)
+  
+  ## how is the div output summed up?
+  
+  
+  # P_A$n.patches
+  # P_A$mean.patch.area
+  # P_A$sd.patch.area
+  # P_A$patch.density
+  # P_A$mean.perim.area.ratio
+  # P_A$sd.perim.area.ratio
+  # P_A$mean.shape.index
+  # P_A$sd.shape.index
+  
+  Store_Analysis[i] <- data_frame(data$simInput[i], P_all_stat[i], P_A_stat[i], P_B_stat[i], P_C_stat[i], SmM_mat[i], shannon[i], simpson[i])
+}
+
+write.table(Store_Analysis, "PatchStatDiversity.txt")
+
+# Store <- data_frame(simInput,  
+#                     P= array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+#                     P_A = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+#                     P_B = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+#                     P_C = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+#                     SmM = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+#                     Zmatrix, eleve_data_new) 
 
 
- library("SDMTools")
 
-# get a matrix for each P abc and salt: P_A_mat
 
-#P_A  matrix with P values of species A (average of stable state)
 
-P_A <- ClassStat(P_A_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
-P_B <- ClassStat(P_B_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
-P_C <- ClassStat(P_C_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+### Linear regression
+
+linReg <- read.table("PatchStatDiversity.txt")
+attach(linReg)
 
 # P_A$n.patches
 # P_A$mean.patch.area
@@ -34,59 +88,24 @@ P_C <- ClassStat(P_C_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
 # P_A$mean.shape.index
 # P_A$sd.shape.index
 
-Store_Analysis <- data_frame(P_A, P_B, P_C, SmM, )
+# Store_Analysis[i] <- data_frame(data$simInput[i], P_all_stat[i], P_A_stat[i], P_B_stat[i], P_C_stat[i], SmM_mat[i], shannon[i], simpson[i])
+# }
+# Z =Z,ConcConst = ConcConst, CMgw = CMgw,gslp = gslp, 
+# dA = dA, k1A = k1A,  b1A = b1A, b2A = b2A, q1A = q1A, q2A = q2A, sigmaPA= sigmaPA,
+# dB = dB, k1B = k1B,  b1B = b1B, b2B = b2B, q1B = q1B, q2B = q2B, sigmaPB= sigmaPB,
+# dC = dC, k1C = k1C,  b1C = b1C, b2C = b2C, q1C = q1C, q2C = q2C, sigmaPC= sigmaPC,
+# ZrA =ZrA, ZrB =ZrB, ZrC =ZrC,
+# sigma2 = sigma2, range = range)
+
+# A
+Stat_A <- lm(P_A$n.patches ~ )
+Plants_Stat <- lm( ~ Z + Zr + d + ConcConst + CM.gw + c + alpha + lambda, data = mydata)
+summary(Plants_Stat)
 
 
-# do geostat with SmM
-
-library("vegan")
-data(BCI)
-H <- diversity(BCI)
-simp <- diversity(BCI, "simpson")
-
-shannon <- diversity(x, index = "shannon", MARGIN = 1, base = exp(1)) ## whole matrix not just rows? 
-simpson <- diversity(x, index = "simpson", MARGIN = 1)
-
-# how to define x, so that it includes all the 3 species classes?
-
-
-
-
-# f1( 0 ) = h;
-# f1( 1 ) = q;
-# f1( 2 ) = In;
-# f1( 3 ) = runon;
-# f1( 4 ) = Wu;
-# f1( 5 ) = P;
-# f1( 6 ) = flux;
-# f1( 7 ) = M;
-# f1( 8 ) = SmM;
-# f1( 9 ) = CM;
-# f1( 10 ) = mb;
-# f1( 11 ) = Svir;
-# f1( 12 ) = SmI;
-# f1( 13 ) = Smh;
-# f1( 14 ) = Ch;
-# f1( 15 ) = qsd;
-# f1( 16 ) = runonsd;
-# f1( 17 ) = seep;
-# f1( 18 ) = runonSubsSalt;
-# f1( 19 ) = salt_runon;
-# f1( 20 ) = Subsrunon;
-# f1( 21 ) = mb_salt;
-
-
-
-
-
-### Linear regression
-
-for (i in 1:runs) {
-  
-  Plants_Stat <- lm(Plants ~ Z + Zr + d + ConcConst + CM.gw + c + alpha + lambda, data = mydata)
-  summary(Plants_Stat)
-  
-}
 
 # from summary, read R2, p and correlation and write into table
+# 1.	Geometrical analysis: The same patch geometry analysis as described earlier will be applied. Consequently, the resulting patch geometry dataset will be compared with the mono-species version. 
+# 
+# 2.	The Mann–Whitney–Wilcoxon test shall be conducted to test whether the patch statistics of the multi-species simulations are significantly different from the mono-species runs.
 

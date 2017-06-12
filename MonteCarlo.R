@@ -85,67 +85,95 @@ dims = list(rows=rows,cols=cols,time=time, Z=Z, ext = ext)
 fixedInput = list(deltat = deltat, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, 
                   c1 = c1, c02 = c02, Dp = Dp, zeta = zeta, f=f)
 
-simInput = list(Z =Z,ConcConst = ConcConst, CMgw = CMgw, d =d , 
-                k1 = k1, gslp = gslp, b1 = b1, b2 = b2, q1 = q1, q2 = q2,sigmaP= sigmaP, Zr=Zr, sigma2 = sigma2, range = range)
+simInput = list(Z =Z,ConcConst = ConcConst, CMgw = CMgw,gslp = gslp, 
+                dA = dA, k1A = k1A,  b1A = b1A, b2A = b2A, q1A = q1A, q2A = q2A, sigmaPA= sigmaPA,
+                dB = dB, k1B = k1B,  b1B = b1B, b2B = b2B, q1B = q1B, q2B = q2B, sigmaPB= sigmaPB,
+                dC = dC, k1C = k1C,  b1C = b1C, b2C = b2C, q1C = q1C, q2C = q2C, sigmaPC= sigmaPC,
+                ZrA =ZrA, ZrB =ZrB, ZrC =ZrC,
+                sigma2 = sigma2, range = range)
 
 
 # Setting up the Store for the simulation results
-Store <- data_frame(simInput, P_A = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
-              P_B = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
-              P_C = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
-              SmM = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
-              Zmatrix, eleve_data_new) 
+Store <- data_frame(simInput,  
+                    P= array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+                    P_A = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+                    P_B = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+                    P_C = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+                    SmM = array(matrix(0, nrow=rows, ncol=cols), dim = c(rows, cols, runs)),
+                    Zmatrix, elev_data_new) 
 
-  for (j in 1:runs) {
- 
-    simInput$Z <- Store$Z[j] ##Groundwater depth in mm from 0 elevation
-    simInput$Zr <- Store$Zr[j] ## root depth
-    simInput$ConcConst <- Store$ConcConst[j] ## salt concentration
-    simInput$CMgw <- Store$CMgw[j]## salt concentration groundwater 
-    simInput$gslp <- Store$gslp[j] # hillslope [%]
-    simInput$d <- Store$d[j]## plant mortality
-    simInput$k1 <- Store$k1[j]## half saturation constant plant water uptake
-    simInput$b1 <- Store$b1[j] ## plant interference param. facilitation
-    simInput$b2 <- Store$b2[j]## plant interference param. competition
-    simInput$q1 <- Store$q1[j]## plant interference param. range faiclitation
-    simInput$q2 <- Store$q2[j]## plant interference param. range competition
-    simInput$sigmaP <- Store$sigmaP[j] # sensitivity to salinity
-    
-    simInput$sigma2 <- Store$sigma2[j] # sigma squared, variance of surface elevation heterogeneity, normally distr
-    simInput$range <- Store$range[j] # correlation length of surface elevation heterogeneity, normally distr
-
-    # DEM generation
-        A <- c(simInput$sigma2, simInput$range)
-        # generating a Gaussian random field with geoR-package function grf()
-        # grid 5 times finer than needed
-        sim <-grf(((rows*cols)*5), grid = "reg", cov.pars = A)
-        # Taking every 5th element
-        elev_data <- as.matrix(sim$data)
-        elev_data[,seq(nrows(elev_data), ncol(elev_data),5)]
-        # adding the global slope to the elevation (function add_Slope_to_Elev() defined in model script)
-        Store$elev_data_new <- add_Slope_to_Elev(elev_data, dims$rows, simInput$gslp, dims$ext)
-        # recalculation of surface elevation variance
-        sigma2_new <- var(elev_data_new) 
-        # new variance is used in store (important for later lin.reg.)
-        simInput$sigma2 <- sigma2_new
-        # distance to groundwater table for every cell (function Z_matrix() defined in model script)
-        Store$Zmatrix <-  Z_matrix(elev_data_new, rows, cols, Z)
+for (j in 1:runs) {
   
-        # calling the model 
-        results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
-                                     dims = dims, Rain=Rain, fixedInput = fixedInput, 
-                                     simInput = simInput, elev = elev_data_new, Zras = Zmatrix)
-        
-        # storing the interesting results
-        warmUp <- 100 ## days; start up phase of the model (maybe needs to be set higher)
-    
-        Store$P_A[j] <- results$fields[[6]][warmUp:time] 
-        Store$P_B[j] <- results$fields[[7]][warmUp:time]
-        Store$P_C[j] <- results$fields[[8]][warmUp:time]
-        Store$SmM[j] <- results$fields[[11]][warmUp:time] 
-
-    
-  }
+  simInput$Z <- Store$Z[j] ##Groundwater depth in mm from 0 elevation
+  simInput$Zr <- Store$Zr[j] ## root depth
+  simInput$ConcConst <- Store$ConcConst[j] ## salt concentration
+  simInput$CMgw <- Store$CMgw[j]## salt concentration groundwater 
+  simInput$gslp <- Store$gslp[j] # hillslope [%]
+  
+  ## species A
+  simInput$k1A <- Store$k1A[j]## half saturation constant plant water uptake
+  simInput$b1A <- Store$b1A[j] ## plant interference param. facilitation
+  simInput$b2A <- Store$b2A[j]## plant interference param. competition
+  simInput$q1A <- Store$q1A[j]## plant interference param. range faiclitation
+  simInput$q2A <- Store$q2A[j]## plant interference param. range competition
+  simInput$sigmaPA <- Store$sigmaPA[j] # sensitivity to salinity
+  simInput$dA <- Store$dA[j]## plant mortality
+  
+  ## species B
+  simInput$k1B <- Store$k1B[j]## half saturation constant plant water uptake
+  simInput$b1B <- Store$b1B[j] ## plant interference param. facilitation
+  simInput$b2B <- Store$b2B[j]## plant interference param. competition
+  simInput$q1B <- Store$q1B[j]## plant interference param. range faiclitation
+  simInput$q2B <- Store$q2B[j]## plant interference param. range competition
+  simInput$sigmaPB <- Store$sigmaPB[j] # sensitivity to salinity
+  simInput$dB <- Store$dB[j]## plant mortality
+  
+  ## species C
+  simInput$k1C <- Store$k1C[j]## half saturation constant plant water uptake
+  simInput$b1C <- Store$b1C[j] ## plant interference param. facilitation
+  simInput$b2C <- Store$b2C[j]## plant interference param. competition
+  simInput$q1C <- Store$q1C[j]## plant interference param. range faiclitation
+  simInput$q2C <- Store$q2C[j]## plant interference param. range competition
+  simInput$sigmaPC <- Store$sigmaPC[j] # sensitivity to salinity
+  simInput$dC <- Store$dC[j]## plant mortality
+  
+  ## soil surface elevation heterogeneity parameters
+  simInput$sigma2 <- Store$sigma2[j] # sigma squared, variance of surface elevation heterogeneity, normally distr
+  simInput$range <- Store$range[j] # correlation length of surface elevation heterogeneity, normally distr
+  
+  # DEM generation
+  A <- c(simInput$sigma2, simInput$range)
+  # generating a Gaussian random field with geoR-package function grf()
+  # grid 5 times finer than needed
+  sim <-grf(((rows*cols)*5), grid = "reg", cov.pars = A)
+  # Taking every 5th element
+  elev_data <- as.matrix(sim$data)
+  elev_data[,seq(nrows(elev_data), ncol(elev_data),5)]
+  # adding the global slope to the elevation (function add_Slope_to_Elev() defined in model script)
+  Store$elev_data_new <- add_Slope_to_Elev(elev_data, dims$rows, simInput$gslp, dims$ext)
+  # recalculation of surface elevation variance
+  sigma2_new <- var(elev_data_new) 
+  # new variance is used in store (important for later lin.reg.)
+  simInput$sigma2 <- sigma2_new
+  # distance to groundwater table for every cell (function Z_matrix() defined in model script)
+  Store$Zmatrix <-  Z_matrix(elev_data_new, rows, cols, Z)
+  
+  # calling the model 
+  results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,
+                                   dims = dims, Rain=Rain, fixedInput = fixedInput, 
+                                   simInput = simInput, elev = elev_data_new, Zras = Zmatrix)
+  
+  # storing the interesting results
+  warmUp <- 100 ## days; start up phase of the model (maybe needs to be set higher)
+  
+  Store$P[j] <- results$fields[[9]][warmUp:time]
+  Store$P_A[j] <- results$fields[[10]][warmUp:time] 
+  Store$P_B[j] <- results$fields[[11]][warmUp:time]
+  Store$P_C[j] <- results$fields[[12]][warmUp:time]
+  Store$SmM[j] <- results$fields[[15]][warmUp:time] 
+  
+  
+}
 
 # ****************************************************************************************************************************************
 ## saving the results

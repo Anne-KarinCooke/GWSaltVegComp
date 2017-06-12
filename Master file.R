@@ -12,7 +12,7 @@ alpha <- seq(0.6,1.5,by=0.1)
 lambda <- seq(0.1,1,by=0.1)
 # lambda <- c(0.1,1) #  
 delta <- 0
-time <- 100
+time <- 8
 
 # Rainlist <- list()
 # # ## RAINFALL GENERATION
@@ -65,7 +65,7 @@ rows <- 20## rows of cells
 cols <- 20 ## columns of cells
 
 # "diverseInput"
-deltat <- 12 # temporal discretization, subdaily timesteps
+deltat <- 5 # temporal discretization, subdaily timesteps
 gslp <- 0.02 # hillslope [%]
 # infiltration
 alpha_i <- 1.0
@@ -85,8 +85,8 @@ sigmaP <- 0.05
 # interference parameters, competition and facilitation
 b1 <- 0.9
 b2 <- 0.1
-q1 <-  3.0
-q2 <-  2.0
+q1 <-  0.1
+q2 <-  0.3
 # seed dispersal and diffusion
 c1 <- 2.25; # [1/mm] Saco and Moreno-de las Heras 2013
 c02 <- 0.0002 ;  #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2013
@@ -104,8 +104,8 @@ coul = brewer.pal(8, "YlGn")
 coul = colorRampPalette(coul)(100)
 
 
-qr<-brick(results$fields[[6]][2:19,2:19,1:100])
+qr<-brick(results$fields[[6]][2:19,2:19,10:40])
 
-levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
+levelplot(qr,main="P [g/m^2] ",sub="day 10 to day 40, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
 # animate(qr, n=1)
 # results$fields[[6]][2:19,2:19,1:100]

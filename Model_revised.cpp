@@ -36,21 +36,21 @@ double WU(double M, double P, double gmax, double k1 ) {
   double Wu = gmax*(M/(M+k1))*P;
   return Wu;
 }
-////Alternative Growth function including the carrying capacity
-// [[Rcpp::export]]
-double Gr(double M, double P, double c, double gmax, double k1, double P0) { //, double sigmaP, double CM)
-  
-  // double Gro = c*WU(M,P,gmax,k1)*(P0*exp(-sigmaP*CM)-P);
-  double Gro = c * WU(M,P,gmax,k1) * (1 - (P/P0));
-  return Gro;
-}
-// // // simple growth
+// ////Alternative Growth function including the carrying capacity
 // // [[Rcpp::export]]
-// double Gr(double M, double P, double c, double gmax, double k1){
+// double Gr(double M, double P, double c, double gmax, double k1) { //, double sigmaP, double CM)
+//   
+//   double Gro = c*WU(M,P,gmax,k1)*(P0*exp(-sigmaP*CM)-P);
 // 
-//   double Gro = c*WU(M,P,gmax,k1);
 //   return Gro;
 // }
+// // simple growth
+// [[Rcpp::export]]
+double Gr(double M, double P, double c, double gmax, double k1){
+
+  double Gro = c*WU(M,P,gmax,k1);
+  return Gro;
+}
 
 //plant mortality function
 // [[Rcpp::export]]
@@ -528,7 +528,7 @@ int call_Taudem(arma::mat B){
 // [[Rcpp::export]]
 mat flowdir_load(){
   arma::mat flowdir_new;
-  flowdir_new.load("new_flowdir.mat");
+  flowdir_new.load("new_flowdir.txt");
   mat flo = sub1(flowdir_new,1);
   
   return flo;
@@ -537,7 +537,7 @@ mat flowdir_load(){
 mat slope_load(){
   
   arma::mat slp_matrix_new;
-  slp_matrix_new.load("slp_matrix.mat");
+  slp_matrix_new.load("slp_matrix.txt");
   mat slp = sub1(slp_matrix_new,1);
   
   return slp;
@@ -590,9 +590,9 @@ mat write_elev(int rows, int cols, double gslp, double ext){  // has to be rewri
   int iii;
   mat elev(rows, cols, fill::randn);
   
-  elev.row(1) = elev.row(1) + (gslp * ext);
+  elev.row(0) = elev.row(0) + (gslp * ext);
   
-  for (iii=0; iii< rows; iii++) {
+  for (iii=1; iii< rows; iii++) {
     
     elev.row(iii) = elev.row(iii)+(gslp * (ext-((ext/rows) * (iii-1))));
   }
@@ -727,33 +727,33 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   double dx = ext/rows; 
   
   
-  // // Creating the DEM
-  mat elev = write_elev(rows, cols, gslp, ext);
-  // elev.save("B.txt", arma::raw_ascii);
+  // // // Creating the DEM
+  // mat elev = write_elev(rows, cols, gslp, ext);
+  // // elev.save("B.txt", arma::raw_ascii);
+  // // 
+  // // system("R CMD BATCH GeoTiff.R");
+  // // load from disk
+  // arma::mat flowdir_new;
+  // flowdir_new.load("flowdir_new.txt");
+  // //mat flowdir_new = sub1(flowdir,1);
   // 
-  // system("R CMD BATCH GeoTiff.R");
-  // load from disk
-  arma::mat flowdir_new;
-  flowdir_new.load("flowdir_new.txt");
-  //mat flowdir_new = sub1(flowdir,1);
-  
-  
-  arma::mat slope;
-  slope.load("slp_matrix.txt");
-  //mat slope = sub1(slop,1);
+  // 
+  // arma::mat slope;
+  // slope.load("slp_matrix.txt");
+  // //mat slope = sub1(slop,1);
   
   
   
   // //// Creating the DEM
-  // mat elev = write_elev(rows, cols, gslp, ext);
-  // // matrix with elevation differences
-  // mat diff = diff_next_highest(rows, cols, elev);
-  // // flow directions
-  // int bla = call_Taudem(elev);
-  // 
-  // mat flowdir_new = flowdir_load();
-  // //slope of each cell
-  // mat slope = slope_load();
+  mat elev = write_elev(rows, cols, gslp, ext);
+  // matrix with elevation differences
+  mat diff = diff_next_highest(rows, cols, elev);
+  // flow directions
+  int bla = call_Taudem(elev);
+
+  mat flowdir_new = flowdir_load();
+  //slope of each cell
+  mat slope = slope_load();
   
   // Creating the groundwater depth matrix
   mat Zras = Z_matrix(elev, rows, cols,  Z);
@@ -889,9 +889,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   
   for (t = 1; t< (time-1); t++){
     
-    for (i=0; i< rows; i++) {
+    for (i=1; i< (rows-1); i++) {
       
-      for (j=0; j< cols; j++ ){
+      for (j=1; j< (cols-1); j++ ){
         
         //initialise cubes at t= 0
         h(i,j,0) = 10.0;
@@ -989,7 +989,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           
           //           
           // plant growth
-          Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in, P0); //, P0, sigmaP, CM_sub(i,j,tt));
+          Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in); //, P0, sigmaP, CM_sub(i,j,tt));
           
           //  plant Mortality
           Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), d_in, sigmaP, CM_sub(i,j,tt));
@@ -1023,8 +1023,12 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           
           //  Plant biomass balance
           
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j);// + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
-          // Rcpp::Rcout << P_sub;
+         // P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j);// + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+       
+          double P01 = P0*exp(-sigmaP*CM_sub(i,j,tt));
+         
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j)- Mo_sub(i,j,tt))*(1.0 -(P_sub(i,j,tt)/P01)) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0));//+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+           //Rcpp::Rcout << seed_diff_loss;
           
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
@@ -1215,10 +1219,16 @@ results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = salt
   coul = colorRampPalette(coul)(100)
   
   
-  qr<-brick(results$fields[[6]][2:19,2:19,1:40])
-  
+  qr<-brick(results$fields[[6]][2:19,2:19,1:30])
   levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
-# # 
+
+  
+  
+  
+  
+  results$fields[[17]][2:19,2:19,155]
+  
+  
 # results$fields[[6]][2:19,2:19,90:91]
 # # results$fields[[6]][2:19,2:19,94]
 # # results$fields[[6]][2:19,2:19,1:10]

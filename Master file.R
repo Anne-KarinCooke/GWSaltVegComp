@@ -12,7 +12,7 @@ alpha <- seq(0.6,1.5,by=0.1)
 lambda <- seq(0.1,1,by=0.1)
 # lambda <- c(0.1,1) #  
 delta <- 0
-time <- 8
+time <- 6
 
 # Rainlist <- list()
 # # ## RAINFALL GENERATION
@@ -60,13 +60,13 @@ saltpar1 <- Salt_cpp("Groundwater")  ## other options: "Rain", "Both", "None", "
 
 ### Raster size
 
-Z <- 2000.0 ##Groundwater depth in mm from 0 elevation
-rows <- 20## rows of cells
-cols <- 20 ## columns of cells
+Z <- 1000.0 ##Groundwater depth in mm from 0 elevation
+rows <- 5## rows of cells
+cols <- 5 ## columns of cells
 
 # "diverseInput"
 deltat <- 5 # temporal discretization, subdaily timesteps
-gslp <- 0.02 # hillslope [%]
+gslp <- 0.09 # hillslope [%]
 # infiltration
 alpha_i <- 1.0
 #Kinematic wave (runoff) paramters
@@ -91,7 +91,7 @@ q2 <-  0.3
 c1 <- 2.25; # [1/mm] Saco and Moreno-de las Heras 2013
 c02 <- 0.0002 ;  #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2013
 #seed diffusivity
-Dp <- 0.3 #Saco and Moreno-de las Heras,2013
+Dp <- 0.0003 #Saco and Moreno-de las Heras,2013
 Zr <- 400.0 # mm, Grass
 
 sourceCpp("Model_revised.cpp")  

@@ -124,8 +124,18 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq, mat filler){
       
     }
   }
+  for (int kk=0; kk < co; kk++){
+    destination((ro-1),kk) = destination((ro-1),kk) + destination(0,kk);
+    destination(0,kk) = destination(0,kk) + destination((ro-1),kk);
+  }
   
+  for (int ll=0; ll < ro; ll++){
+    destination(ll,0) = destination(ll,0) + destination(ll,(co-1));
+    destination(ll,(co-1)) = destination(ll,(co-1)) + destination(ll,0);
+  }
   return destination;
+  
+
   
 }
 //lateral subsurface water flow
@@ -177,7 +187,16 @@ mat Subsurface(int ro, int co, mat flowdir, mat flowdirTable, mat M, mat filler,
       
     }
   }
+  for (int kk=0; kk < co; kk++){
+    destination((ro-1),kk) = destination((ro-1),kk) + destination(0,kk);
+    destination(0,kk) = destination(0,kk) + destination((ro-1),kk);
+  }
   
+  for (int ll=0; ll < ro; ll++){
+    destination(ll,0) = destination(ll,0) + destination(ll,(co-1));
+    destination(ll,(co-1)) = destination(ll,(co-1)) + destination(ll,0);
+  }
+
   return destination;
   
 }
@@ -313,6 +332,16 @@ mat seedDiffusionGain(int ro, int co, mat DiffdirTable, mat Medium , double Dp, 
       }
     }
   }
+  for (jj=0; jj < co; jj++){
+    diffgain((ro-1),jj) = diffgain((ro-1),jj) + diffgain(0,jj);
+    diffgain(0,jj) = diffgain(0,jj) + diffgain((ro-1),jj);
+  }
+  
+  for (ii=0; ii < ro; ii++){
+    diffgain(ii,0) = diffgain(ii,0) + diffgain(ii,(co-1));
+    diffgain(ii,(co-1)) = diffgain(ii,(co-1)) + diffgain(ii,0);
+  }
+  
   return diffgain;
 }
 
@@ -521,7 +550,7 @@ List  Soil_cpp(std::string stype) {
 // [[Rcpp::export]]
 int call_Taudem(arma::mat B){
   
-  B.save("B.mat",arma::raw_ascii); 
+  B.save("B.txt",arma::raw_ascii); 
   system("R CMD BATCH GeoTiff.R");
   return 0;
 }
@@ -889,9 +918,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   
   for (t = 1; t< (time-1); t++){
     
-    for (i=1; i< (rows-1); i++) {
+    for (i=0; i< (rows); i++) {
       
-      for (j=1; j< (cols-1); j++ ){
+      for (j=0; j< (cols); j++ ){
         
         //initialise cubes at t= 0
         h(i,j,0) = 10.0;
@@ -1026,9 +1055,12 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
          // P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j);// + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
        
           double P01 = P0*exp(-sigmaP*CM_sub(i,j,tt));
-         
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j)- Mo_sub(i,j,tt))*(1.0 -(P_sub(i,j,tt)/P01)) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0));//+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
-           //Rcpp::Rcout << seed_diff_loss;
+          
+
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j)- Mo_sub(i,j,tt))*(1.0 -(P_sub(i,j,tt)/P01)) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0)); //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+          //Rcpp::Rcout << P_sub;
+
+}
           
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
@@ -1126,7 +1158,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
         Smh(i,j,t) = Smh_sub(i,j,(deltat-2));
         seep(i,j,t) = seep_sub(i,j,(deltat-2));
         
-        
+
         
         double sumI = 0.0;
         double sumq = 0.0;
@@ -1219,15 +1251,13 @@ results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = salt
   coul = colorRampPalette(coul)(100)
   
   
-  qr<-brick(results$fields[[6]][2:19,2:19,1:30])
+  qr<-brick(results$fields[[6]][2:19,2:19,90:100])
+  
   levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
 
   
-  
-  
-  
-  results$fields[[17]][2:19,2:19,155]
-  
+  results$fields[[6]][2:19,2:19,96]
+
   
 # results$fields[[6]][2:19,2:19,90:91]
 # # results$fields[[6]][2:19,2:19,94]

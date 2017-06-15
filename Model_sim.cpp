@@ -986,7 +986,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar,
         
         //initialise cubes at t= 0
         h(i,j,0) = 10.0;
-        
+        // initial condition: homogeneous vegetation cover
         P(i,j,0) = 150.0;
         P_A(i,j,0) = 50.0;
         P_B(i,j,0) = 50.0;

@@ -1025,7 +1025,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar,
           double Rain_in;
           
           if ((Rain(t) > 0.0) & (tt == 0)){
-            Rain_in = 10.0 * Rain(t);
+            Rain_in =  Rain(t); // 10.0 *
           } else {
             Rain_in = 0.0;
           }

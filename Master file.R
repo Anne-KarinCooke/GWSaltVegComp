@@ -12,7 +12,7 @@ alpha <- seq(0.6,1.5,by=0.1)
 lambda <- seq(0.1,1,by=0.1)
 # lambda <- c(0.1,1) #  
 delta <- 0
-time <- 6
+time <- 10
 
 # Rainlist <- list()
 # # ## RAINFALL GENERATION
@@ -26,25 +26,26 @@ time <- 6
 # 
 # #Rain <- c(Rain)
 # Rain <- Rainlist[[1]][,1]
-alpha <- seq(0.6,1.5,by=0.1)
-lambda <- seq(0.1,1,by=0.1)
-# lambda <- c(0.1,1) #
+# alpha <- seq(0.6,1.5,by=0.1)
+# lambda <- seq(0.1,1,by=0.1)
+# # lambda <- c(0.1,1) #
 delta <- 0
-
-# ## RAINFALL GENERATION
-for (k in 1:length(alpha)) {
-  
-  for (l in 1:length(lambda)) {
-    # generate the rainfall
-    Rain <- Precip(time,alpha[k],lambda[l],delta)
-    Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
-  }}
-
-Rain <- c(Rain)
-
+# 
+# # ## RAINFALL GENERATION
+# for (k in 1:length(alpha)) {
+#   
+#   for (l in 1:length(lambda)) {
+#     # generate the rainfall
+#     Rain <- Precip(time,alpha[k],lambda[l],delta)
+#     Rainlist <- data.frame(Precip(time,alpha[k],lambda[l],delta))
+#   }}
+# 
+# Rain <- c(Rain)
+alpha <- 0.91
+lambda <- 0.16
+Rain <- Precip(time,alpha,lambda,delta)
 Rain
-
-
+Rain <- c(Rain)
 
 sourceCpp("soilfun.cpp")
 sourceCpp("vegfun_static.cpp")
@@ -57,16 +58,15 @@ soilpar1 <- Soil_cpp("S Clay Loam")
 vegpar1 <-Veg_cpp()
 saltpar1 <- Salt_cpp("Groundwater")  ## other options: "Rain", "Both", "None", "Groundwater"
 
-
 ### Raster size
 
-Z <- 1000.0 ##Groundwater depth in mm from 0 elevation
-rows <- 5## rows of cells
-cols <- 5 ## columns of cells
+Z <- 3000.0 ##Groundwater depth in mm from 0 elevation
+rows <- 8## rows of cells
+cols <- 8 ## columns of cells
 
 # "diverseInput"
 deltat <- 5 # temporal discretization, subdaily timesteps
-gslp <- 0.09 # hillslope [%]
+gslp <- 0.05 # hillslope [%]
 # infiltration
 alpha_i <- 1.0
 #Kinematic wave (runoff) paramters

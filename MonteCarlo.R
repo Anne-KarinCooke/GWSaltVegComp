@@ -21,8 +21,22 @@ library("geoR")
 
 # ****************************************************************************************************************************************
 
-## Read the rainfall data
-##Rain <- 
+# duration of simulation
+time <- 17520 # days, 48 years
+
+## Generate rainfall data
+delta <- 0
+alpha <- 0.91 #cm/event
+lambda <- 0.16 #d/event
+
+Rain <- Precip(time,alpha,lambda,delta)
+Rain1 <- c(Rain*10) # to be in mm
+
+# Read in actual rainfall data
+
+TennantAirport <- read.csv("M:/Master thesis/tennant creek airport/IDCJAC0009_015135_1800_Data.csv", header= T, sep = ",")
+Rain2 <-TennantAirport$Rainfall.amount..millimetres.
+#length(Rain)
 
 # source the parameter list functions
 sourceCpp("soilfun.cpp")
@@ -181,3 +195,4 @@ write.table(Store, "Store.txt")
 
 # End *************************************************************************************************************************************
 # ****************************************************************************************************************************************
+

@@ -18,18 +18,46 @@ startEq ## start of equilibirum condition
 ### PATCH AND DIVERSITY STATISTICS
 library("SDMTools")
 
-for (i in length(runs)){
-  # get a matrix for each P abc and salt: P_A_mat
+
+years <- time/365
+Patch_store <- list()
+
+for (i in 1:runs){
   
-  #P_A  matrix with P values of species A (average of stable state)
+  for (j in 1:years){
+    #aggregating yearly values
+  P_yearly <- aggregate(Store$P, nfrequency =365 , FUN = "mean")
+  # calculating patch statistics
+  P_all_stat <- ClassStat(P_yearly[i] , cellsize = dx, bkgd = NA, latlon = FALSE)
+  #save results
+  Patch_store <- as.data_frame(j,P_all_stat[i])
+  }
+}
+
+for (i in 1:runs){
   
-  P_all_stat <- ClassStat(P_all_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
-  P_A_stat <- ClassStat(P_A_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
-  P_B_stat <- ClassStat(P_B_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
-  P_C_stat <- ClassStat(P_C_mat, cellsize = dx, bkgd = NA, latlon = FALSE)
+
+dens <- P_all_stat[i]$patch.density 
+shape <- P_all_stat[i]$mean.shape.index 
+
+trend_dens = ma(as.ts(dens[i]), order = 4, centre = F) ## specify parameters...
+trend_shape= ma(as.ts(shape[i]), order = 4, centre = F)
+
+if (trend_dens[i])
+  ## find the year where the trend does not change much anymore
+  ## and average time - that year and
   
-  
-  
+
+# # P_A$n.patches
+# # P_A$mean.patch.area
+# # P_A$sd.patch.area
+# # P_A$patch.density
+# # P_A$mean.shape.index
+# # P_A$sd.shape.index
+# P_A$total.area 
+
+
+  for (i in length(runs)){
   
   library("vegan")
   div_mat <- matrix(0, nrow= runs, ncol=4)
@@ -46,16 +74,10 @@ for (i in length(runs)){
   simpson <- diversity(div_mat, index = "simpson", MARGIN = 1)
   
   ## how is the div output summed up?
-  
-  
-  # P_A$n.patches
-  # P_A$mean.patch.area
-  # P_A$sd.patch.area
-  # P_A$patch.density
-  # P_A$mean.perim.area.ratio
-  # P_A$sd.perim.area.ratio
-  # P_A$mean.shape.index
-  # P_A$sd.shape.index
+
+
+  ## from one 
+  ## might need to calculate the patch areas seperately and then check ratio
   
   Store_Analysis[i] <- data_frame(data$simInput[i], P_all_stat[i], P_A_stat[i], P_B_stat[i], P_C_stat[i], SmM_mat[i], shannon[i], simpson[i])
 }

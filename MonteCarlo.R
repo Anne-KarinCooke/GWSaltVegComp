@@ -73,6 +73,9 @@ c02 <- 0.0002 ;  #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2
 #seed diffusivity
 Dp <- 0.3 #Saco and Moreno-de las Heras,2013
 
+b1 <- 
+b2 <- 
+
 
 
 # ****************************************************************************************************************************************
@@ -100,9 +103,9 @@ fixedInput = list(deltat = deltat, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn,
                   c1 = c1, c02 = c02, Dp = Dp, zeta = zeta, f=f)
 
 simInput = list(Z =Z,ConcConst = ConcConst, CMgw = CMgw,gslp = gslp, 
-                dA = dA, k1A = k1A,  b1A = b1A, b2A = b2A, q1A = q1A, q2A = q2A, sigmaPA= sigmaPA,
-                dB = dB, k1B = k1B,  b1B = b1B, b2B = b2B, q1B = q1B, q2B = q2B, sigmaPB= sigmaPB,
-                dC = dC, k1C = k1C,  b1C = b1C, b2C = b2C, q1C = q1C, q2C = q2C, sigmaPC= sigmaPC,
+                dA = dA, k1A = k1A,   q1A = q1A,  sigmaPA= sigmaPA,
+                dB = dB, k1B = k1B,    q1B = q1B,  sigmaPB= sigmaPB,
+                dC = dC, k1C = k1C,   q1C = q1C,  sigmaPC= sigmaPC,
                 ZrA =ZrA, ZrB =ZrB, ZrC =ZrC,
                 sigma2 = sigma2, range = range)
 
@@ -126,28 +129,28 @@ for (j in 1:runs) {
   
   ## species A
   simInput$k1A <- Store$k1A[j]## half saturation constant plant water uptake
-  simInput$b1A <- Store$b1A[j] ## plant interference param. facilitation
-  simInput$b2A <- Store$b2A[j]## plant interference param. competition
+  # simInput$b1A <- Store$b1A[j] ## plant interference param. facilitation
+  # simInput$b2A <- Store$b2A[j]## plant interference param. competition
   simInput$q1A <- Store$q1A[j]## plant interference param. range faiclitation
-  simInput$q2A <- Store$q2A[j]## plant interference param. range competition
+  # simInput$q2A <- Store$q2A[j]## plant interference param. range competition
   simInput$sigmaPA <- Store$sigmaPA[j] # sensitivity to salinity
   simInput$dA <- Store$dA[j]## plant mortality
   
   ## species B
   simInput$k1B <- Store$k1B[j]## half saturation constant plant water uptake
-  simInput$b1B <- Store$b1B[j] ## plant interference param. facilitation
-  simInput$b2B <- Store$b2B[j]## plant interference param. competition
+  # simInput$b1B <- Store$b1B[j] ## plant interference param. facilitation
+  # simInput$b2B <- Store$b2B[j]## plant interference param. competition
   simInput$q1B <- Store$q1B[j]## plant interference param. range faiclitation
-  simInput$q2B <- Store$q2B[j]## plant interference param. range competition
+  # simInput$q2B <- Store$q2B[j]## plant interference param. range competition
   simInput$sigmaPB <- Store$sigmaPB[j] # sensitivity to salinity
   simInput$dB <- Store$dB[j]## plant mortality
   
   ## species C
   simInput$k1C <- Store$k1C[j]## half saturation constant plant water uptake
-  simInput$b1C <- Store$b1C[j] ## plant interference param. facilitation
-  simInput$b2C <- Store$b2C[j]## plant interference param. competition
+  # simInput$b1C <- Store$b1C[j] ## plant interference param. facilitation
+  # simInput$b2C <- Store$b2C[j]## plant interference param. competition
   simInput$q1C <- Store$q1C[j]## plant interference param. range faiclitation
-  simInput$q2C <- Store$q2C[j]## plant interference param. range competition
+  # simInput$q2C <- Store$q2C[j]## plant interference param. range competition
   simInput$sigmaPC <- Store$sigmaPC[j] # sensitivity to salinity
   simInput$dC <- Store$dC[j]## plant mortality
   

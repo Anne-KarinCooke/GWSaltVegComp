@@ -757,22 +757,22 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar,
   
   
   // SPECIES A interference parameters, competition and facilitation
-  double b1A = simInput["b1A"];
-  double b2A = simInput["b2A"];
+  // double b1A = simInput["b1A"];
+  // double b2A = simInput["b2A"];
   double q1A = simInput["q1A"];
-  double q2A = simInput["q2A"];
+  double q2A = q1A/0.6;
   
   // SPECIES B interference parameters, competition and facilitation
-  double b1B = simInput["b1B"];
-  double b2B = simInput["b2B"];
+  // double b1B = simInput["b1B"];
+  // double b2B = simInput["b2B"];
   double q1B = simInput["q1B"];
-  double q2B = simInput["q2B"];
+  double q2B = q1B/0.6;
   
   // SPECIES C interference parameters, competition and facilitation
-  double b1C = simInput["b1C"];
-  double b2C = simInput["b2C"];
+  // double b1C = simInput["b1C"];
+  // double b2C = simInput["b2C"];
   double q1C = simInput["q1C"];
-  double q2C = simInput["q2C"];
+  double q2C = q1C/0.6;
   
   
   double zeta = fixedInput["zeta"]; // relative importance of non-local effects vs local effects (impact of interference)
@@ -1161,11 +1161,11 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar,
           //  Plant biomass balance
           
           P_subA(i,j,tt+1) = P_subA(i,j,tt) + Gr_subA(i,j,tt) - Mo_subA(i,j,tt) - qsd_subA(i,j,tt) + germ * runonsd_subA(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) 
-            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1A, b2A, q1A, q2A);
+            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1A, q2A);
           P_subB(i,j,tt+1) = P_subB(i,j,tt) + Gr_subB(i,j,tt) - Mo_subB(i,j,tt) - qsd_subB(i,j,tt) + germ * runonsd_subB(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) 
-            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1B, b2B, q1B, q2B);
+            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1B, q2B);
           P_subC(i,j,tt+1) = P_subC(i,j,tt) + Gr_subC(i,j,tt) - Mo_subC(i,j,tt) - qsd_subC(i,j,tt) + germ * runonsd_subC(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j) 
-            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1C, b2C, q1C, q2C);
+            + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1C, q2C);
           
           P_sub(i,j,tt+1) = P_subA(i,j,tt+1) + P_subB(i,j,tt+1) + P_subC(i,j,tt+1);
           

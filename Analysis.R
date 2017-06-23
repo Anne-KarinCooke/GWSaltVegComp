@@ -2,40 +2,29 @@
 
 data <- read.table("Store.txt", header=T)
 
-for 
-
-## Check stable state condition!!!
-## Check whether standard dev 
-startEq ## start of equilibirum condition
-
-# average values from that pint in time onwards
-
-# make new table with P_A, P_B, P_C, SmM averaged values (just one matrix each)
-
-# do geostat with SmM
-# make matrix SmM_mat!!!
-
 ### PATCH AND DIVERSITY STATISTICS
 library("SDMTools")
 
-
+# data preparation
 years <- time/365
 Patch_store <- list()
+P_yearly <- list()
 
 for (i in 1:runs){
-  
-  for (j in 1:years){
-    #aggregating yearly values
-  P_yearly <- aggregate(Store$P, nfrequency =365 , FUN = "mean")
-  # calculating patch statistics
-  P_all_stat <- ClassStat(P_yearly[i] , cellsize = dx, bkgd = NA, latlon = FALSE)
-  #save results
-  Patch_store <- as.data_frame(j,P_all_stat[i])
-  }
+      #aggregating yearly values
+  P_yearly[i] <- aggregate(Store$P, nfrequency =365 , FUN = "mean")
+}
+for (i in 1:runs){
+# calculating patch statistics
+P_all_stat <- ClassStat(P_yearly[i] , cellsize = dx, bkgd = NA, latlon = FALSE)
+#save results
+Patch_store <- as.data_frame(i,P_all_stat[i])
 }
 
+# for (j in 1:years){ 
+attach(Patch_store)
+
 for (i in 1:runs){
-  
 
 dens <- P_all_stat[i]$patch.density 
 shape <- P_all_stat[i]$mean.shape.index 
@@ -43,7 +32,10 @@ shape <- P_all_stat[i]$mean.shape.index
 trend_dens = ma(as.ts(dens[i]), order = 4, centre = F) ## specify parameters...
 trend_shape= ma(as.ts(shape[i]), order = 4, centre = F)
 
-if (trend_dens[i])
+if (trend_dens[i] <= 0.01 & trend_shape <= 0.01)
+  
+  }
+
   ## find the year where the trend does not change much anymore
   ## and average time - that year and
   
@@ -57,12 +49,12 @@ if (trend_dens[i])
 # P_A$total.area 
 
 
-  for (i in length(runs)){
+  for (i in 1:runs){
   
   library("vegan")
   div_mat <- matrix(0, nrow= runs, ncol=4)
   
-  for (i in length(runs)){
+  for (i in 1:runs){
     
     div_mat[i,1] <- i
     div_mat[i,2]<-sum(P_A_mat)

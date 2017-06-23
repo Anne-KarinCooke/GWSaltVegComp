@@ -7,7 +7,7 @@ using namespace Rcpp;
 using namespace arma;
 using namespace std;
 
-
+// just a simple function to make sure the TauDEM output from the GeoTiff.R file has the right format to be used in Rcpp
 // [[Rcpp::export]]
 mat sub1( mat x, uword e) {
   x.shed_col(e-1);
@@ -36,15 +36,7 @@ double WU(double M, double P, double gmax, double k1 ) {
   double Wu = gmax*(M/(M+k1))*P;
   return Wu;
 }
-// ////Alternative Growth function including the carrying capacity
-// // [[Rcpp::export]]
-// double Gr(double M, double P, double c, double gmax, double k1) { //, double sigmaP, double CM)
-//   
-//   double Gro = c*WU(M,P,gmax,k1)*(P0*exp(-sigmaP*CM)-P);
-// 
-//   return Gro;
-// }
-// // simple growth
+
 // [[Rcpp::export]]
 double Gr(double M, double P, double c, double gmax, double k1){
 
@@ -53,10 +45,19 @@ double Gr(double M, double P, double c, double gmax, double k1){
 }
 
 //plant mortality function
+// // [[Rcpp::export]]
+// double Mo(double P, double d, double sigmaP, double CM){
+//   
+//   double Mort=P * (d * exp(CM * sigmaP));
+//   
+//   return Mort;
+//   
+// }
 // [[Rcpp::export]]
 double Mo(double P, double d, double sigmaP, double CM){
   
-  double Mort=P * (d * exp(CM * sigmaP));
+  // double Mort= P/(1 + exp(d- (sigmaP * CM))); //d* CM * sigmaP
+  double Mort = P + (((d*P)-P)/(1+pow((CM/10.0),sigmaP)));
   
   return Mort;
   
@@ -77,11 +78,11 @@ double L_n(double M, double Z, double n, double Zr, double b, double hb, double 
 }
 // Runon
 // [[Rcpp::export]]
-mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq, mat filler){
+mat Surface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat qq, mat filler){
   //flowdirTable
   
   const double pi = 3.141593; 
-  
+  border = border + 1;
   mat destination(ro, co,fill::zeros); 
   
   //double number = (flowdir(i,j)/(pi/4));
@@ -125,13 +126,13 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq, mat filler){
     }
   }
   for (int kk=0; kk < co; kk++){
-    destination((ro-1),kk) = destination((ro-1),kk) + destination(0,kk);
-    destination(0,kk) = destination(0,kk) + destination((ro-1),kk);
+    destination((ro-border),kk) = destination((ro-border),kk) + destination(border,kk);
+    destination(border,kk) = destination((border),kk) + destination((ro-border),kk);
   }
   
   for (int ll=0; ll < ro; ll++){
-    destination(ll,0) = destination(ll,0) + destination(ll,(co-1));
-    destination(ll,(co-1)) = destination(ll,(co-1)) + destination(ll,0);
+    destination(ll,(border)) = destination(ll,(border)) + destination(ll,(co-border));
+    destination(ll,(co-border)) = destination(ll,(co-border)) + destination(ll,(border));
   }
   return destination;
   
@@ -140,13 +141,13 @@ mat Surface(int ro, int co, mat flowdir, mat flowdirTable, mat qq, mat filler){
 }
 //lateral subsurface water flow
 // [[Rcpp::export]]
-mat Subsurface(int ro, int co, mat flowdir, mat flowdirTable, mat M, mat filler, double Dm, double timeincr){
+mat Subsurface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat M, mat filler, double Dm, double timeincr){
   //flowdirTable
   
   const double pi = 3.141593; 
   
   mat destination(ro, co,fill::zeros); 
-  
+  border = border + 1;
   
   
   int a;
@@ -188,13 +189,13 @@ mat Subsurface(int ro, int co, mat flowdir, mat flowdirTable, mat M, mat filler,
     }
   }
   for (int kk=0; kk < co; kk++){
-    destination((ro-1),kk) = destination((ro-1),kk) + destination(0,kk);
-    destination(0,kk) = destination(0,kk) + destination((ro-1),kk);
+    destination((ro-border),kk) = destination((ro-border),kk) + destination(0,kk);
+    destination(0,kk) = destination(0,kk) + destination((ro-border),kk);
   }
   
   for (int ll=0; ll < ro; ll++){
-    destination(ll,0) = destination(ll,0) + destination(ll,(co-1));
-    destination(ll,(co-1)) = destination(ll,(co-1)) + destination(ll,0);
+    destination(ll,0) = destination(ll,0) + destination(ll,(co-border));
+    destination(ll,(co-border)) = destination(ll,(co-border)) + destination(ll,0);
   }
 
   return destination;
@@ -219,7 +220,7 @@ mat Distances(int ro, int co, double kk, double ll, double dx){  ///kk and ll ar
   }
   return dist;
 } 
-// plant Interference function (competition/dacilitation)
+// plant Interference function (competition/facilitation)
 // [[Rcpp::export]]
 double interference(int ro, int co, double kk, double ll, mat Psub, double dx, double b1, double b2, double q1, double q2, double pi = 3.141593){  // doubel L
   
@@ -248,7 +249,7 @@ double interference(int ro, int co, double kk, double ll, mat Psub, double dx, d
       
       interf(ii,jj) = w(ii,jj) * Psub(ii,jj);
       
-      sum = arma::accu(interf);
+      sum = accu(interf);
     }
   }
   return sum;
@@ -310,10 +311,11 @@ mat seedDiffusionLoss(int ro, int co, mat Medium , double Dp, double timeincr){
   
 }
 // [[Rcpp::export]] 
-mat seedDiffusionGain(int ro, int co, mat DiffdirTable, mat Medium , double Dp, double timeincr){
+mat seedDiffusionGain(int ro, int co, int border, mat DiffdirTable, mat Medium , double Dp, double timeincr){
   
   mat diffgain(ro, co,fill::zeros);
   float divide = 1.0/8.0;
+  border = border + 1; 
   
   int a;
   int x;
@@ -333,13 +335,13 @@ mat seedDiffusionGain(int ro, int co, mat DiffdirTable, mat Medium , double Dp, 
     }
   }
   for (jj=0; jj < co; jj++){
-    diffgain((ro-1),jj) = diffgain((ro-1),jj) + diffgain(0,jj);
-    diffgain(0,jj) = diffgain(0,jj) + diffgain((ro-1),jj);
+    diffgain((ro-border),jj) = diffgain((ro-border),jj) + diffgain(0,jj);
+    diffgain(0,jj) = diffgain(0,jj) + diffgain((ro-border),jj);
   }
   
   for (ii=0; ii < ro; ii++){
-    diffgain(ii,0) = diffgain(ii,0) + diffgain(ii,(co-1));
-    diffgain(ii,(co-1)) = diffgain(ii,(co-1)) + diffgain(ii,0);
+    diffgain(ii,0) = diffgain(ii,0) + diffgain(ii,(co-border));
+    diffgain(ii,(co-border)) = diffgain(ii,(co-border)) + diffgain(ii,0);
   }
   
   return diffgain;
@@ -557,7 +559,7 @@ int call_Taudem(arma::mat B){
 // [[Rcpp::export]]
 mat flowdir_load(){
   arma::mat flowdir_new;
-  flowdir_new.load("new_flowdir.txt");
+  flowdir_new.load("flowdir_new.txt");
   mat flo = sub1(flowdir_new,1);
   
   return flo;
@@ -695,17 +697,10 @@ mat Z_matrix(mat elev, int ro, int co, double Z){
   return m;
   
 }
-//gaussian function for halophytes
-// [[Rcpp::export]]
-double gauss(double CM, double mean, double var, double pi = 3.141593){
-  
-  double gauss = (1/(var*sqrt(2*pi)))*exp(pow((CM-mean),2)/(2*(var*var)));
-  return gauss;
-}
 
 // the core of the model
 // [[Rcpp::export]]
-List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
+List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List saltpar,
                            Rcpp::List dims, NumericVector Rain,
                            Rcpp::List diverseInput //, Rcpp::List simInput
 ) {
@@ -918,9 +913,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
   
   for (t = 1; t< (time-1); t++){
     
-    for (i=0; i< (rows); i++) {
+    for (i=(border-1); i< (rows-border); i++) {
       
-      for (j=0; j< (cols); j++ ){
+      for (j=(border-1); j< (cols-border); j++ ){
         
         //initialise cubes at t= 0
         h(i,j,0) = 10.0;
@@ -949,6 +944,9 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
             Ch_sub(i,j,tt) = Ch(i,j,t-1);
             seep_sub(i,j,tt) = seep(i,j,t-1);
           }
+          if((tt==0) & (P(i,j,t-1) < 0)){
+            P(i,j,t-1) = 0;
+          }
           
           double Rain_in;
           
@@ -969,13 +967,13 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           
           
           // Runoff
-          q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt), cn, Mn, (slope(i,j)*0.01));
+          q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt), cn, Mn, (0.001*slope(i,j)));
           
           
           // Runon
           mat runon_store(rows, cols, fill::ones);
           mat ones = mat(rows, cols, fill::ones);
-          runon_store = Surface(rows, cols, flowdir_new, write_flowdirTable(), q_sub.slice(tt), ones);
+          runon_store = Surface(rows, cols, border, flowdir_new, write_flowdirTable(), q_sub.slice(tt), ones);
           runon_sub(i,j,tt+1) = runon_store(i,j);
           
           
@@ -1024,22 +1022,33 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), d_in, sigmaP, CM_sub(i,j,tt));
           
           // seed transport with runoff/runon
-          mat c2 = timeincr * c02*exp(-sigmaP*CM_sub.slice(tt));
+          // mat c2 = timeincr * c02*exp(-sigmaP*CM_sub.slice(tt));
           
-          if((q_sub(i,j,tt+1) > c1) & (q_sub(i,j,tt+1)<c2(i,j)))
+          // if((q_sub(i,j,tt+1) > c1) & (q_sub(i,j,tt+1)<c2(i,j)))
+          // {
+          //   qsd_sub(i,j,tt+1) = (1.0/c1) * q_sub(i,j,tt+1)*P_sub(i,j,tt); //(Saco, 2007)
+          //   //qsd_sub(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
+          // }
+          // 
+          // if((q_sub(i,j,tt+1)*c1) > c2(i,j)){ //(Saco, 2007)
+          //   qsd_sub(i,j,tt) = c2(i,j) * P_sub(i,j,tt);
+          // }
+          // 
+          
+          if((q_sub(i,j,tt+1) > c1) & (q_sub(i,j,tt+1)<c02))
           {
             qsd_sub(i,j,tt+1) = (1.0/c1) * q_sub(i,j,tt+1)*P_sub(i,j,tt); //(Saco, 2007)
             //qsd_sub(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
           }
-          
-          if((q_sub(i,j,tt+1)*c1) > c2(i,j)){ //(Saco, 2007)
-            qsd_sub(i,j,tt) = c2(i,j) * P_sub(i,j,tt);
+
+          if((q_sub(i,j,tt+1)*c1) > c02){ //(Saco, 2007)
+            qsd_sub(i,j,tt) = c02 * P_sub(i,j,tt);
           }
-          
+
           
           //seed runon
           mat runonsd_store(rows, cols, fill::ones);
-          runonsd_store = Surface(rows, cols, flowdir_new, write_flowdirTable(),qsd_sub.slice(tt),ones);
+          runonsd_store = Surface(rows, cols, border,flowdir_new, write_flowdirTable(),qsd_sub.slice(tt),ones);
           runonsd_sub(i,j,tt) = runonsd_store(i,j);
           
           
@@ -1047,8 +1056,8 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           double germ = (1.0-(M_sub(i,j,tt+1)/Svir_sub(i,j,tt)));
           // 
           // seed diffusion (into all directions due to wind/animals)
-          mat seed_diff_loss = seedDiffusionLoss(rows, cols, P_sub.slice(tt),  Dp,  timeincr);
-          mat seed_diff_gain = seedDiffusionGain(rows, cols, write_DiffdirectionTable(), P_sub.slice(tt),  Dp,  timeincr);
+          mat seed_diff_loss = seedDiffusionLoss(rows, cols,  P_sub.slice(tt),  Dp,  timeincr);
+          mat seed_diff_gain = seedDiffusionGain(rows, cols, border, write_DiffdirectionTable(), P_sub.slice(tt),  Dp,  timeincr);
           
           //  Plant biomass balance
           
@@ -1057,10 +1066,12 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           double P01 = P0*exp(-sigmaP*CM_sub(i,j,tt));
           
 
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j)- Mo_sub(i,j,tt))*(1.0 -(P_sub(i,j,tt)/P01)) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0)); //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j))*(1.0 -(P_sub(i,j,tt)/P01))- Mo_sub(i,j,tt) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0)); //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
           //Rcpp::Rcout << P_sub;
 
-}
+          if (P_sub(i,j,tt+1) < 0){
+            P_sub(i,j,tt+1) = 0;
+          }
           
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
@@ -1077,7 +1088,8 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
             M_sub(i,j,tt+1) = M_sub(i,j,tt+1) - seep_sub(i,j,tt);
           }
           //           // Subsurface lateral flow
-          mat Subsurfacerunon_store = Subsurface(rows, cols, flowdir_new, write_flowdirTable(), M_sub.slice(tt+1),  ones, Dm, timeincr);
+          //mat ones(rows, cols, fill::ones);
+          mat Subsurfacerunon_store = Subsurface(rows, cols, border,flowdir_new, write_flowdirTable(), M_sub.slice(tt+1),  ones, Dm, timeincr);
           Subsrunon_sub(i,j,tt) = Subsurfacerunon_store(i,j);
           
           //adjustment for soil mositure balance (complete now)
@@ -1102,7 +1114,7 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           //           
           //           // salt mass coming in through lateral subsurface flow
           mat runonSubsSalt_store(rows, cols, fill::ones);
-          runonSubsSalt_store = Subsurface(rows, cols, flowdir_new, write_flowdirTable(), M_sub.slice(tt+1), CM_sub.slice(tt), Dm, timeincr);
+          runonSubsSalt_store = Subsurface(rows, cols, border, flowdir_new, write_flowdirTable(), M_sub.slice(tt+1), CM_sub.slice(tt), Dm, timeincr);
           runonSubsSalt_sub(i,j,tt) = runonSubsSalt_store(i,j);
           //           
           // #salt mass balance in soil
@@ -1124,18 +1136,18 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
           //           
           // surface salt transport with runon
           mat salt_runon_store(rows, cols, fill::ones);
-          salt_runon_store = Surface(rows, cols, flowdir_new, write_flowdirTable(),q_sub.slice(tt+1), CM_sub.slice(tt+1));
+          salt_runon_store = Surface(rows, cols, border, flowdir_new, write_flowdirTable(),q_sub.slice(tt+1), CM_sub.slice(tt+1));
           salt_runon_sub(i,j,tt) = salt_runon_store(i,j);
           
           //     Balance of salt mass in overland flow depth h
-          Smh_sub(i,j,tt+1) = Smh_sub(i,j,tt) + (ConcConst_in * Rain_in) + (CM_sub(i,j,tt+1) * seep_sub(i,j,tt)) - (q_sub(i,j,tt+1)*Ch_sub(i,j,tt))
+          Smh_sub(i,j,tt+1) = Smh_sub(i,j,tt) + (Rain_in * ConcConst_in) + (CM_sub(i,j,tt+1) * seep_sub(i,j,tt)) - (q_sub(i,j,tt+1)*Ch_sub(i,j,tt))
             +  salt_runon_sub(i,j,tt);
           
           // salt concentration in overland flow depth h
           Ch_sub(i,j,tt+1) = (Smh_sub(i,j,tt+1)/h_sub(i,j,tt+1));
           
           //           
-          //           // salt balance
+          // // salt balance
           //           
           mb_salt_sub(i,j,tt) = SmI_sub(i,j,tt) + U_salt(i,j,tt) + runonSubsSalt_sub(i,j,tt) - (CM_sub(i,j,tt)*seep_sub(i,j,tt)) -
             L_salt(i,j,tt) - (Dm * timeincr * CM_sub(i,j,tt) * M_sub(i,j,tt));
@@ -1158,7 +1170,6 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
         Smh(i,j,t) = Smh_sub(i,j,(deltat-2));
         seep(i,j,t) = seep_sub(i,j,(deltat-2));
         
-
         
         double sumI = 0.0;
         double sumq = 0.0;
@@ -1242,21 +1253,21 @@ List SurfaceSoilSaltWBGRID(Rcpp::List soilpar, Rcpp::List vegpar, Rcpp::List sal
 }
 
 /*** R
-results <- SurfaceSoilSaltWBGRID(soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
+results <- SurfaceSoilSaltWBGRID(border = 4, soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
                                  dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
                                  diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
                                                       c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
-  library(rasterVis)
-  coul = brewer.pal(8, "YlGn")
-  coul = colorRampPalette(coul)(100)
-  
-  
-  qr<-brick(results$fields[[6]][2:19,2:19,90:100])
-  
-  levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
-
-  
-  results$fields[[6]][2:19,2:19,96]
+# #   library(rasterVis)
+# #   coul = brewer.pal(8, "YlGn")
+#   coul = colorRampPalette(coul)(100)
+# # 
+# # 
+  # qr<-brick(results$fields[[6]][2:9,2:9,150:170])
+   # levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
+# # 
+# #   # results$fields[[3]][2:19,2:19,2]
+# #   
+#   results$fields[[6]][2:19,2:19,98]
 
   
 # results$fields[[6]][2:19,2:19,90:91]

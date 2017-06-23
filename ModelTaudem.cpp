@@ -82,7 +82,7 @@ mat Surface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat qq, m
   //flowdirTable
   
   const double pi = 3.141593; 
-  border = border + 1;
+  // border = border + 1;
   mat destination(ro, co,fill::zeros); 
   
   //double number = (flowdir(i,j)/(pi/4));
@@ -147,7 +147,7 @@ mat Subsurface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat M,
   const double pi = 3.141593; 
   
   mat destination(ro, co,fill::zeros); 
-  border = border + 1;
+  // border = border + 1;
   
   
   int a;
@@ -189,13 +189,13 @@ mat Subsurface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat M,
     }
   }
   for (int kk=0; kk < co; kk++){
-    destination((ro-border),kk) = destination((ro-border),kk) + destination(0,kk);
-    destination(0,kk) = destination(0,kk) + destination((ro-border),kk);
+    destination((ro-border),kk) = destination((ro-border),kk) + destination(border,kk);
+    destination(border,kk) = destination(border,kk) + destination((ro-border),kk);
   }
   
   for (int ll=0; ll < ro; ll++){
-    destination(ll,0) = destination(ll,0) + destination(ll,(co-border));
-    destination(ll,(co-border)) = destination(ll,(co-border)) + destination(ll,0);
+    destination(ll,border) = destination(ll,border) + destination(ll,(co-border));
+    destination(ll,(co-border)) = destination(ll,(co-border)) + destination(ll,border);
   }
   
   return destination;
@@ -315,7 +315,7 @@ mat seedDiffusionGain(int ro, int co, int border, mat DiffdirTable, mat Medium ,
   
   mat diffgain(ro, co,fill::zeros);
   float divide = 1.0/8.0;
-  border = border + 1; 
+  // border = border + 1; 
   
   int a;
   int x;

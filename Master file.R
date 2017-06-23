@@ -8,7 +8,7 @@ library("RcppArmadillo")
 
 source("Rainfall.R")
 
-time <- 100
+time <- 300
 
 # Rainlist <- list()
 # # ## RAINFALL GENERATION
@@ -45,11 +45,11 @@ saltpar1 <- Salt_cpp("Groundwater")  ## other options: "Rain", "Both", "None", "
 ### Raster size
 
 Z <- 2000.0 ##Groundwater depth in mm from 0 elevation
-rows <- 20## rows of cells
-cols <- 20## columns of cells
+rows <- 30## rows of cells
+cols <- 30## columns of cells
 
 # "diverseInput"
-deltat <- 5 # temporal discretization, subdaily timesteps
+deltat <- 12 # temporal discretization, subdaily timesteps
 gslp <- 0.05 # hillslope [%]
 # infiltration
 alpha_i <- 1.0
@@ -61,7 +61,7 @@ ext <- 200.0
 # soil moisture diffusivity
 Dm <- 0.27 #Saco and Moreno-de las Heras,2013
 # coefficient impact of plant interference
-zeta <- 0.2
+zeta <- 1.0
 # ecosystem carrying capacity
 P0 <-  500.0
 # sensitivity to salinity
@@ -69,23 +69,25 @@ sigmaP <- 2.0
 # interference parameters, competition and facilitation
 b1 <- 0.9
 b2 <- 0.1
-q1 <-  0.1
-q2 <-  0.3
+q1 <-  1.0
+q2 <-  2.0
 # seed dispersal and diffusion
-c1 <- 2.25; # [1/mm] Saco and Moreno-de las Heras 2013
-c02 <- 0.0002 ;  #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2013
+c1 <- 2.25 # [1/mm] Saco and Moreno-de las Heras 2013
+c02 <- 0.0002   #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 2013
 #seed diffusivity
 Dp <- 0.0003 #Saco and Moreno-de las Heras,2013
 Zr <- 400.0 # mm, Grass
 
 #sourcing and running the model
 sourceCpp("Model_revised.cpp")  
+# sourceCpp("ModelTaudem.cpp")  
 
 # visualization
 library(rasterVis)
 coul = brewer.pal(8, "YlGn")
 coul = colorRampPalette(coul)(100)
-qr<-brick(results$fields[[6]][2:19,2:19,10:40])
-levelplot(qr,main="P [g/m^2] ",sub="day 10 to day 40, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
+qr<-brick(results$fields[[6]][4:26,4:26,150:200])
+# results$fields[[10]][5:16,5:16,173]
+levelplot(qr,main="P [g/m^2] ",sub="day 150 to day 200, salt from gw, alpha and lambda like in Tennant Creek, NT", col.regions = coul) #col.regions = YlGn.colors(20))
 # animate(qr, n=1)
 # results$fields[[6]][2:19,2:19,1:100]

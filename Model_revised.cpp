@@ -57,7 +57,7 @@ double Gr(double M, double P, double c, double gmax, double k1){
 double Mo(double P, double d, double sigmaP, double CM){
   
   // double Mort= P/(1 + exp(d- (sigmaP * CM))); //d* CM * sigmaP
-  double Mort = P + (((d*P)-P)/(1+pow((CM/10.0),sigmaP)));
+  double Mort = P + (((d*P)-P)/(1+pow(CM,sigmaP)));
   
   return Mort;
   
@@ -222,7 +222,7 @@ mat Distances(int ro, int co, double kk, double ll, double dx){  ///kk and ll ar
 } 
 // plant Interference function (competition/facilitation)
 // [[Rcpp::export]]
-double interference(int ro, int co, double kk, double ll, mat Psub, double dx, double b1, double b2, double q1, double q2, double pi = 3.141593){  // doubel L
+double interference(int border, int ro, int co, double kk, double ll, mat Psub, double dx, double b1, double b2, double q1, double q2, double pi = 3.141593){  // doubel L
   
   mat interf(ro, co,fill::zeros);
   mat w(ro, co,fill::zeros);
@@ -231,8 +231,8 @@ double interference(int ro, int co, double kk, double ll, mat Psub, double dx, d
   int jj;
   
   
-  for (ii=0; ii< (ro); ii++) {
-    for (jj=0; jj< (co); jj++){
+  for (ii=border; ii< (ro-border); ii++) {
+    for (jj=border; jj< (co-border); jj++){
       
       // w = (1/(2*pi*(L*L))) * exp(-(Distances(ro, co, kk, ll, dx) * Distances(ro, co, kk, ll, dx)))/(2*(L*L));
       
@@ -244,8 +244,8 @@ double interference(int ro, int co, double kk, double ll, mat Psub, double dx, d
     }
   }
   double sum =0.0;
-  for (ii=0; ii< (ro); ii++) {
-    for (jj=0; jj< (co); jj++){
+  for (ii=border; ii< (ro-border); ii++) {
+    for (jj=border; jj< (co-border); jj++){
       
       interf(ii,jj) = w(ii,jj) * Psub(ii,jj);
       
@@ -621,12 +621,22 @@ mat write_elev(int rows, int cols, double gslp, double ext){  // has to be rewri
   int iii;
   mat elev(rows, cols, fill::randn);
   
+  for (int ii=0; ii < rows; ii++)
+  {
+    for (int jj=0; jj < cols; jj++)
+    {
+      elev(ii,jj) = elev(ii,jj) * 0.001;
+    }
+  }
+  
   elev.row(0) = elev.row(0) + (gslp * ext);
   
   for (iii=1; iii< rows; iii++) {
     
     elev.row(iii) = elev.row(iii)+(gslp * (ext-((ext/rows) * (iii-1))));
   }
+  
+
   return elev;
 }
 // Just a function to find a condition and produce a submatrix (used in following function)
@@ -690,7 +700,7 @@ mat Z_matrix(mat elev, int ro, int co, double Z){
     
     for (jj = 0; jj< co; jj++){
       
-      m(ii,jj) = elev(ii,jj) * 1000.0 + Z;
+      m(ii,jj) = elev(ii,jj) + Z;
       
     }
   }
@@ -767,7 +777,7 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
   // //mat slope = sub1(slop,1);
   
   
-  
+
   // //// Creating the DEM
   mat elev = write_elev(rows, cols, gslp, ext);
   // matrix with elevation differences
@@ -778,9 +788,18 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
   mat flowdir_new = flowdir_load();
   //slope of each cell
   mat slope = slope_load();
-  
+
   // Creating the groundwater depth matrix
   mat Zras = Z_matrix(elev, rows, cols,  Z);
+  
+  // arma::mat elev;
+  // elev.load("B.txt");
+  // mat flowdir_new = flowdir_load();
+  // //slope of each cell
+  // mat slope = slope_load();
+  // 
+  // // Creating the groundwater depth matrix
+  // mat Zras = Z_matrix(elev, rows, cols,  Z);
   
   
   // different parameters have to be set
@@ -820,6 +839,35 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
   
   
   /// storage cubes (arrays) for the subdaily time steps tt:
+  
+ 
+  
+  
+  
+  /// storage cubes (arrays for the daily timesteps t:
+  
+  arma::cube h = arma::zeros(rows, cols, time);
+  arma::cube q = arma::zeros(rows, cols, time);
+  arma::cube runon = arma::zeros(rows, cols, time);
+  arma::cube In = arma::zeros(rows, cols, time);
+  arma::cube P = arma::zeros(rows, cols, time);
+  arma::cube Wu = arma::zeros(rows, cols, time);
+  arma::cube M = arma::zeros(rows, cols, time);
+  arma::cube flux = arma::zeros(rows, cols, time);
+  arma::cube CM = arma::zeros(rows, cols, time);
+  arma::cube SmI = arma::zeros(rows, cols, time);
+  arma::cube SmM = arma::zeros(rows, cols, time);
+  arma::cube Svir = arma::zeros(rows, cols, time);
+  arma::cube mb = arma::zeros(rows, cols, time);
+  arma::cube mb_salt = arma::zeros(rows, cols, time);
+  arma::cube qsd = arma::zeros(rows, cols, time);
+  arma::cube runonsd = arma::zeros(rows, cols, time);
+  arma::cube seep = arma::zeros(rows, cols, time);
+  arma::cube Smh = arma::zeros(rows, cols, time);
+  arma::cube Ch = arma::zeros(rows, cols, time);
+  arma::cube runonSubsSalt = arma::zeros(rows, cols, time);
+  arma::cube salt_runon = arma::zeros(rows, cols, time);
+  arma::cube Subsrunon = arma::zeros(rows, cols, time);
   
   /// HYDROLOGY
   // overland flow depth
@@ -881,44 +929,17 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
   // salt concentration in h
   arma::cube Ch_sub = arma::zeros(rows, cols, deltat);
   
-  
-  
-  /// storage cubes (arrays for the daily timesteps t:
-  
-  arma::cube h = arma::zeros(rows, cols, time);
-  arma::cube q = arma::zeros(rows, cols, time);
-  arma::cube runon = arma::zeros(rows, cols, time);
-  arma::cube In = arma::zeros(rows, cols, time);
-  arma::cube P = arma::zeros(rows, cols, time);
-  arma::cube Wu = arma::zeros(rows, cols, time);
-  arma::cube M = arma::zeros(rows, cols, time);
-  arma::cube flux = arma::zeros(rows, cols, time);
-  arma::cube CM = arma::zeros(rows, cols, time);
-  arma::cube SmI = arma::zeros(rows, cols, time);
-  arma::cube SmM = arma::zeros(rows, cols, time);
-  arma::cube Svir = arma::zeros(rows, cols, time);
-  arma::cube mb = arma::zeros(rows, cols, time);
-  arma::cube mb_salt = arma::zeros(rows, cols, time);
-  arma::cube qsd = arma::zeros(rows, cols, time);
-  arma::cube runonsd = arma::zeros(rows, cols, time);
-  arma::cube seep = arma::zeros(rows, cols, time);
-  arma::cube Smh = arma::zeros(rows, cols, time);
-  arma::cube Ch = arma::zeros(rows, cols, time);
-  arma::cube runonSubsSalt = arma::zeros(rows, cols, time);
-  arma::cube salt_runon = arma::zeros(rows, cols, time);
-  arma::cube Subsrunon = arma::zeros(rows, cols, time);
-  
-  
   // actual model loop starts here
   
   for (t = 1; t< (time-1); t++){
+ 
     
-    for (i=(border-1); i< (rows-border); i++) {
+    for (i= border; i< (rows-border); i++) {
       
-      for (j=(border-1); j< (cols-border); j++ ){
+      for (j= border; j< (cols-border); j++ ){
         
         //initialise cubes at t= 0
-        h(i,j,0) = 10.0;
+        h(i,j,0) = 0.1;
         P(i,j,0) = 150.0;
         M(i,j,0) = 50.0;
         Svir(i,j,0) = 50.0;
@@ -944,20 +965,19 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
             Ch_sub(i,j,tt) = Ch(i,j,t-1);
             seep_sub(i,j,tt) = seep(i,j,t-1);
           }
-          if((tt==0) & (P(i,j,t-1) < 0)){
-            P(i,j,t-1) = 0;
+          if((tt==0) & (P(i,j,t-1) < 0.0)){
+            P(i,j,t-1) = 0.0;
           }
           
           double Rain_in;
           
-          if ((Rain(t) > 0.0) & (tt == 0)){
-            Rain_in = 10.0 * Rain(t);
-          } else {
-            Rain_in = 0.0;
-          }
-          
-          
-          
+          // if ((Rain(t) > 0.0) & (tt == 0)){
+          //   Rain_in = 10.0 * Rain(t);
+          // } else {
+          //   Rain_in = 0.0;
+          // }
+            Rain_in = timeincr * Rain(t);
+ 
           // adjust infiltration rate
           if(h_sub(i,j,tt) < (timeincr * K_s_in)) {
             alpha_i = 1.0;
@@ -967,7 +987,7 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           
           
           // Runoff
-          q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt), cn, Mn, (0.001*slope(i,j)));
+          q_sub(i,j,tt+1) =  timeincr * OF(h_sub(i,j,tt), cn, Mn, slope(i,j));
           
           
           // Runon
@@ -981,27 +1001,29 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           h_sub(i,j,tt+1) =  h_sub(i,j,tt) + Rain_in
             - (timeincr * Infil(h_sub(i,j,tt),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt) + runon_sub(i,j,tt+1);
           
-          
-          //           // Ponding check and rewrite of elevation mat
-          //           // if (((h_sub(i,j,tt+1) + elev(i,j)*1000.0) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
-          //           //   
-          //           //   mat elev_substitute(rows,cols);
-          //           //   elev_substitute = elev;
-          //           //   elev_substitute(i,j) =  elev(i,j) + diff(i,j);
-          //           //   
-          //           //   List flwslp = flowdir_slope_generation(elev_substitute, rows,cols);
-          //           //   
-          //           //   mat new_Slope = flwslp[2];
-          //           //   
-          //           //   q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt+1), cn, Mn, new_Slope(i,j));
-          //           //   
-          //           //   runon_store = Surface(rows, cols, flwslp[1], write_flowdirTable(), q_sub.slice(tt+1), ones);
-          //           //   runon_sub(i,j,tt+1) = runon_store(i,j);
-          //           //   
-          //           //   h_sub(i,j,tt+1) =  h_sub(i,j,tt+1) + Rain_in
-          //           //     - (timeincr * Infil(h_sub(i,j,tt+1),P_sub(i,j,tt+1), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt+1) + runon_sub(i,j,tt+1);
-          //           //   
-          //           // }
+          //    Ponding check and rewrite of elevation mat
+          if (((h_sub(i,j,tt+1) + (elev(i,j)*1000.0)) > (diff(i,j)*1000.0)) & (diff(i,j) > 0.0)){ // times 1000 for [mm]
+
+            mat elev_substitute(rows,cols);
+            // elev_substitute = elev;
+            elev_substitute(i,j) =  elev(i,j) + diff(i,j);
+
+            // calling TauDEM again
+            int bla = call_Taudem(elev_substitute);
+            // flow directions
+            mat flowdir_adj = flowdir_load();
+            //slope of each cell
+            mat slope_adj = slope_load();
+
+            q_sub(i,j,tt+1) = timeincr * OF(h_sub(i,j,tt+1), cn, Mn, slope_adj(i,j));
+
+            runon_store = Surface(rows, cols, border, flowdir_adj, write_flowdirTable(), q_sub.slice(tt), ones);
+            runon_sub(i,j,tt+1) = runon_store(i,j);
+
+            h_sub(i,j,tt+1) =  h_sub(i,j,tt+1) + Rain_in
+              - (timeincr * Infil(h_sub(i,j,tt+1),P_sub(i,j,tt), alpha_i, k_in, W0_in)) - q_sub(i,j,tt+1) + seep_sub(i,j,tt) + runon_sub(i,j,tt+1);
+
+          }
           
           //Infiltration
           I_sub(i,j,tt+1) = timeincr * Infil(h_sub(i,j,tt+1), P_sub(i,j,tt) , alpha_i, k_in, W0_in); 
@@ -1019,21 +1041,9 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           Gr_sub(i,j,tt) = timeincr * Gr(Svir_sub(i,j,tt), P_sub(i,j,tt), c_in, gmax_in, k1_in); //, P0, sigmaP, CM_sub(i,j,tt));
           
           //  plant Mortality
-          Mo_sub(i,j,tt) = timeincr * Mo(P_sub(i,j,tt), d_in, sigmaP, CM_sub(i,j,tt));
+          Mo_sub(i,j,tt) =   timeincr * Mo(P_sub(i,j,tt), d_in, sigmaP, CM_sub(i,j,tt));
           
-          // seed transport with runoff/runon
-          // mat c2 = timeincr * c02*exp(-sigmaP*CM_sub.slice(tt));
-          
-          // if((q_sub(i,j,tt+1) > c1) & (q_sub(i,j,tt+1)<c2(i,j)))
-          // {
-          //   qsd_sub(i,j,tt+1) = (1.0/c1) * q_sub(i,j,tt+1)*P_sub(i,j,tt); //(Saco, 2007)
-          //   //qsd_sub(i,j,tt) = c1 * q_sub(i,j,tt)*P_sub(i,j,tt); //(Saco, 2007)
-          // }
-          // 
-          // if((q_sub(i,j,tt+1)*c1) > c2(i,j)){ //(Saco, 2007)
-          //   qsd_sub(i,j,tt) = c2(i,j) * P_sub(i,j,tt);
-          // }
-          // 
+    
           
           if((q_sub(i,j,tt+1) > c1) & (q_sub(i,j,tt+1)<c02))
           {
@@ -1061,18 +1071,31 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           
           //  Plant biomass balance
           
-         // P_sub(i,j,tt+1) = P_sub(i,j,tt) + Gr_sub(i,j,tt) - Mo_sub(i,j,tt) - qsd_sub(i,j,tt) + germ * runonsd_sub(i,j,tt) - seed_diff_loss(i,j) + germ * seed_diff_gain(i,j);// + zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
+         
        
-          double P01 = P0*exp(-sigmaP*CM_sub(i,j,tt));
+          double P01 = 0.01 + P0*exp(-sigmaP*CM_sub(i,j,tt));
           
 
-          P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  + seed_diff_gain(i,j))*(1.0 -(P_sub(i,j,tt)/P01))- Mo_sub(i,j,tt) - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0)); //+ zeta * interference(rows,cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2);
-          //Rcpp::Rcout << P_sub;
-
-          if (P_sub(i,j,tt+1) < 0){
-            P_sub(i,j,tt+1) = 0;
+          // P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  
+          // + seed_diff_gain(i,j))*(1.0 -(P_sub(i,j,tt)/P01))- Mo_sub(i,j,tt) 
+          // - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0));
+          
+          if (interference(border, rows, cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2) > 0.0) {
+            P_sub(i,j,tt+1) = P_sub(i,j,tt) + ((Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  
+               + seed_diff_gain(i,j) + zeta*interference(border, rows, cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2))*(1.0-(P_sub(i,j,tt)/P01)))- Mo_sub(i,j,tt) 
+            - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j))*(P01/P0));
           }
+          else {
+            P_sub(i,j,tt+1) = P_sub(i,j,tt) + (Gr_sub(i,j,tt)  +  runonsd_sub(i,j,tt)  
+            + seed_diff_gain(i,j))*(1.0 -(P_sub(i,j,tt)/P01))- Mo_sub(i,j,tt) 
+            - ((qsd_sub(i,j,tt) + seed_diff_loss(i,j) - zeta*interference(border, rows, cols, i,j,P_sub.slice(tt), dx, b1, b2, q1, q2))*(P01/P0));
+          }
+            
           
+          if (P_sub(i,j,tt+1) < 0.0){
+            P_sub(i,j,tt+1) = 0.0;
+          }
+
           //vertical water flux (capillary rise/drainage)
           flux_sub(i,j,tt) = L_n(M_sub(i,j,tt+1),Zras(i,j),n_in,Zr_in,b_in,hb_in,K_s_in,psi_s_bar_in);
           
@@ -1080,6 +1103,7 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           //adjustment for soil mositure balance
           M_sub(i,j,tt+1) = M_sub(i,j,tt+1) +  (timeincr * flux_sub(i,j,tt));
           
+        
           // Seepage
           if(M_sub(i,j,tt+1) > (s_fc_in * n_in * Zr_in)){
             
@@ -1087,14 +1111,7 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
             // soil moisture adjustment due to seepage (if condition is met)
             M_sub(i,j,tt+1) = M_sub(i,j,tt+1) - seep_sub(i,j,tt);
           }
-          //           // Subsurface lateral flow
-          //mat ones(rows, cols, fill::ones);
-          mat Subsurfacerunon_store = Subsurface(rows, cols, border,flowdir_new, write_flowdirTable(), M_sub.slice(tt+1),  ones, Dm, timeincr);
-          Subsrunon_sub(i,j,tt) = Subsurfacerunon_store(i,j);
-          
-          //adjustment for soil mositure balance (complete now)
-          M_sub(i,j,tt+1) = M_sub(i,j,tt+1) + Subsrunon_sub(i,j,tt) - (Dm * timeincr * M_sub(i,j,tt+1));
-          
+  
           // salt leaching
           if(flux_sub(i,j,tt) < 0.0 ){
             L_salt(i,j,tt) = f_in * CM_sub(i,j,tt) * (timeincr * flux_sub(i,j,tt));
@@ -1104,27 +1121,21 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           
           // salt upflow
           if(flux_sub(i,j,tt) > 0.0 ) {
-            U_salt(i,j,tt) = CMgw_in * (timeincr * flux_sub(i,j,tt));
+            U_salt(i,j,tt) =  CMgw_in * (timeincr * flux_sub(i,j,tt));
           } else {
             U_salt(i,j,tt) = 0.0;
           }
           
           // # salt mass coming in with infiltration
           SmI_sub(i,j,tt+1) = SmI_sub(i,j,tt) + (I_sub(i,j,tt+1) * Ch_sub(i,j,tt));
-          //           
-          //           // salt mass coming in through lateral subsurface flow
-          mat runonSubsSalt_store(rows, cols, fill::ones);
-          runonSubsSalt_store = Subsurface(rows, cols, border, flowdir_new, write_flowdirTable(), M_sub.slice(tt+1), CM_sub.slice(tt), Dm, timeincr);
-          runonSubsSalt_sub(i,j,tt) = runonSubsSalt_store(i,j);
-          //           
+       
           // #salt mass balance in soil
-          SmM_sub(i,j,tt+1) = SmI_sub(i,j,tt+1) + U_salt(i,j,tt) - L_salt(i,j,tt) - (CM_sub(i,j,tt) * seep_sub(i,j,tt)) + runonSubsSalt_sub(i,j,tt) -
-            (Dm * timeincr * CM_sub(i,j,tt) * M_sub(i,j,tt+1));
-          
+          SmM_sub(i,j,tt+1) = SmI_sub(i,j,tt+1) + U_salt(i,j,tt) - L_salt(i,j,tt) - (CM_sub(i,j,tt) * seep_sub(i,j,tt));
+
           //  salt concentration in soil
+
           CM_sub(i,j,tt+1) = SmM_sub(i,j,tt+1)/M_sub(i,j,tt+1);
-          
-          
+
           
           // # Virtual saturation (Shah et al., 2012), here in [mm] to be in the same unit as M
           Svir_sub(i,j,tt+1) = n_in * Zr_in * (pow((h1bar_in * 0.1),(1.0/b_in))) *
@@ -1149,9 +1160,8 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
           //           
           // // salt balance
           //           
-          mb_salt_sub(i,j,tt) = SmI_sub(i,j,tt) + U_salt(i,j,tt) + runonSubsSalt_sub(i,j,tt) - (CM_sub(i,j,tt)*seep_sub(i,j,tt)) -
-            L_salt(i,j,tt) - (Dm * timeincr * CM_sub(i,j,tt) * M_sub(i,j,tt));
-          // # checking the mass balance
+          mb_salt_sub(i,j,tt) = SmI_sub(i,j,tt) + U_salt(i,j,tt)  - (CM_sub(i,j,tt)*seep_sub(i,j,tt)) - L_salt(i,j,tt);
+          // # checking the water mass balance
           mb_sub(i,j,tt) = I_sub(i,j,tt) - WU_sub(i,j,tt) + (flux_sub(i,j,tt) * timeincr);
           
         }
@@ -1253,54 +1263,9 @@ List SurfaceSoilSaltWBGRID(int border, Rcpp::List soilpar, Rcpp::List vegpar, Rc
 }
 
 /*** R
-results <- SurfaceSoilSaltWBGRID(border = 4, soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar1,
+resultsnew <- SurfaceSoilSaltWBGRID(border = 1, soilpar=soilpar1, vegpar=vegpar1,saltpar = saltpar4,
                                  dims = list(rows=rows,cols=cols,time=time, Z=Z),  Rain=Rain,
                                  diverseInput = list (deltat = deltat, gslp = gslp, ext=ext, Zr=Zr, Dm = Dm, alpha_i = alpha_i, cn = cn, Mn = Mn, P0 = P0, sigmaP= sigmaP,
                                                       c1 = c1, c02 = c02, Dp = Dp, b1 = b1, b2 = b2, q1 = q1, q2 = q2, zeta = zeta))
-# #   library(rasterVis)
-# #   coul = brewer.pal(8, "YlGn")
-#   coul = colorRampPalette(coul)(100)
-# # 
-# # 
-  # qr<-brick(results$fields[[6]][2:9,2:9,150:170])
-   # levelplot(qr,main="P [g/m^2] ",sub="day 1 to day 50, salt from gw, randomly varied alpha and lambda", col.regions = coul) #col.regions = YlGn.colors(20))
-# # 
-# #   # results$fields[[3]][2:19,2:19,2]
-# #   
-#   results$fields[[6]][2:19,2:19,98]
-
-  
-# results$fields[[6]][2:19,2:19,90:91]
-# # results$fields[[6]][2:19,2:19,94]
-# # results$fields[[6]][2:19,2:19,1:10]
-# # results$fields[[6]][2:19,2:39,100]
-# # results$fields[[1]][2:19,2:19,280]
-# # results$fields[[6]][1:20,1:20,1:20]
-#  animate(qr, n=1)
-# # # 
-# # results$fields[[2]]
-# results$fields[[6]]
-# f1( 0 ) = h;
-# f1( 1 ) = q;
-# f1( 2 ) = In;
-# f1( 3 ) = runon;
-# f1( 4 ) = Wu;
-# f1( 5 ) = P;
-# f1( 6 ) = flux;
-# f1( 7 ) = M;
-# f1( 8 ) = SmM;
-# f1( 9 ) = CM;
-# f1( 10 ) = mb;
-# f1( 11 ) = Svir;
-# f1( 12 ) = SmI;
-# f1( 13 ) = Smh;
-# f1( 14 ) = Ch;
-# f1( 15 ) = qsd;
-# f1( 16 ) = runonsd;
-# f1( 17 ) = seep;
-# f1( 18 ) = runonSubsSalt;
-# f1( 19 ) = salt_runon;
-# f1( 20 ) = Subsrunon;
-# f1( 21 ) = mb_salt;
   
   */

@@ -1,0 +1,32 @@
+Anneka
+
+Seepage, why is seepage different from drainage/capillary upflow? Looks like you are doing this twice?
+Profile is not free draining.
+At high rainfall, there is surplus water as Salvucci equation cannot drain fast enough
+Where is seepage going? To runoff or to drainage? Seems to go runoff, so saturation excess runoff
+
+The soil moisture balance now in mm? Has this been corrected for Svir?
+
+Plant water uptake is this actually in mm? Related to M, so maybe this bring mm?
+Nope, divided: M/(M+k1) so ratio. therefore units gmax*P should be mm!!
+P is in g/m2 so gmax needs to be mm*m2/g: indeed: Saco & Moreno (2013): mm g-1 m2 d-1
+This is related to plant biomass, need to check this against Saco & Moreno las Heras
+
+Conversion salt mass to salt concentration?
+kg salt/(mm3/mm3) = mm3*kg/mm3 how do we get to mg/L? 
+Salt mass is divided by mm depth: mass/length
+
+Analysis of parameters, are these all correct?
+This is way too high. Salt concentration in rainfall is in the order of 1 mg/L
+# salt concentration in rainfall
+ConcConst <-  0.01 #g/L
+
+Again this is far too high, 3000 mg/L, which is 4500 uS/cm.
+Maybe that is OK, but not for shallow groundwater? 
+If we assume 800 uS/cm this should be 500 mg/L or 0.5 g/L 
+# groundwater salt concentration
+CMgw <- 3.0 #g/L 
+
+Is this reasonable? The carrying capacity might be high: 50 g/m2??
+# ecosystem carrying capacity, [g/m2]
+P0 <-  500.0

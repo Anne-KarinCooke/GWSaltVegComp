@@ -7,9 +7,9 @@
 # install.packages("devtools")
 library("devtools")
 find_rtools() # check wheter it finds Rtools, otherwise Rcpp won't run
-install.packages("Rcpp")
+#install.packages("Rcpp")
 library("Rcpp")
-install.packages("RcppArmadillo")
+#install.packages("RcppArmadillo")
 library("RcppArmadillo")
 # # packages for the patch and diversity analysis 
 library("SDMTools")
@@ -37,7 +37,7 @@ lambda <- 0.16 #d/event
 # Rain <- c(Rain*10) # to be in mm
 
 # Read in actual rainfall data
-TennantAirport <- read.csv("M:/Master thesis/tennant creek airport/IDCJAC0009_015135_1800_Data.csv", header= T, sep = ",")
+TennantAirport <- read.csv("data/IDCJAC0009_015135_1800_Data.csv", header= T, sep = ",")
 Rain2 <-TennantAirport$Rainfall.amount..millimetres.
 Rain2 <- na.omit(Rain2)
 Rain2 <- c(Rain2)
@@ -74,7 +74,7 @@ c02 <- 0.0002   #[m/d] tranformed to [mm/deltat] Saco and Moreno-de las Heras 20
 Dp <- 0.3 #Saco and Moreno-de las Heras,2013
 b1 <- 0.5 # relative importance of facilitation [0 -1]
 b2 <- 0.5 # relative importance of competition [0 - 1]
-Zr <- 300 #mm root depth
+Zr <- 400 #mm root depth
 f <-1 # leaching factor [ 0 -1]
 
 

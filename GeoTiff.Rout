@@ -1,0 +1,43 @@
+
+R version 3.4.2 (2017-09-28) -- "Short Summer"
+Copyright (C) 2017 The R Foundation for Statistical Computing
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+
+R is free software and comes with ABSOLUTELY NO WARRANTY.
+You are welcome to redistribute it under certain conditions.
+Type 'license()' or 'licence()' for distribution details.
+
+  Natural language support but running in an English locale
+
+R is a collaborative project with many contributors.
+Type 'contributors()' for more information and
+'citation()' on how to cite R or R packages in publications.
+
+Type 'demo()' for some demos, 'help()' for on-line help, or
+'help.start()' for an HTML browser interface to help.
+Type 'q()' to quit R.
+
+> library("raster")
+Loading required package: sp
+> library("rgdal")
+rgdal: version: 1.2-13, (SVN revision 686)
+ Geospatial Data Abstraction Library extensions to R successfully loaded
+ Loaded GDAL runtime: GDAL 2.2.0, released 2017/04/28
+ Path to GDAL shared files: C:/Users/rver4657/Documents/R/win-library/3.4/rgdal/gdal
+ Loaded PROJ.4 runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
+ Path to PROJ.4 shared files: C:/Users/rver4657/Documents/R/win-library/3.4/rgdal/proj
+ Linking to sp version: 1.2-5 
+> new_elev <- as.matrix(read.table("B.txt"))
+> new_elev_rast <- raster(new_elev) 
+> new_elev_tiff <- writeRaster(new_elev_rast, filename="new_elevfel.tif", format="GTiff", overwrite=TRUE)
+> # DInf flow directions
+> system("mpiexec -n 8 DinfFlowdir -ang new_elevang.tif -slp new_elevslp.tif -fel new_elevfel.tif",show.output.on.console=F,invisible=F)
+Warning message:
+running command 'mpiexec -n 8 DinfFlowdir -ang new_elevang.tif -slp new_elevslp.tif -fel new_elevfel.tif' had status 127 
+> slp=raster("new_elevslp.tif")
+Error in .local(.Object, ...) : 
+
+Error in .rasterObjectFromFile(x, band = band, objecttype = "RasterLayer",  : 
+  Cannot create a RasterLayer object from this file. (file does not exist)
+Calls: raster -> raster -> .local -> .rasterObjectFromFile
+Execution halted

@@ -86,7 +86,7 @@ mat Surface(int ro, int co, int border, mat flowdir, mat flowdirTable, mat qq, m
   int jj;
   
   for (ii=1; ii< (ro-1); ii++) {
-    / 
+
     for (jj=1; jj< (co-1); jj++ ){    
       
       for (a=0; a < 8; a++) {
@@ -570,7 +570,7 @@ List TheFunction1(int border, Rcpp::List soilpar,
   
   // //// Creating the DEM
   arma::mat elev1;
-  elev1.load("B1.txt"); // DEM input
+  elev1.load("Data/B1.txt"); // DEM input
   mat elev2 = sub1(elev1,1);
   mat elev = add_Slope_to_Elev(elev2, rows, gslp, ext); 
   
